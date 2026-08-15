@@ -1,0 +1,32 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  datasource:
+    url: jdbc:mariadb://${DB_HOST:mariadb}:${DB_PORT:3306}/${DB_NAME:dcs}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: ${DB_USERNAME:dcs}
+    password: ${DB_PASSWORD:changeme}
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+  thymeleaf:
+    cache: false
+
+dcsmanager:
+  security:
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:changeme}
+
+dcsserver:
+  base-url: ${DCSSERVER_URL:https://dcsserver:8444}
+  api-key: ${DCSSERVER_API_KEY:changeme}
+  poll-interval-ms: ${DCSSERVER_POLL_INTERVAL_MS:3000}
+
+logging:
+  level:
+    com.dcsmanager: DEBUG

@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  dcsagent:
+    image: dcsregistry:5000/dcsagent:latest
+    container_name: dcsagent
+    hostname: dcsagent
+    restart: always
+    ports:
+      - "8443:8443"
+    environment:
+      - AGENT_API_KEY=${AGENT_API_KEY}
+      - DCS_BASE_DIR=/docker/dcs
+      - DCSSERVER_URL=${DCSSERVER_URL}
+    volumes:
+      - /docker/dcs:/docker/dcs:Z
+      - /data001:/data001:Z
+      - /logs001:/logs001:Z
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker:ro
+      - /usr/local/bin/docker-compose:/usr/bin/docker-compose:ro
+    security_opt:
+      - label:disable

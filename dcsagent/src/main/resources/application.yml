@@ -1,0 +1,27 @@
+server:
+  port: ${SERVER_PORT:8443}
+  ssl:
+    enabled: true
+    key-store: classpath:keystore.p12
+    key-store-password: ${SSL_KEYSTORE_PASSWORD:changeme}
+    key-store-type: PKCS12
+    key-alias: dcsagent
+
+agent:
+  base-dir: ${DCS_BASE_DIR:/docker/dcs}
+  api-key: ${AGENT_API_KEY:changeme}
+  compose-command: ${COMPOSE_COMMAND:docker-compose}
+  command-timeout-seconds: ${COMMAND_TIMEOUT_SECONDS:120}
+  status-interval-ms: ${STATUS_INTERVAL_MS:3000}
+  data-base-dir: ${DCS_DATA_BASE_DIR:/data001}
+  logs-base-dir: ${DCS_LOGS_BASE_DIR:/logs001}
+  runtime-owner: ${DCS_RUNTIME_OWNER:5000:5000}
+
+# DCSServer 는 이 에이전트와 다른 물리 서버에 있을 수 있으므로 반드시 실제 도달 가능한
+# 주소로 설정해야 한다 (도커 네트워크 이름에 의존하지 않음). 기본값 없음 - 필수 설정.
+dcsserver:
+  base-url: ${DCSSERVER_URL}
+
+logging:
+  level:
+    com.dcsagent: DEBUG

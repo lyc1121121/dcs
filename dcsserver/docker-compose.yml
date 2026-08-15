@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  dcsserver:
+    image: dcsregistry:5000/dcsserver:latest
+    container_name: dcsserver
+    hostname: dcsserver
+    restart: always
+    ports:
+      - "8444:8444"
+    environment:
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_NAME=dcs
+      - DB_USERNAME=dcs
+      - DB_PASSWORD=${DB_PASSWORD}
+      - AGENT_PORT=${AGENT_PORT:-8443}
+      - AGENT_API_KEY=${AGENT_API_KEY}
+      - SERVER_API_KEY=${SERVER_API_KEY}
+    networks:
+      - manage_default
+
+networks:
+  manage_default:
+    external: true

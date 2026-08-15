@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>DCSManager - 목록</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <header class="page-header">
+        <h1>DCSManager</h1>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn">로그아웃</button>
+        </form>
+    </header>
+
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+
+    <div class="tabs">
+        <button type="button" id="btn-tab1" class="tab-button" onclick="showTab('tab1')">DCS 컨테이너</button>
+        <button type="button" id="btn-tab2" class="tab-button" onclick="showTab('tab2')">기타 컨테이너</button>
+    </div>
+
+    <div id="tab1" class="tab-panel">
+        <div class="toolbar">
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('createDialog').showModal()">+ 신규 등록</button>
+        </div>
+
+        <table class="dcs-table">
+            <thead>
+            <tr>
+                <th>삭제</th>
+                <th>DCS_ID</th>
+                <th>DCS_DOT_ID</th>
+                <th>IMAGE_VERSION</th>
+                <th>MODE</th>
+                <th>SIZE</th>
+                <th>PORT_DCS1</th>
+                <th>PORT_DCS2</th>
+                <th>SERVER_IP</th>
+                <th>STATUS</th>
+                <th>관리</th>
+            </tr>
+            </thead>
+            <tbody id="tab1-body">
+            <tr th:if="${#lists.isEmpty(dcsList)}">
+                <td colspan="11" class="empty">등록된 DCS 가 없습니다.</td>
+            </tr>
+            <tr th:each="dcs : ${dcsList}"
+                th:with="status=${statuses.get(dcs.dcsId)}, known=${status != null and !status.stale}">
+                <td>
+                    <form th:action="@{/dcs/{id}/delete(id=${dcs.dcsId})}" method="post" class="inline-form"
+                          onsubmit="return confirm('DCS_ID [' + this.dataset.id + '] 를 삭제할까요? 이 작업은 되돌릴 수 없습니다.');"
+                          th:data-id="${dcs.dcsId}">
+                        <button type="submit" class="btn btn-sm btn-delete" th:disabled="${known and status.running}"
+                                title="삭제">&#10005;</button>
+                    </form>
+                </td>
+                <td th:text="${dcs.dcsId}"></td>
+                <td th:text="${dcs.dcsDotId}"></td>
+                <td th:text="${dcs.dcsImageVersion}"></td>
+                <td>
+                    <span th:text="${dcs.dcsMode}"
+                          th:classappend="${dcs.dcsMode.name() == 'PROD'} ? 'badge badge-prod' : 'badge badge-dev'"></span>
+                </td>
+                <td th:text="${dcs.dcsSize}"></td>
+                <td th:text="${dcs.portDcs1}"></td>
+                <td th:text="${dcs.portDcs2}"></td>
+                <td th:text="${dcs.dcsServerIp}" th:classappend="${!known} ? 'cell-unknown'"></td>
+                <td>
+                    <span th:if="${known and status.running}" class="badge badge-running">실행중</span>
+                    <span th:if="${known and !status.running}" class="badge badge-stopped">중지됨</span>
+                    <span th:if="${!known}" class="badge badge-unknown">상태 확인 불가</span>
+                </td>
+                <td class="actions-cell">
+                    <button type="button" class="btn btn-sm" onclick="openEditModal(this)"
+                            th:data-id="${dcs.dcsId}"
+                            th:data-image-version="${dcs.dcsImageVersion}"
+                            th:data-mode="${dcs.dcsMode}"
+                            th:data-size="${dcs.dcsSize}"
+                            th:data-port1="${dcs.portDcs1}"
+                            th:data-port2="${dcs.portDcs2}"
+                            th:data-server-ip="${dcs.dcsServerIp}">수정</button>
+                    <form th:action="@{/dcs/{id}/up(id=${dcs.dcsId})}" method="post" class="inline-form"
+                          onsubmit="return confirm('DCS_ID [' + this.dataset.id + '] 컨테이너를 올릴까요?');"
+                          th:data-id="${dcs.dcsId}">
+                        <button type="submit" class="btn btn-sm btn-up" th:disabled="${known and status.running}"
+                                title="컨테이너 올리기">&#9650;</button>
+                    </form>
+                    <form th:action="@{/dcs/{id}/down(id=${dcs.dcsId})}" method="post" class="inline-form"
+                          onsubmit="return confirm('DCS_ID [' + this.dataset.id + '] 컨테이너를 내릴까요?');"
+                          th:data-id="${dcs.dcsId}">
+                        <button type="submit" class="btn btn-sm btn-down" th:disabled="${known and !status.running}"
+                                title="컨테이너 내리기">&#9660;</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="tab2" class="tab-panel">
+        <table class="dcs-table">
+            <thead>
+            <tr>
+                <th>삭제</th>
+                <th>이름</th>
+                <th>IMAGE_VERSION</th>
+                <th>PORT_NUM</th>
+                <th>실행중인IP</th>
+                <th>STATUS</th>
+                <th>관리</th>
+            </tr>
+            </thead>
+            <tbody id="tab2-body">
+            <tr th:if="${#lists.isEmpty(otherContainers)}">
+                <td colspan="7" class="empty">표시할 컨테이너가 없습니다.</td>
+            </tr>
+            <tr th:each="c : ${otherContainers}">
+                <td>
+                    <form th:action="@{/containers/{name}/delete(name=${c.name})}" method="post" class="inline-form"
+                          onsubmit="return confirm('[' + this.dataset.name + '] 를 삭제할까요? 이 작업은 되돌릴 수 없습니다.');"
+                          th:data-name="${c.name}">
+                        <input type="hidden" name="serverIp" th:value="${c.serverIp}"/>
+                        <button type="submit" class="btn btn-sm btn-delete" th:disabled="${c.running}"
+                                title="삭제">&#10005;</button>
+                    </form>
+                </td>
+                <td th:text="${c.name}"></td>
+                <td th:text="${c.image}"></td>
+                <td th:text="${c.ports}"></td>
+                <td th:text="${c.serverIp}"></td>
+                <td>
+                    <span th:if="${c.running}" class="badge badge-running">실행중</span>
+                    <span th:unless="${c.running}" class="badge badge-stopped">중지됨</span>
+                </td>
+                <td class="actions-cell">
+                    <form th:action="@{/containers/{name}/start(name=${c.name})}" method="post" class="inline-form"
+                          onsubmit="return confirm('[' + this.dataset.name + '] 컨테이너를 시작할까요?');"
+                          th:data-name="${c.name}">
+                        <input type="hidden" name="serverIp" th:value="${c.serverIp}"/>
+                        <button type="submit" class="btn btn-sm btn-up" th:disabled="${c.running}"
+                                title="시작">&#9650;</button>
+                    </form>
+                    <form th:action="@{/containers/{name}/stop(name=${c.name})}" method="post" class="inline-form"
+                          onsubmit="return confirm('[' + this.dataset.name + '] 컨테이너를 중지할까요?');"
+                          th:data-name="${c.name}">
+                        <input type="hidden" name="serverIp" th:value="${c.serverIp}"/>
+                        <button type="submit" class="btn btn-sm btn-down" th:disabled="${!c.running}"
+                                title="중지">&#9660;</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<dialog id="createDialog" class="dcs-dialog">
+    <h2 id="createDialogHandle" class="dialog-handle">DCS 신규 등록</h2>
+
+    <form th:action="@{/dcs}" th:object="${dcsForm}" method="post" class="dcs-form">
+
+        <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-error">
+            <ul>
+                <li th:each="err : ${#fields.globalErrors()}" th:text="${err}"></li>
+            </ul>
+        </div>
+
+        <div class="form-row">
+            <label for="c-dcsId">DCS_ID (PK)</label>
+            <input type="text" id="c-dcsId" th:field="*{dcsId}" placeholder="10자리 숫자, 예: 1300100021"/>
+            <p class="field-error" th:if="${#fields.hasErrors('dcsId')}" th:errors="*{dcsId}"></p>
+        </div>
+
+        <div class="form-row">
+            <label for="c-dcsImageVersion">DCS_IMAGE_VERSION</label>
+            <input type="text" id="c-dcsImageVersion" th:field="*{dcsImageVersion}"/>
+            <p class="field-error" th:if="${#fields.hasErrors('dcsImageVersion')}" th:errors="*{dcsImageVersion}"></p>
+        </div>
+
+        <div class="form-row">
+            <label>DCS_DOT_ID</label>
+            <p class="readonly-value">DCS_ID 저장 시 자동 계산됩니다</p>
+        </div>
+
+        <div class="form-row">
+            <label for="c-dcsMode">DCS_MODE</label>
+            <select id="c-dcsMode" th:field="*{dcsMode}">
+                <option value="">선택하세요</option>
+                <option value="DEV">DEV (개발)</option>
+                <option value="PROD">PROD (운영)</option>
+            </select>
+            <p class="field-error" th:if="${#fields.hasErrors('dcsMode')}" th:errors="*{dcsMode}"></p>
+        </div>
+
+        <div class="form-row">
+            <label for="c-dcsSize">DCS_SIZE</label>
+            <input type="number" id="c-dcsSize" th:field="*{dcsSize}" min="1"/>
+            <p class="field-error" th:if="${#fields.hasErrors('dcsSize')}" th:errors="*{dcsSize}"></p>
+        </div>
+
+        <div class="form-row">
+            <label for="c-portDcs1">PORT_DCS1 (DCS2TerminalX.jar)</label>
+            <input type="number" id="c-portDcs1" th:field="*{portDcs1}" min="1" max="65535"/>
+            <p class="field-error" th:if="${#fields.hasErrors('portDcs1')}" th:errors="*{portDcs1}"></p>
+        </div>
+
+        <div class="form-row">
+            <label for="c-portDcs2">PORT_DCS2 (DCS2TerminalX_tr.jar)</label>
+            <input type="number" id="c-portDcs2" th:field="*{portDcs2}" min="1" max="65535"/>
+            <p class="field-error" th:if="${#fields.hasErrors('portDcs2')}" th:errors="*{portDcs2}"></p>
+        </div>
+
+        <div class="form-row">
+            <label for="c-dcsServerIp">DCS_SERVER_IP</label>
+            <input type="text" id="c-dcsServerIp" th:field="*{dcsServerIp}" placeholder="예: 100.125.13.91"/>
+            <p class="field-error" th:if="${#fields.hasErrors('dcsServerIp')}" th:errors="*{dcsServerIp}"></p>
+            <p class="hint">이 DCS_ID의 집계 컨테이너가 실제로 실행될 대상 서버의 IP입니다.</p>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">저장</button>
+            <button type="button" class="btn" onclick="document.getElementById('createDialog').close()">취소</button>
+        </div>
+    </form>
+</dialog>
+
+<dialog id="editDialog" class="dcs-dialog">
+    <h2 id="editDialogHandle" class="dialog-handle">DCS 수정</h2>
+
+    <form id="editForm" th:action="@{/dcs/{id}(id=${dcsForm.dcsId})}" th:object="${dcsForm}" method="post" class="dcs-form">
+
+        <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-error">
+            <ul>
+                <li th:each="err : ${#fields.globalErrors()}" th:text="${err}"></li>
+            </ul>
+        </div>
+
+        <div class="form-row">
+            <label for="e-dcsId">DCS_ID (PK)</label>
+            <input type="text" id="e-dcsId" th:field="*{dcsId}" readonly="readonly"/>
+            <p class="hint">DCS_ID는 수정할 수 없습니다.</p>
+        </div>
+
+        <div class="form-row">
+            <label for="e-dcsImageVersion">DCS_IMAGE_VERSION</label>
+            <input type="text" id="e-dcsImageVersion" th:field="*{dcsImageVersion}"/>
+            <p class="field-error" th:if="${#fields.hasErrors('dcsImageVersion')}" th:errors="*{dcsImageVersion}"></p>
+        </div>
+
+        <div class="form-row">
+            <label>DCS_DOT_ID</label>
+            <p class="readonly-value">DCS_ID 기준으로 자동 계산됩니다</p>
+        </div>
+
+        <div class="form-row">
+            <label for="e-dcsMode">DCS_MODE</label>
+            <select id="e-dcsMode" th:field="*{dcsMode}">
+                <option value="">선택하세요</option>
+                <option value="DEV">DEV (개발)</option>
+                <option value="PROD">PROD (운영)</option>
+            </select>
+            <p class="field-error" th:if="${#fields.hasErrors('dcsMode')}" th:errors="*{dcsMode}"></p>
+        </div>
+
+        <div class="form-row">
+            <label for="e-dcsSize">DCS_SIZE</label>
+            <input type="number" id="e-dcsSize" th:field="*{dcsSize}" min="1"/>
+            <p class="field-error" th:if="${#fields.hasErrors('dcsSize')}" th:errors="*{dcsSize}"></p>
+        </div>
+
+        <div class="form-row">
+            <label for="e-portDcs1">PORT_DCS1 (DCS2TerminalX.jar)</label>
+            <input type="number" id="e-portDcs1" th:field="*{portDcs1}" min="1" max="65535"/>
+            <p class="field-error" th:if="${#fields.hasErrors('portDcs1')}" th:errors="*{portDcs1}"></p>
+        </div>
+
+        <div class="form-row">
+            <label for="e-portDcs2">PORT_DCS2 (DCS2TerminalX_tr.jar)</label>
+            <input type="number" id="e-portDcs2" th:field="*{portDcs2}" min="1" max="65535"/>
+            <p class="field-error" th:if="${#fields.hasErrors('portDcs2')}" th:errors="*{portDcs2}"></p>
+        </div>
+
+        <div class="form-row">
+            <label for="e-dcsServerIp">DCS_SERVER_IP</label>
+            <input type="text" id="e-dcsServerIp" th:field="*{dcsServerIp}" placeholder="예: 100.125.13.91"/>
+            <p class="field-error" th:if="${#fields.hasErrors('dcsServerIp')}" th:errors="*{dcsServerIp}"></p>
+            <p class="hint">이 DCS_ID의 집계 컨테이너가 실제로 실행될 대상 서버의 IP입니다.</p>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">저장</button>
+            <button type="button" class="btn" onclick="document.getElementById('editDialog').close()">취소</button>
+        </div>
+    </form>
+</dialog>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var shouldOpenCreateModal = /*[[${openCreateModal}]]*/ false;
+    var shouldOpenEditModal = /*[[${openEditModal}]]*/ false;
+    var popupError = /*[[${popupError}]]*/ null;
+    if (shouldOpenCreateModal) {
+        document.getElementById('createDialog').showModal();
+    }
+    if (shouldOpenEditModal) {
+        document.getElementById('editDialog').showModal();
+    }
+    if (popupError) {
+        alert(popupError);
+    }
+
+    function makeDraggable(dialogId, handleId) {
+        var dialog = document.getElementById(dialogId);
+        var handle = document.getElementById(handleId);
+        var dragging = false;
+        var offsetX = 0;
+        var offsetY = 0;
+
+        handle.addEventListener('mousedown', function (e) {
+            dragging = true;
+            var rect = dialog.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+            dialog.style.margin = '0';
+            dialog.style.left = rect.left + 'px';
+            dialog.style.top = rect.top + 'px';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', function (e) {
+            if (!dragging) {
+                return;
+            }
+            dialog.style.left = (e.clientX - offsetX) + 'px';
+            dialog.style.top = (e.clientY - offsetY) + 'px';
+        });
+
+        document.addEventListener('mouseup', function () {
+            dragging = false;
+        });
+
+        dialog.addEventListener('close', function () {
+            dialog.style.left = '';
+            dialog.style.top = '';
+            dialog.style.margin = '';
+        });
+    }
+
+    makeDraggable('createDialog', 'createDialogHandle');
+    makeDraggable('editDialog', 'editDialogHandle');
+
+    function showTab(id) {
+        document.getElementById('tab1').style.display = (id === 'tab2') ? 'none' : '';
+        document.getElementById('tab2').style.display = (id === 'tab2') ? '' : 'none';
+        document.getElementById('btn-tab1').classList.toggle('active', id !== 'tab2');
+        document.getElementById('btn-tab2').classList.toggle('active', id === 'tab2');
+        location.hash = id;
+    }
+    showTab(location.hash === '#tab2' ? 'tab2' : 'tab1');
+
+    function openEditModal(btn) {
+        document.getElementById('editForm').action = '/dcs/' + btn.dataset.id;
+        document.getElementById('e-dcsId').value = btn.dataset.id;
+        document.getElementById('e-dcsImageVersion').value = btn.dataset.imageVersion;
+        document.getElementById('e-dcsMode').value = btn.dataset.mode;
+        document.getElementById('e-dcsSize').value = btn.dataset.size;
+        document.getElementById('e-portDcs1').value = btn.dataset.port1;
+        document.getElementById('e-portDcs2').value = btn.dataset.port2;
+        document.getElementById('e-dcsServerIp').value = btn.dataset.serverIp;
+        document.getElementById('editDialog').showModal();
+    }
+
+    // 목록은 주기적으로 최신화하되, 페이지 전체를 다시 불러오면 화면이 깜빡이므로
+    // tbody 내용만 부분적으로 교체한다. 등록/수정 팝업이 열려 있는 동안은 건너뛴다.
+    function refreshLists() {
+        var creating = document.getElementById('createDialog').open;
+        var editing = document.getElementById('editDialog').open;
+        if (creating || editing) {
+            return;
+        }
+        fetch(location.pathname, {credentials: 'same-origin'})
+            .then(function (res) {
+                return res.text();
+            })
+            .then(function (html) {
+                var doc = new DOMParser().parseFromString(html, 'text/html');
+                var newTab1 = doc.getElementById('tab1-body');
+                var newTab2 = doc.getElementById('tab2-body');
+                if (newTab1) {
+                    document.getElementById('tab1-body').innerHTML = newTab1.innerHTML;
+                }
+                if (newTab2) {
+                    document.getElementById('tab2-body').innerHTML = newTab2.innerHTML;
+                }
+            })
+            .catch(function () {
+                // 일시적인 네트워크 오류는 무시하고 다음 주기에 다시 시도한다.
+            });
+    }
+    setInterval(refreshLists, 5000);
+    /*]]>*/
+</script>
+</body>
+</html>

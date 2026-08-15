@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  tmoneydcs:
+    image: dcsregistry:5000/tmoneydcs:${DCS_IMAGE_VERSION}
+    container_name: dcs${DCS_ID}
+    hostname: dcs${DCS_ID}
+    environment:
+      - DCS_ID=${DCS_DOT_ID}
+      - DCS_MODE=${DCS_MODE}
+      - TZ=Asia/Seoul
+      - LANG=ko_KR.UTF-8
+      - DCS_SIZE=${DCS_SIZE}
+    user: 5000:5000
+    volumes:
+      - /data001/dcs${DCS_ID}/data001/:/data001/:Z
+      - /data001/dcs${DCS_ID}/ssc/:/ssc/:Z
+      - /logs001/dcs${DCS_ID}/:/logs001/:Z
+    ports:
+      - "${PORT_DCS1}:20000"
+      - "${PORT_DCS2}:30000"
+    security_opt:
+      - label:disable
+    restart: always

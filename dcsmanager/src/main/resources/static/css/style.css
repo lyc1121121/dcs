@@ -1,0 +1,112 @@
+* { box-sizing: border-box; }
+body {
+    font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    background: #f4f6f8;
+    color: #222;
+    margin: 0;
+}
+.container {
+    max-width: 1500px;
+    width: 96%;
+    margin: 40px auto;
+    background: #fff;
+    padding: 24px 32px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+.login-container {
+    max-width: 360px;
+}
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+h1 { font-size: 22px; margin-bottom: 16px; }
+.toolbar { margin-bottom: 16px; }
+.dcs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.dcs-table th, .dcs-table td {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 10px 8px;
+    text-align: left;
+    font-size: 14px;
+    white-space: nowrap;
+}
+.dcs-table th { background: #fafafa; }
+.dcs-table .empty { text-align: center; color: #888; padding: 24px; }
+.badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #fff;
+}
+.badge-prod { background: #d64545; }
+.badge-dev { background: #4a7fd6; }
+.btn {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #333;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+.btn-primary { background: #2f6fed; border-color: #2f6fed; color: #fff; }
+.btn-sm { padding: 4px 10px; font-size: 13px; }
+.dcs-form .form-row { margin-bottom: 14px; }
+.dcs-form label { display: block; margin-bottom: 4px; font-weight: bold; font-size: 13px; }
+.dcs-form input, .dcs-form select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.dcs-form input[readonly] { background: #f0f0f0; color: #777; }
+.readonly-value { padding: 8px; background: #f0f0f0; border-radius: 4px; color: #555; }
+.hint { color: #888; font-size: 12px; margin-top: 4px; }
+.field-error { color: #d64545; font-size: 12px; margin-top: 4px; }
+.form-actions { margin-top: 20px; display: flex; gap: 8px; }
+.alert { padding: 10px 14px; border-radius: 4px; margin-bottom: 16px; font-size: 14px; }
+.alert-success { background: #e6f4ea; color: #1e7a34; }
+.alert-error { background: #fdecea; color: #b3261e; }
+.actions-cell { display: flex; align-items: center; gap: 6px; }
+.inline-form { display: inline-block; margin: 0; }
+.btn-up, .btn-down { padding: 4px 8px; line-height: 1; }
+.btn-up { color: #1e7a34; border-color: #1e7a34; }
+.btn-down { color: #b3261e; border-color: #b3261e; }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.badge-running { background: #1e7a34; }
+.badge-stopped { background: #888; }
+.badge-unknown { background: #cc9a06; }
+.cell-unknown { background: #e2e2e2; color: #777; }
+.btn-delete { color: #b3261e; border-color: #b3261e; font-weight: bold; }
+.dcs-dialog {
+    width: 90%;
+    max-width: 480px;
+    border: none;
+    border-radius: 8px;
+    padding: 24px 28px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+.dcs-dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+.dialog-handle { cursor: move; user-select: none; padding-bottom: 8px; border-bottom: 1px solid #eee; }
+.dcs-dialog h2 { margin-top: 0; font-size: 18px; margin-bottom: 16px; }
+.tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 2px solid #e0e0e0; }
+.tab-button {
+    padding: 10px 20px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 15px;
+    color: #666;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+}
+.tab-button.active { color: #2f6fed; border-bottom-color: #2f6fed; font-weight: bold; }
+.tab-panel .toolbar { margin-top: 0; }

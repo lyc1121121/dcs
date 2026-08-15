@@ -1,0 +1,16 @@
+# 이 저장소는 DCS 관련 3개 프로젝트만 관리합니다.
+/*
+!/dcsmanager/
+!/dcsserver/
+!/dcsagent/
+!.gitignore
+
+# 빌드 산출물 제외
+**/target/
+**/*.class
+
+# 실제 TLS 키/인증서 자료 - 소스코드가 아니라 배포 시 별도로 관리해야 함
+**/*.p12
+**/*.jks
+**/*.pem
+**/*.key

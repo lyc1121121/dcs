@@ -1,0 +1,33 @@
+server:
+  port: ${SERVER_PORT:8444}
+  ssl:
+    enabled: true
+    key-store: classpath:keystore.p12
+    key-store-password: ${SSL_KEYSTORE_PASSWORD:changeme}
+    key-store-type: PKCS12
+    key-alias: dcsserver
+
+spring:
+  datasource:
+    url: jdbc:mariadb://${DB_HOST:mariadb}:${DB_PORT:3306}/${DB_NAME:dcs}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: ${DB_USERNAME:dcs}
+    password: ${DB_PASSWORD:changeme}
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+
+agent-client:
+  port: ${AGENT_PORT:8443}
+  api-key: ${AGENT_API_KEY:changeme}
+
+server-security:
+  api-key: ${SERVER_API_KEY:changeme}
+
+status:
+  stale-after-seconds: ${STATUS_STALE_AFTER_SECONDS:30}
+
+logging:
+  level:
+    com.dcsserver: DEBUG
