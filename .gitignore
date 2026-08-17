@@ -1,8 +1,10 @@
-# 이 저장소는 DCS 관련 3개 프로젝트만 관리합니다.
+# 이 저장소는 DCS 관련 프로젝트들을 관리합니다.
 /*
 !/dcsmanager/
 !/dcsserver/
 !/dcsagent/
+!/eaiagent/
+!/eaiserver/
 !.gitignore
 
 # 빌드 산출물 제외

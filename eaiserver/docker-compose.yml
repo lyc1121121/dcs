@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  eaiserver:
+    image: dcsregistry:5000/eaiserver:latest
+    container_name: eaiserver
+    hostname: eaiserver
+    restart: always
+    ports:
+      - "8445:8445"
+      - "9500:9500"
+    environment:
+      - EAI_PORT=9500
+      - EAI_RECEIVE_BASE_DIR=/data001/eai_received
+    volumes:
+      - /data001:/data001:Z

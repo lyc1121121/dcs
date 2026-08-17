@@ -1,0 +1,13 @@
+server:
+  port: ${HTTP_PORT:8445}
+
+eaiserver:
+  port: ${EAI_PORT:9500}
+  receive-base-dir: ${EAI_RECEIVE_BASE_DIR:/data001/eai_received}
+  # 앞으로 각 dcsId 에 내려보낼 파일을 사람이(또는 나중에 AP서버 연동이) 여기 {outbox-base-dir}/{dcsId}/
+  # 아래에 두면, eai_agent 가 폴링할 때 내려받아간다.
+  outbox-base-dir: ${EAI_OUTBOX_BASE_DIR:/data001/eai_outbox}
+
+logging:
+  level:
+    com.eaiserver: DEBUG

@@ -1,0 +1,14 @@
+server:
+  port: ${HTTP_PORT:8446}
+
+eaiagent:
+  dcs-id: ${DCS_ID}
+  snd-dir: ${EAI_SND_DIR:/data001/dcs${DCS_ID}/ssc/APP/SND}
+  rcv-dir: ${EAI_RCV_DIR:/data001/dcs${DCS_ID}/ssc/APP/RCV}
+  server-host: ${EAI_SERVER_HOST}
+  server-port: ${EAI_SERVER_PORT:9500}
+  poll-interval-ms: ${EAI_POLL_INTERVAL_MS:2000}
+
+logging:
+  level:
+    com.eaiagent: DEBUG
