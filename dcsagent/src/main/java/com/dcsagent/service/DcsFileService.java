@@ -17,6 +17,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -34,6 +37,7 @@ public class DcsFileService {
     private final String dataBaseDir;
     private final String logsBaseDir;
     private final String runtimeOwner;
+    private final String eaiServerHost;
 
     public DcsFileService(
             @Value("${agent.base-dir:/docker/dcs}") String baseDir,
@@ -41,13 +45,15 @@ public class DcsFileService {
             @Value("${agent.command-timeout-seconds:120}") long commandTimeoutSeconds,
             @Value("${agent.data-base-dir:/data001}") String dataBaseDir,
             @Value("${agent.logs-base-dir:/logs001}") String logsBaseDir,
-            @Value("${agent.runtime-owner:5000:5000}") String runtimeOwner) {
+            @Value("${agent.runtime-owner:5000:5000}") String runtimeOwner,
+            @Value("${agent.eai-server-host}") String eaiServerHost) {
         this.baseDir = baseDir;
         this.composeCommand = composeCommand;
         this.commandTimeoutSeconds = commandTimeoutSeconds;
         this.dataBaseDir = dataBaseDir;
         this.logsBaseDir = logsBaseDir;
         this.runtimeOwner = runtimeOwner;
+        this.eaiServerHost = eaiServerHost;
     }
 
     public DcsCommandResult provision(String dcsId, DcsProvisionRequest req) throws IOException {
@@ -61,7 +67,8 @@ public class DcsFileService {
                 + "DCS_MODE=" + req.getDcsMode() + "\n"
                 + "DCS_SIZE=" + req.getDcsSize() + "\n"
                 + "PORT_DCS1=" + req.getPortDcs1() + "\n"
-                + "PORT_DCS2=" + req.getPortDcs2() + "\n";
+                + "PORT_DCS2=" + req.getPortDcs2() + "\n"
+                + "EAI_SERVER_HOST=" + eaiServerHost + "\n";
         Files.write(dir.resolve(".env"), envContent.getBytes(StandardCharsets.UTF_8));
 
         try (InputStream in = new ClassPathResource(COMPOSE_TEMPLATE).getInputStream()) {
@@ -114,6 +121,46 @@ public class DcsFileService {
                 Thread.currentThread().interrupt();
             }
         }
+    }
+
+    private static final DateTimeFormatter JAQT_TS = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    public static final int DEFAULT_SIMULATE_FILE_COUNT = 5;
+    public static final int DEFAULT_SIMULATE_INTERVAL_SECONDS = 1;
+
+    /**
+     * 실제로는 DCS2TerminalX_tr.jar 가 외부 단말기와 LTE로 통신해서 파일을 받아 이 폴더에 저장하는데,
+     * 그 과정을 흉내내서(시뮬레이션) 테스트용 JAQT 파일을 fileCount 개, intervalSeconds 간격으로 만든다.
+     * 파일명 규칙: JAQT.0.{dcsId 맨 뒷자리 제외}.{terminalId}.{yyyyMMddHHmmss}.C
+     * (105단계 확정 규칙, 예: dcsId=1300100090 -> 130010009)
+     */
+    public DcsCommandResult simulateJaqt(String dcsId, String terminalId, int fileCount, int intervalSeconds) throws IOException {
+        String shortDcsId = dcsId.length() > 1 ? dcsId.substring(0, dcsId.length() - 1) : dcsId;
+        Path jaqtDir = Paths.get(dataBaseDir, "dcs" + dcsId, "data001", "SlimDCS", "TRDATA", "JAQT");
+        if (!Files.isDirectory(jaqtDir)) {
+            return new DcsCommandResult(false, "JAQT 폴더가 존재하지 않습니다: " + jaqtDir, "");
+        }
+
+        StringBuilder output = new StringBuilder();
+        for (int i = 1; i <= fileCount; i++) {
+            String ts = LocalDateTime.now(KST).format(JAQT_TS);
+            String fileName = "JAQT.0." + shortDcsId + "." + terminalId + "." + ts + ".C";
+            Path file = jaqtDir.resolve(fileName);
+            Files.write(file, fileName.getBytes(StandardCharsets.UTF_8));
+            chown(file);
+            output.append(fileName).append('\n');
+            log.info("Simulated JAQT file created: {}", file);
+
+            if (i < fileCount && intervalSeconds > 0) {
+                try {
+                    TimeUnit.SECONDS.sleep(intervalSeconds);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return new DcsCommandResult(false, "생성이 중단되었습니다.", output.toString());
+                }
+            }
+        }
+        return new DcsCommandResult(true, fileCount + "개 파일 생성 완료", output.toString());
     }
 
     public DcsCommandResult decommission(String dcsId) throws IOException {

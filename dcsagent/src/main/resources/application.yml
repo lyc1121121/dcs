@@ -16,6 +16,9 @@ agent:
   data-base-dir: ${DCS_DATA_BASE_DIR:/data001}
   logs-base-dir: ${DCS_LOGS_BASE_DIR:/logs001}
   runtime-owner: ${DCS_RUNTIME_OWNER:5000:5000}
+  # 이 에이전트서버 위의 dcs 컨테이너들이 eai_agent 를 통해 파일을 보낼 eai_server 주소.
+  # 지금은 DCSManager 와 같은 서버에 있지만 나중에 분리될 수 있어 하드코딩하지 않는다.
+  eai-server-host: ${EAI_SERVER_HOST}
 
 # DCSServer 는 이 에이전트와 다른 물리 서버에 있을 수 있으므로 반드시 실제 도달 가능한
 # 주소로 설정해야 한다 (도커 네트워크 이름에 의존하지 않음). 기본값 없음 - 필수 설정.

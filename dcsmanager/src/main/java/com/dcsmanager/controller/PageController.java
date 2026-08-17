@@ -10,9 +10,4 @@ public class PageController {
     public String home() {
         return "redirect:/dcs";
     }
-
-    @GetMapping("/login")
-    public String login() {
-        return "login";
-    }
 }

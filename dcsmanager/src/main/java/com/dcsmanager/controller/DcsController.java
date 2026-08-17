@@ -1,7 +1,9 @@
 package com.dcsmanager.controller;
 
+import com.dcsmanager.domain.Dcs;
 import com.dcsmanager.service.DcsServerClient;
 import com.dcsmanager.service.DcsService;
+import com.dcsmanager.service.EaiServerClient;
 import com.dcsmanager.service.StatusCache;
 import com.dcsmanager.web.DcsForm;
 import org.springframework.stereotype.Controller;
@@ -12,21 +14,34 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 @Controller
 @RequestMapping("/dcs")
 public class DcsController {
 
+    private static final Pattern TERMINAL_ID_PATTERN = Pattern.compile("^[0-9]{9}$");
+
     private final DcsService dcsService;
     private final DcsServerClient dcsServerClient;
+    private final EaiServerClient eaiServerClient;
     private final StatusCache statusCache;
 
-    public DcsController(DcsService dcsService, DcsServerClient dcsServerClient, StatusCache statusCache) {
+    public DcsController(DcsService dcsService, DcsServerClient dcsServerClient,
+                          EaiServerClient eaiServerClient, StatusCache statusCache) {
         this.dcsService = dcsService;
         this.dcsServerClient = dcsServerClient;
+        this.eaiServerClient = eaiServerClient;
         this.statusCache = statusCache;
     }
 
@@ -164,6 +179,67 @@ public class DcsController {
                 result.isSuccess() ? "message" : "errorMessage",
                 "DCS_ID [" + dcsId + "] 내리기 요청 결과: " + result.getMessage());
         return "redirect:/dcs";
+    }
+
+    /**
+     * 105단계 시뮬레이션 테스트 섹션: SND 방향 - DCSAgent 가 JAQT 테스트 파일을
+     * fileCount 개, intervalSeconds 간격으로 생성하도록 요청. (디폴트: 5개, 1초)
+     */
+    @PostMapping("/{dcsId}/simulate")
+    public String simulate(@PathVariable String dcsId, @RequestParam String terminalId,
+                            @RequestParam(defaultValue = "5") int fileCount,
+                            @RequestParam(defaultValue = "1") int intervalSeconds,
+                            RedirectAttributes redirectAttributes) {
+        if (!TERMINAL_ID_PATTERN.matcher(terminalId).matches()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "단말기 ID는 숫자 9자리여야 합니다: " + terminalId);
+            return "redirect:/dcs";
+        }
+        if (fileCount < 1 || intervalSeconds < 0) {
+            redirectAttributes.addFlashAttribute("errorMessage", "개수는 1 이상, 시간간격은 0 이상이어야 합니다.");
+            return "redirect:/dcs";
+        }
+        DcsServerClient.DcsServerResult result = dcsServerClient.simulate(dcsId, terminalId, fileCount, intervalSeconds);
+        redirectAttributes.addFlashAttribute(
+                result.isSuccess() ? "message" : "errorMessage",
+                "DCS_ID [" + dcsId + "] 시뮬 요청 결과: " + result.getMessage());
+        return "redirect:/dcs";
+    }
+
+    /**
+     * 105/109단계 시뮬레이션 테스트 섹션: eai_server 에 실제 도착한 파일 목록 조회(AJAX). 이 DCS_ID의
+     * SERVER_IP 로 eai_server 주소를 계산해서 직접 호출한다(DCSServer 경유하지 않음).
+     * since(epoch millis) 가 주어지면 그 시각 이후 도착한 파일만 걸러서 반환한다
+     * (SND 시뮬 "시작" 버튼을 누른 시점 이후 도착분만 보여주기 위함).
+     */
+    @GetMapping("/{dcsId}/arrived")
+    @ResponseBody
+    public Map<String, Object> arrived(@PathVariable String dcsId,
+                                        @RequestParam(required = false) Long since) {
+        Dcs dcs = dcsService.get(dcsId);
+        List<EaiServerClient.ReceivedFile> files = eaiServerClient.listReceived(dcs.getDcsServerIp(), dcsId);
+        if (files == null) {
+            return Collections.singletonMap("ok", false);
+        }
+        List<String> fileNames = files.stream()
+                .filter(f -> since == null || f.getReceivedAt() >= since)
+                .map(EaiServerClient.ReceivedFile::getFileName)
+                .collect(java.util.stream.Collectors.toList());
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("ok", true);
+        body.put("files", fileNames);
+        return body;
+    }
+
+    /**
+     * 105단계 시뮬레이션 테스트 섹션: RCV 방향 - 화면에서 드래그드롭한 파일을 eai_server 의
+     * outbox 로 그대로 전달한다. eai_agent 가 다음 폴링 때 가져가서 RCV 폴더에 내려준다.
+     */
+    @PostMapping("/{dcsId}/rcv-upload")
+    @ResponseBody
+    public Map<String, Object> rcvUpload(@PathVariable String dcsId, @RequestParam("file") MultipartFile file) throws IOException {
+        Dcs dcs = dcsService.get(dcsId);
+        boolean ok = eaiServerClient.uploadToOutbox(dcs.getDcsServerIp(), dcsId, file.getOriginalFilename(), file.getBytes());
+        return Collections.singletonMap("ok", ok);
     }
 
     @PostMapping("/{dcsId}/delete")

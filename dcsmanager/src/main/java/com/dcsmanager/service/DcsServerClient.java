@@ -59,6 +59,11 @@ public class DcsServerClient {
         return call("/api/undeploy/" + dcsId);
     }
 
+    public DcsServerResult simulate(String dcsId, String terminalId, int fileCount, int intervalSeconds) {
+        return call("/api/simulate/" + dcsId + "?terminalId=" + terminalId
+                + "&fileCount=" + fileCount + "&intervalSeconds=" + intervalSeconds);
+    }
+
     /**
      * DCSServer 호출에 실패하면 null 을 반환한다 (직전에 캐시된 값을 유지할지는 호출자가 판단).
      */

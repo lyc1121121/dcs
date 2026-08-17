@@ -23,6 +23,36 @@ body {
     align-items: center;
 }
 h1 { font-size: 22px; margin-bottom: 16px; }
+.title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.title-row h1 { margin: 0; }
+.nav-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    border-radius: 20px;
+    background: #2f6fed;
+    color: #fff;
+    font-size: 13px;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: 0 1px 3px rgba(47, 111, 237, 0.4);
+    transition: background 0.15s, transform 0.1s;
+}
+.nav-badge:hover { background: #2559c7; transform: translateY(-1px); }
+.nav-badge .nav-badge-icon {
+    display: inline-flex;
+    justify-content: center;
+    width: 16px;
+    font-size: 14px;
+}
+.nav-badge-title {
+    background: #1f2937;
+    box-shadow: 0 1px 3px rgba(31, 41, 55, 0.4);
+    font-size: 15px;
+    cursor: default;
+}
+.nav-badge-title:hover { background: #1f2937; transform: none; }
 .toolbar { margin-bottom: 16px; }
 .dcs-table {
     width: 100%;
@@ -107,6 +137,51 @@ h1 { font-size: 22px; margin-bottom: 16px; }
     color: #666;
     border-bottom: 2px solid transparent;
     margin-bottom: -2px;
+    border-radius: 6px 6px 0 0;
+    transition: background 0.15s, color 0.15s;
 }
-.tab-button.active { color: #2f6fed; border-bottom-color: #2f6fed; font-weight: bold; }
+.tab-button:hover:not(.active) { color: #7c3aed; }
+.tab-button.active {
+    color: #7c3aed;
+    border-bottom-color: #7c3aed;
+    font-weight: bold;
+}
 .tab-panel .toolbar { margin-top: 0; }
+.terminal-input { width: 100px; padding: 4px; }
+.rcv-dropzone {
+    border: 2px dashed #ccc;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+    min-width: 160px;
+}
+.rcv-dropzone.dragover { border-color: #2f6fed; color: #2f6fed; background: #f0f5ff; }
+.arrived-count {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: bold;
+    background: #e6f4ea;
+    color: #1e7a34;
+    margin-right: 6px;
+}
+.arrived-dialog { width: max-content; max-width: 95vw; }
+.arrived-file-list {
+    width: max-content;
+    max-width: 100%;
+    max-height: 320px;
+    overflow-y: auto;
+    overflow-x: auto;
+    margin: 0;
+    padding-left: 20px;
+    font-size: 13px;
+}
+.arrived-file-list li {
+    white-space: nowrap;
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+.arrived-file-list li:last-child { border-bottom: none; }

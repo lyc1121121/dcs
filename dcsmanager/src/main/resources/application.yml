@@ -17,15 +17,18 @@ spring:
   thymeleaf:
     cache: false
 
-dcsmanager:
-  security:
-    username: ${ADMIN_USERNAME:admin}
-    password: ${ADMIN_PASSWORD:changeme}
-
 dcsserver:
   base-url: ${DCSSERVER_URL:https://dcsserver:8444}
   api-key: ${DCSSERVER_API_KEY:changeme}
   poll-interval-ms: ${DCSSERVER_POLL_INTERVAL_MS:3000}
+
+eaiserver:
+  http-port: ${EAI_SERVER_HTTP_PORT:8445}
+
+kakao:
+  rest-api-key: ${KAKAO_REST_API_KEY:}
+  client-secret: ${KAKAO_CLIENT_SECRET:}
+  token-file: ${KAKAO_TOKEN_FILE:/data001/kakao/refresh_token.txt}
 
 logging:
   level:

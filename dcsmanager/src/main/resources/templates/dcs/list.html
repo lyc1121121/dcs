@@ -8,10 +8,27 @@
 <body>
 <div class="container">
     <header class="page-header">
-        <h1>DCSManager</h1>
-        <form th:action="@{/logout}" method="post">
-            <button type="submit" class="btn">로그아웃</button>
-        </form>
+        <div class="title-row">
+            <h1 class="nav-badge nav-badge-title">
+                <span class="nav-badge-icon">🖥️</span>DCSManager
+            </h1>
+            <a href="http://172.30.1.54:9010/d/dcs-overview/b86e26c7-173f-5e25-8649-ddae63b346cf"
+               target="_blank" rel="noopener" class="nav-badge">
+                <span class="nav-badge-icon">📊</span>DCS통합 모니터링
+            </a>
+            <a href="http://172.30.1.54:9013/" target="_blank" rel="noopener" class="nav-badge">
+                <span class="nav-badge-icon">📦</span>Registry
+            </a>
+            <a href="http://172.30.1.54:4000/" target="_blank" rel="noopener" class="nav-badge">
+                <span class="nav-badge-icon">🐳</span>Advisor
+            </a>
+            <a href="http://172.30.1.54:4001/metrics" target="_blank" rel="noopener" class="nav-badge">
+                <span class="nav-badge-icon">📡</span>NodeExporter
+            </a>
+            <a href="http://172.30.1.54:9012/" target="_blank" rel="noopener" class="nav-badge">
+                <span class="nav-badge-icon">🗄️</span>MariaDB
+            </a>
+        </div>
     </header>
 
     <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
@@ -32,7 +49,6 @@
             <tr>
                 <th>삭제</th>
                 <th>DCS_ID</th>
-                <th>DCS_DOT_ID</th>
                 <th>IMAGE_VERSION</th>
                 <th>MODE</th>
                 <th>SIZE</th>
@@ -45,7 +61,7 @@
             </thead>
             <tbody id="tab1-body">
             <tr th:if="${#lists.isEmpty(dcsList)}">
-                <td colspan="11" class="empty">등록된 DCS 가 없습니다.</td>
+                <td colspan="10" class="empty">등록된 DCS 가 없습니다.</td>
             </tr>
             <tr th:each="dcs : ${dcsList}"
                 th:with="status=${statuses.get(dcs.dcsId)}, known=${status != null and !status.stale}">
@@ -58,7 +74,6 @@
                     </form>
                 </td>
                 <td th:text="${dcs.dcsId}"></td>
-                <td th:text="${dcs.dcsDotId}"></td>
                 <td th:text="${dcs.dcsImageVersion}"></td>
                 <td>
                     <span th:text="${dcs.dcsMode}"
@@ -95,6 +110,57 @@
                                 title="컨테이너 내리기">&#9660;</button>
                     </form>
                 </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h3 style="margin-top:24px;">시뮬레이션 테스트 (실행중인 DCS만 표시)</h3>
+        <table class="dcs-table">
+            <thead>
+            <tr>
+                <th>DCS_ID</th>
+                <th>단말기 ID</th>
+                <th>송신파일개수</th>
+                <th>송신시간간격(초)</th>
+                <th>SND 시뮬</th>
+                <th>eai_server 도착여부</th>
+                <th>RCV 테스트 (파일을 여기로 드래그)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="dcs : ${dcsList}"
+                th:if="${statuses.get(dcs.dcsId) != null and !statuses.get(dcs.dcsId).stale and statuses.get(dcs.dcsId).running}">
+                <td th:text="${dcs.dcsId}"></td>
+                <td>
+                    <input type="text" class="terminal-input" value="196510005" maxlength="9"
+                           th:id="${'sim-terminal-' + dcs.dcsId}"/>
+                </td>
+                <td>
+                    <input type="number" class="terminal-input" value="5" min="1"
+                           th:id="${'sim-count-' + dcs.dcsId}"/>
+                </td>
+                <td>
+                    <input type="number" class="terminal-input" value="1" min="0"
+                           th:id="${'sim-interval-' + dcs.dcsId}"/>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm" onclick="submitSimulate(this)"
+                            th:data-id="${dcs.dcsId}">시작</button>
+                </td>
+                <td>
+                    <span th:id="${'arrived-' + dcs.dcsId}" class="arrived-count"
+                          th:data-id="${dcs.dcsId}">확인 중...</span>
+                    <button type="button" class="btn btn-sm" onclick="openArrivedDialog(this)"
+                            th:data-id="${dcs.dcsId}">확인</button>
+                </td>
+                <td>
+                    <div class="rcv-dropzone" th:id="${'dropzone-' + dcs.dcsId}" th:data-id="${dcs.dcsId}">
+                        여기에 파일을 드래그하세요
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(dcsList)}">
+                <td colspan="7" class="empty">실행중인 DCS가 없습니다.</td>
             </tr>
             </tbody>
         </table>
@@ -297,6 +363,14 @@
     </form>
 </dialog>
 
+<dialog id="arrivedDialog" class="dcs-dialog arrived-dialog">
+    <h2 id="arrivedDialogHandle" class="dialog-handle">eai_server 도착 파일 목록</h2>
+    <ul id="arrivedFileList" class="arrived-file-list"></ul>
+    <div class="form-actions">
+        <button type="button" class="btn" onclick="document.getElementById('arrivedDialog').close()">닫기</button>
+    </div>
+</dialog>
+
 <script th:inline="javascript">
     /*<![CDATA[*/
     var shouldOpenCreateModal = /*[[${openCreateModal}]]*/ false;
@@ -351,6 +425,7 @@
 
     makeDraggable('createDialog', 'createDialogHandle');
     makeDraggable('editDialog', 'editDialogHandle');
+    makeDraggable('arrivedDialog', 'arrivedDialogHandle');
 
     function showTab(id) {
         document.getElementById('tab1').style.display = (id === 'tab2') ? 'none' : '';
@@ -401,6 +476,182 @@
             });
     }
     setInterval(refreshLists, 5000);
+
+    // ---- 105단계: 시뮬레이션 테스트 섹션 ----
+    var TERMINAL_ID_PATTERN = /^[0-9]{9}$/;
+
+    function submitSimulate(btn) {
+        var dcsId = btn.dataset.id;
+        var input = document.getElementById('sim-terminal-' + dcsId);
+        var terminalId = input.value.trim();
+        if (!TERMINAL_ID_PATTERN.test(terminalId)) {
+            alert('단말기 ID는 숫자 9자리여야 합니다.');
+            return;
+        }
+        var countInput = document.getElementById('sim-count-' + dcsId);
+        var intervalInput = document.getElementById('sim-interval-' + dcsId);
+        var fileCount = parseInt(countInput.value, 10);
+        var intervalSeconds = parseInt(intervalInput.value, 10);
+        if (!Number.isInteger(fileCount) || fileCount < 1) {
+            alert('개수는 1 이상의 숫자여야 합니다.');
+            return;
+        }
+        if (!Number.isInteger(intervalSeconds) || intervalSeconds < 0) {
+            alert('시간간격(초)은 0 이상의 숫자여야 합니다.');
+            return;
+        }
+        if (!confirm('DCS_ID [' + dcsId + '] 에 테스트 파일 ' + fileCount + '개를 '
+                + intervalSeconds + '초 간격으로 생성할까요? (완료까지 시간이 걸릴 수 있습니다)')) {
+            return;
+        }
+        // "eai_server 도착여부"는 이 시작 시점 이후 도착한 파일만 세도록 기준시각을 저장한다.
+        setSimSince(dcsId, Date.now());
+        var form = document.createElement('form');
+        form.method = 'post';
+        form.action = '/dcs/' + dcsId + '/simulate';
+        var fields = {terminalId: terminalId, fileCount: fileCount, intervalSeconds: intervalSeconds};
+        Object.keys(fields).forEach(function (name) {
+            var hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = name;
+            hidden.value = fields[name];
+            form.appendChild(hidden);
+        });
+        // JS로 만든 폼이라 Thymeleaf가 자동으로 넣어주는 CSRF 토큰이 없다.
+        // 페이지에 이미 서버가 렌더링해둔 다른 폼(예: 컨테이너 올리기/내리기)에서 그대로 가져와 붙인다.
+        var csrfInput = document.querySelector('input[name="_csrf"]');
+        if (csrfInput) {
+            var csrfHidden = document.createElement('input');
+            csrfHidden.type = 'hidden';
+            csrfHidden.name = '_csrf';
+            csrfHidden.value = csrfInput.value;
+            form.appendChild(csrfHidden);
+        }
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function simSinceKey(dcsId) {
+        return 'simSince_' + dcsId;
+    }
+
+    function getSimSince(dcsId) {
+        var v = localStorage.getItem(simSinceKey(dcsId));
+        return v ? parseInt(v, 10) : null;
+    }
+
+    function setSimSince(dcsId, epochMillis) {
+        localStorage.setItem(simSinceKey(dcsId), String(epochMillis));
+    }
+
+    function arrivedUrl(dcsId) {
+        var since = getSimSince(dcsId);
+        return '/dcs/' + dcsId + '/arrived' + (since ? ('?since=' + since) : '');
+    }
+
+    function refreshArrivedCounts() {
+        document.querySelectorAll('.arrived-count').forEach(function (span) {
+            var dcsId = span.dataset.id;
+            fetch(arrivedUrl(dcsId))
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    span.textContent = data.ok ? (data.files.length + '건 도착') : 'eai_server 확인 불가';
+                })
+                .catch(function () {
+                    span.textContent = '확인 실패';
+                });
+        });
+    }
+    refreshArrivedCounts();
+    setInterval(refreshArrivedCounts, 5000);
+
+    function formatNowHms() {
+        var now = new Date();
+        var pad = function (n) { return String(n).padStart(2, '0'); };
+        return pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+    }
+
+    function setArrivedDialogTitle(fileCount) {
+        var title = document.getElementById('arrivedDialogHandle');
+        title.textContent = 'eai_server 도착 파일목록(' + formatNowHms() + ', ' + fileCount + '개)';
+    }
+
+    function openArrivedDialog(btn) {
+        var dcsId = btn.dataset.id;
+        var dialog = document.getElementById('arrivedDialog');
+        var list = document.getElementById('arrivedFileList');
+        list.innerHTML = '';
+        var loading = document.createElement('li');
+        loading.textContent = '불러오는 중...';
+        list.appendChild(loading);
+        dialog.showModal();
+        fetch(arrivedUrl(dcsId))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                list.innerHTML = '';
+                if (!data.ok) {
+                    setArrivedDialogTitle(0);
+                    var errItem = document.createElement('li');
+                    errItem.textContent = 'eai_server 확인 불가';
+                    list.appendChild(errItem);
+                    return;
+                }
+                setArrivedDialogTitle(data.files.length);
+                if (data.files.length === 0) {
+                    var emptyItem = document.createElement('li');
+                    emptyItem.textContent = '도착한 파일이 없습니다.';
+                    list.appendChild(emptyItem);
+                    return;
+                }
+                data.files.slice().sort().forEach(function (fileName, index) {
+                    var item = document.createElement('li');
+                    var number = String(index + 1).padStart(3, '0');
+                    item.textContent = number + ' ' + fileName;
+                    list.appendChild(item);
+                });
+            })
+            .catch(function () {
+                setArrivedDialogTitle(0);
+                list.innerHTML = '';
+                var errItem = document.createElement('li');
+                errItem.textContent = '조회 실패';
+                list.appendChild(errItem);
+            });
+    }
+
+    document.querySelectorAll('.rcv-dropzone').forEach(function (zone) {
+        zone.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            zone.classList.add('dragover');
+        });
+        zone.addEventListener('dragleave', function () {
+            zone.classList.remove('dragover');
+        });
+        zone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            zone.classList.remove('dragover');
+            var dcsId = zone.dataset.id;
+            var file = e.dataTransfer.files[0];
+            if (!file) {
+                return;
+            }
+            var formData = new FormData();
+            formData.append('file', file);
+            var csrfInput = document.querySelector('input[name="_csrf"]');
+            if (csrfInput) {
+                formData.append('_csrf', csrfInput.value);
+            }
+            zone.textContent = '업로드 중...';
+            fetch('/dcs/' + dcsId + '/rcv-upload', { method: 'POST', body: formData })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    zone.textContent = data.ok ? (file.name + ' 업로드 완료') : '업로드 실패';
+                })
+                .catch(function () {
+                    zone.textContent = '업로드 실패';
+                });
+        });
+    });
     /*]]>*/
 </script>
 </body>

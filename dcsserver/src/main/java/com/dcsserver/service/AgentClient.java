@@ -60,6 +60,18 @@ public class AgentClient {
         return call(url, HttpMethod.POST, null);
     }
 
+    public DeployResult simulateJaqt(DcsConfig config, String terminalId, int fileCount, int intervalSeconds) {
+        DeployResult ipCheck = checkServerIp(config);
+        if (ipCheck != null) {
+            return ipCheck;
+        }
+        String url = buildUrl(config.getDcsServerIp(), config.getDcsId(), "simulate")
+                + "?terminalId=" + terminalId
+                + "&fileCount=" + fileCount
+                + "&intervalSeconds=" + intervalSeconds;
+        return call(url, HttpMethod.POST, null);
+    }
+
     public boolean checkConnectivity(String serverIp) {
         String url = "https://" + serverIp + ":" + agentPort + "/api/health";
         HttpHeaders headers = new HttpHeaders();

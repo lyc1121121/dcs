@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.NoSuchElementException;
@@ -36,6 +37,16 @@ public class DeployController {
     public ResponseEntity<DeployResult> undeploy(@PathVariable String dcsId) {
         DcsConfig config = findOrThrow(dcsId);
         DeployResult result = agentClient.down(config);
+        return respond(result);
+    }
+
+    @PostMapping("/simulate/{dcsId}")
+    public ResponseEntity<DeployResult> simulate(@PathVariable String dcsId,
+                                                   @RequestParam String terminalId,
+                                                   @RequestParam(defaultValue = "5") int fileCount,
+                                                   @RequestParam(defaultValue = "1") int intervalSeconds) {
+        DcsConfig config = findOrThrow(dcsId);
+        DeployResult result = agentClient.simulateJaqt(config, terminalId, fileCount, intervalSeconds);
         return respond(result);
     }
 
