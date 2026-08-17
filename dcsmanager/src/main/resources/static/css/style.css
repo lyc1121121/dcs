@@ -54,6 +54,16 @@ h1 { font-size: 22px; margin-bottom: 16px; }
 }
 .nav-badge-title:hover { background: #1f2937; transform: none; }
 .toolbar { margin-bottom: 16px; }
+.section-card {
+    display: block;
+    background: #fafbfc;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+}
+.section-card h3 { margin-top: 0; margin-bottom: 16px; }
+.section-card:last-child { margin-bottom: 0; }
 .dcs-table {
     width: 100%;
     border-collapse: collapse;

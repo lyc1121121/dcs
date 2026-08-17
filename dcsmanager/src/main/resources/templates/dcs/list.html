@@ -40,6 +40,8 @@
     </div>
 
     <div id="tab1" class="tab-panel">
+        <section class="section-card">
+        <h3>컨테이너 리스트</h3>
         <div class="toolbar">
             <button type="button" class="btn btn-primary" onclick="document.getElementById('createDialog').showModal()">+ 신규 등록</button>
         </div>
@@ -52,8 +54,8 @@
                 <th>IMAGE_VERSION</th>
                 <th>MODE</th>
                 <th>SIZE</th>
-                <th>PORT_DCS1</th>
-                <th>PORT_DCS2</th>
+                <th>PORT_1</th>
+                <th>PORT_2</th>
                 <th>SERVER_IP</th>
                 <th>STATUS</th>
                 <th>관리</th>
@@ -113,8 +115,10 @@
             </tr>
             </tbody>
         </table>
+        </section>
 
-        <h3 style="margin-top:24px;">시뮬레이션 테스트 (실행중인 DCS만 표시)</h3>
+        <section class="section-card">
+        <h3>시뮬레이션 테스트 (실행중인 DCS만 표시)</h3>
         <table class="dcs-table">
             <thead>
             <tr>
@@ -146,6 +150,8 @@
                 <td>
                     <button type="button" class="btn btn-sm" onclick="submitSimulate(this)"
                             th:data-id="${dcs.dcsId}">시작</button>
+                    <span th:id="${'sim-start-time-' + dcs.dcsId}" class="hint sim-start-time"
+                          th:data-id="${dcs.dcsId}"></span>
                 </td>
                 <td>
                     <span th:id="${'arrived-' + dcs.dcsId}" class="arrived-count"
@@ -164,6 +170,7 @@
             </tr>
             </tbody>
         </table>
+        </section>
     </div>
 
     <div id="tab2" class="tab-panel">
@@ -386,6 +393,16 @@
         alert(popupError);
     }
 
+    // 112단계: "마지막 시작" 시각은 버튼 클릭 시점이 아니라, 서버가 시뮬 요청을 실제로
+    // 성공 처리했을 때만(리다이렉트 시 플래시 속성으로) 기록한다 - confirm() 팝업이
+    // 브라우저에 의해 억제되거나 서버 요청이 실패해도 옛 시각이 그대로 남는 문제를 방지한다.
+    var simStartedDcsId = /*[[${simStartedDcsId}]]*/ null;
+    var simStartedAt = /*[[${simStartedAt}]]*/ null;
+    if (simStartedDcsId && simStartedAt) {
+        setSimSince(simStartedDcsId, simStartedAt);
+        renderSimStartTime(simStartedDcsId);
+    }
+
     function makeDraggable(dialogId, handleId) {
         var dialog = document.getElementById(dialogId);
         var handle = document.getElementById(handleId);
@@ -501,11 +518,11 @@
             return;
         }
         if (!confirm('DCS_ID [' + dcsId + '] 에 테스트 파일 ' + fileCount + '개를 '
-                + intervalSeconds + '초 간격으로 생성할까요? (완료까지 시간이 걸릴 수 있습니다)')) {
+                + intervalSeconds + '초 간격으로 생성할까요? (백그라운드에서 생성되며, 요청만 즉시 접수됩니다)')) {
             return;
         }
-        // "eai_server 도착여부"는 이 시작 시점 이후 도착한 파일만 세도록 기준시각을 저장한다.
-        setSimSince(dcsId, Date.now());
+        // "마지막 시작" 시각과 "eai_server 도착여부" 필터 기준시각은 서버가 요청을 성공
+        // 처리했을 때만(리다이렉트 시 플래시 속성으로) 기록된다 - 위쪽 페이지 로드 스크립트 참고.
         var form = document.createElement('form');
         form.method = 'post';
         form.action = '/dcs/' + dcsId + '/simulate';
@@ -549,6 +566,24 @@
         return '/dcs/' + dcsId + '/arrived' + (since ? ('?since=' + since) : '');
     }
 
+    function formatHms(date) {
+        var pad = function (n) { return String(n).padStart(2, '0'); };
+        return pad(date.getHours()) + ':' + pad(date.getMinutes()) + ':' + pad(date.getSeconds());
+    }
+
+    function renderSimStartTime(dcsId) {
+        var span = document.getElementById('sim-start-time-' + dcsId);
+        if (!span) {
+            return;
+        }
+        var since = getSimSince(dcsId);
+        span.textContent = since ? ('마지막 시작: ' + formatHms(new Date(since))) : '';
+    }
+
+    document.querySelectorAll('.sim-start-time').forEach(function (span) {
+        renderSimStartTime(span.dataset.id);
+    });
+
     function refreshArrivedCounts() {
         document.querySelectorAll('.arrived-count').forEach(function (span) {
             var dcsId = span.dataset.id;
@@ -565,15 +600,9 @@
     refreshArrivedCounts();
     setInterval(refreshArrivedCounts, 5000);
 
-    function formatNowHms() {
-        var now = new Date();
-        var pad = function (n) { return String(n).padStart(2, '0'); };
-        return pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
-    }
-
     function setArrivedDialogTitle(fileCount) {
         var title = document.getElementById('arrivedDialogHandle');
-        title.textContent = 'eai_server 도착 파일목록(' + formatNowHms() + ', ' + fileCount + '개)';
+        title.textContent = 'eai_server 도착 파일목록(' + formatHms(new Date()) + ', ' + fileCount + '개)';
     }
 
     function openArrivedDialog(btn) {

@@ -202,6 +202,12 @@ public class DcsController {
         redirectAttributes.addFlashAttribute(
                 result.isSuccess() ? "message" : "errorMessage",
                 "DCS_ID [" + dcsId + "] 시뮬 요청 결과: " + result.getMessage());
+        if (result.isSuccess()) {
+            // "마지막 시작" 표시 및 eai_server 도착 필터 기준 시각은, 클릭 시점이 아니라
+            // 실제로 서버가 요청을 성공 처리한 시점(112단계)을 기준으로 화면에 전달한다.
+            redirectAttributes.addFlashAttribute("simStartedDcsId", dcsId);
+            redirectAttributes.addFlashAttribute("simStartedAt", System.currentTimeMillis());
+        }
         return "redirect:/dcs";
     }
 
