@@ -243,9 +243,19 @@ public class DcsController {
     @PostMapping("/{dcsId}/rcv-upload")
     @ResponseBody
     public Map<String, Object> rcvUpload(@PathVariable String dcsId, @RequestParam("file") MultipartFile file) throws IOException {
+        String fileName = file.getOriginalFilename();
+        if (fileName == null || !fileName.startsWith("J")) {
+            Map<String, Object> body = new java.util.HashMap<>();
+            body.put("ok", false);
+            body.put("message", "파일명이 대문자 J로 시작하는 파일만 업로드할 수 있습니다.");
+            return body;
+        }
         Dcs dcs = dcsService.get(dcsId);
-        boolean ok = eaiServerClient.uploadToOutbox(dcs.getDcsServerIp(), dcsId, file.getOriginalFilename(), file.getBytes());
-        return Collections.singletonMap("ok", ok);
+        EaiServerClient.UploadResult result = eaiServerClient.uploadToOutbox(dcs.getDcsServerIp(), dcsId, fileName, file.getBytes());
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("ok", result.isOk());
+        body.put("message", result.getMessage());
+        return body;
     }
 
     @PostMapping("/{dcsId}/delete")

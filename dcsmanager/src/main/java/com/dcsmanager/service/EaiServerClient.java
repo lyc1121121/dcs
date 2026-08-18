@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * eai_server 는 DCSAgent 처럼 DCS_ID 별로 갈라지는 게 아니라, 그 DCS_ID 가 떠 있는
@@ -75,8 +76,10 @@ public class EaiServerClient {
     /**
      * RCV 테스트용 업로드. DCSManager 가 받은 파일을 그대로 eai_server 의 outbox 로 전달한다.
      * eai_agent 가 다음 폴링 때 가져가서 그 dcs 컨테이너의 RCV 폴더에 내려준다.
+     * eai_server 는 J 파일명 형식이 아니면 HTTP 200 + {"ok":false,...} 로 응답하므로,
+     * HTTP 상태코드만으로 판단하면 안 되고 응답 본문의 ok 값을 봐야 한다(114/115단계).
      */
-    public boolean uploadToOutbox(String serverIp, String dcsId, String fileName, byte[] content) {
+    public UploadResult uploadToOutbox(String serverIp, String dcsId, String fileName, byte[] content) {
         String url = baseUrl(serverIp) + "/api/outbox/" + dcsId;
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -92,10 +95,34 @@ public class EaiServerClient {
             body.add("file", fileResource);
 
             HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(body, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-            return response.getStatusCode().is2xxSuccessful();
+            ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
+            Map<?, ?> responseBody = response.getBody();
+            if (!response.getStatusCode().is2xxSuccessful() || responseBody == null) {
+                return new UploadResult(false, "eai_server 업로드 실패");
+            }
+            boolean ok = Boolean.TRUE.equals(responseBody.get("ok"));
+            Object message = responseBody.get("message");
+            return new UploadResult(ok, message != null ? message.toString() : null);
         } catch (Exception e) {
-            return false;
+            return new UploadResult(false, "eai_server 호출 실패: " + e.getMessage());
+        }
+    }
+
+    public static class UploadResult {
+        private final boolean ok;
+        private final String message;
+
+        public UploadResult(boolean ok, String message) {
+            this.ok = ok;
+            this.message = message;
+        }
+
+        public boolean isOk() {
+            return ok;
+        }
+
+        public String getMessage() {
+            return message;
         }
     }
 

@@ -105,8 +105,13 @@ public class EaiConnectionHandler implements Runnable {
 
         byte ackStatus = in.readByte();
         if (ackStatus == 1) {
-            Files.delete(file);
-            log.info("delivered dcsId={} fileName={} ({} bytes), 에이전트 수신 확인 -> outbox 에서 제거", dcsId, fileName, fileLength);
+            // outbox 에서 완전히 지우지 않고 delivered/ 로 옮겨서 기록을 남긴다(115단계 후속 요청).
+            // peekOldest() 는 {dcsId}/ 바로 아래 파일만 보므로, delivered/ 로 옮기면 다음 폴링에서
+            // 다시 집히지 않으면서도 파일 자체는 그대로 보존된다.
+            Path deliveredDir = file.getParent().resolve("delivered");
+            Files.createDirectories(deliveredDir);
+            Files.move(file, deliveredDir.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+            log.info("delivered dcsId={} fileName={} ({} bytes), 에이전트 수신 확인 -> delivered/ 로 보관", dcsId, fileName, fileLength);
         } else {
             log.warn("delivered dcsId={} fileName={} 했지만 에이전트가 수신 실패로 응답 - outbox 에 남겨서 다음에 재시도", dcsId, fileName);
         }
