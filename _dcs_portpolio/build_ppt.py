@@ -152,7 +152,7 @@ bullets(s, Inches(0.7), Inches(1.6), Inches(11.9), Inches(5),
             "별도로 확인할 방법이 없었음",
             "장애(컨테이너 다운) 발생 시 담당자가 화면을 계속 보고 있어야만 인지 가능",
         ], size=18, line_gap=18)
-add_footer(s, 2, 13)
+add_footer(s, 2, 14)
 
 # ---------------------------------------------------------------- Slide 3: 아키텍처 다이어그램
 s = prs.slides.add_slide(BLANK)
@@ -202,9 +202,93 @@ bullets(s, Inches(0.7), Inches(5.5), Inches(11.9), Inches(1.6),
             "File Relay는 HTTP가 아닌 자체 TCP 바이너리 프로토콜로 구현 (대용량 스트리밍 + pull 방식 수신 지원)",
             "Server가 상태를 주기적으로 폴링하며 up/down 전이를 감지해 알림 API 호출",
         ], size=13, line_gap=6)
-add_footer(s, 3, 13)
+add_footer(s, 3, 14)
 
-# ---------------------------------------------------------------- Slide 4: 핵심 성과
+# ---------------------------------------------------------------- Slide 4: 실제 화면 재현
+s = prs.slides.add_slide(BLANK)
+add_bg(s, WHITE)
+title_bar(s, "실제 개발 화면", "관제 콘솔 UI — 표시된 ID/IP는 예시 데이터로 대체")
+
+PURPLE = RGBColor(0x7C, 0x3A, 0xED)
+BORDER = RGBColor(0xE0, 0xE0, 0xE0)
+PANEL_BG = RGBColor(0xFA, 0xFB, 0xFC)
+
+# 브라우저 크롬 느낌의 프레임
+frame_x, frame_y, frame_w = Inches(0.7), Inches(1.5), Inches(11.9)
+chrome = box(s, frame_x, frame_y, frame_w, Inches(0.4), "", fill=RGBColor(0xE8, 0xEA, 0xED), shape=MSO_SHAPE.ROUNDED_RECTANGLE)
+for i in range(3):
+    box(s, frame_x + Inches(0.15) + Inches(0.22) * i, frame_y + Inches(0.12), Inches(0.14), Inches(0.14),
+        "", fill=RGBColor(0xC7, 0xCB, 0xD1), shape=MSO_SHAPE.OVAL)
+addr = box(s, frame_x + Inches(0.9), frame_y + Inches(0.06), Inches(4.0), Inches(0.28),
+           "내부망 관제 콘솔 주소", fill=WHITE, text_color=RGBColor(0x88, 0x88, 0x88), size=9, bold=False,
+           shape=MSO_SHAPE.ROUNDED_RECTANGLE)
+
+body_y = frame_y + Inches(0.4)
+body = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, frame_x, body_y, frame_w, Inches(4.85))
+body.fill.solid(); body.fill.fore_color.rgb = WHITE
+body.line.color.rgb = BORDER
+body.shadow.inherit = False
+
+# 헤더 배지 줄
+bx = frame_x + Inches(0.25)
+by = body_y + Inches(0.2)
+box(s, bx, by, Inches(1.5), Inches(0.4), "🖥️ DCSManager", fill=NAVY, size=11)
+labels = ["📊 모니터링", "📦 Registry", "🐳 Advisor", "🗄️ MariaDB"]
+lx = bx + Inches(1.65)
+for lb in labels:
+    w = Inches(1.25)
+    box(s, lx, by, w, Inches(0.4), lb, fill=BLUE, size=10)
+    lx += w + Inches(0.12)
+
+# 탭
+ty = by + Inches(0.55)
+box(s, bx, ty, Inches(1.6), Inches(0.35), "DCS 컨테이너", fill=PURPLE, size=11)
+box(s, bx + Inches(1.6), ty, Inches(1.6), Inches(0.35), "기타 컨테이너", fill=RGBColor(0xEE, 0xEE, 0xEE), text_color=GRAY, size=11)
+
+# 섹션 카드 + 표
+sy = ty + Inches(0.55)
+panel = s.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, bx, sy, frame_w - Inches(0.5), Inches(2.0))
+panel.fill.solid(); panel.fill.fore_color.rgb = PANEL_BG
+panel.line.color.rgb = BORDER
+panel.shadow.inherit = False
+tf = add_textbox(s, bx + Inches(0.15), sy + Inches(0.08), Inches(3), Inches(0.3))
+set_text(tf, "컨테이너 리스트", size=13, bold=True, color=NAVY)
+
+headers = ["DCS_ID", "MODE", "SIZE", "PORT_1", "PORT_2", "SERVER_IP", "STATUS"]
+col_w = (frame_w - Inches(0.9)) / len(headers)
+hx = bx + Inches(0.15)
+hy = sy + Inches(0.5)
+for h in headers:
+    tf = add_textbox(s, hx, hy, col_w, Inches(0.3))
+    set_text(tf, h, size=10, bold=True, color=GRAY)
+    hx += col_w
+
+rows = [
+    ("5500100001", "PROD", "1", "40001", "50001", "10.0.0.11", "실행중", RGBColor(0xD6, 0x45, 0x45), GREEN),
+    ("5500100002", "DEV", "1", "40002", "50002", "10.0.0.12", "실행중", RGBColor(0x4A, 0x7F, 0xD6), GREEN),
+    ("5500100003", "PROD", "2", "40003", "50003", "10.0.0.11", "중지됨", RGBColor(0xD6, 0x45, 0x45), GRAY),
+]
+ry = hy + Inches(0.35)
+for dcs_id, mode, size_, p1, p2, ip, status, mode_color, status_color in rows:
+    vals = [dcs_id, None, size_, p1, p2, ip, None]
+    hx = bx + Inches(0.15)
+    for i, h in enumerate(headers):
+        if h == "MODE":
+            box(s, hx, ry, Inches(0.7), Inches(0.3), mode, fill=mode_color, size=9)
+        elif h == "STATUS":
+            box(s, hx, ry, Inches(0.9), Inches(0.3), status, fill=status_color, size=9)
+        else:
+            tf = add_textbox(s, hx, ry, col_w, Inches(0.3))
+            set_text(tf, vals[i], size=11, color=NAVY)
+        hx += col_w
+    ry += Inches(0.42)
+
+note = add_textbox(s, frame_x, Inches(6.55), frame_w, Inches(0.4))
+set_text(note, "※ ID·IP·포트는 전부 예시 데이터이며, 실제 화면 레이아웃/컴포넌트 구성을 그대로 재현했습니다.",
+         size=11, color=GRAY)
+add_footer(s, 4, 14)
+
+# ---------------------------------------------------------------- Slide 5: 핵심 성과
 s = prs.slides.add_slide(BLANK)
 add_bg(s, WHITE)
 title_bar(s, "핵심 성과")
@@ -223,7 +307,7 @@ for i, a in enumerate(achievements):
     num = box(s, Inches(0.7), y, Inches(0.6), Inches(0.6), str(i + 1), fill=BLUE, size=18)
     tf = add_textbox(s, Inches(1.5), y + Inches(0.03), Inches(11.0), Inches(0.75))
     set_text(tf, a, size=16, color=NAVY)
-add_footer(s, 4, 13)
+add_footer(s, 5, 14)
 
 
 # ---------------------------------------------------------------- Case study slides
@@ -298,7 +382,7 @@ for idx, c in enumerate(cases):
         tf = add_textbox(s, Inches(2.2), y - Inches(0.02), Inches(10.3), Inches(1.0))
         set_text(tf, text, size=15, color=NAVY)
         y += Inches(1.15)
-    add_footer(s, 5 + idx, 13)
+    add_footer(s, 6 + idx, 14)
 
 # ---------------------------------------------------------------- Tech stack slide
 s = prs.slides.add_slide(BLANK)
@@ -320,7 +404,7 @@ for i, (head, items) in enumerate(cols):
     x = Inches(0.6) + col_w * i + Inches(0.15) * i
     box(s, x, Inches(1.6), col_w, Inches(0.55), head, fill=NAVY, size=15)
     bullets(s, x, Inches(2.3), col_w, Inches(4.0), items, size=13, line_gap=10)
-add_footer(s, 12, 13)
+add_footer(s, 13, 14)
 
 # ---------------------------------------------------------------- Closing slide
 s = prs.slides.add_slide(BLANK)
@@ -330,7 +414,7 @@ set_text(tf, "감사합니다", size=36, color=WHITE, bold=True)
 tf2 = add_textbox(s, Inches(1), Inches(3.9), Inches(11.3), Inches(0.8))
 set_text(tf2, "설계부터 운영/트러블슈팅까지 전 과정을 직접 수행한 경험을 담았습니다.",
          size=15, color=RGBColor(0xCB, 0xD5, 0xE1))
-add_footer(s, 13, 13)
+add_footer(s, 14, 14)
 
-prs.save("/working/result/portfolio.pptx")
+prs.save("/working/_dcs_portpolio/portfolio.pptx")
 print("saved")
