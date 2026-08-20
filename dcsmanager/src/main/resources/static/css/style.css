@@ -24,7 +24,13 @@ body {
 }
 h1 { font-size: 22px; margin-bottom: 16px; }
 .title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.meta-row { margin-bottom: 8px; }
+.meta-row {
+    align-self: stretch;
+    background: linear-gradient(90deg, #f3f0fc, #eef2fb);
+    padding: 10px 16px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
 .title-row h1 { margin: 0; }
 .nav-badge {
     display: inline-flex;
@@ -59,6 +65,18 @@ h1 { font-size: 22px; margin-bottom: 16px; }
     box-shadow: 0 1px 3px rgba(14, 159, 110, 0.4);
 }
 .nav-badge-jobradar:hover { background: #0b7f58; }
+.nav-badge-doc {
+    background: linear-gradient(135deg, #7c5cf0, #a855f7);
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    box-shadow: 0 2px 5px rgba(124, 92, 240, 0.4);
+}
+.nav-badge-doc:hover {
+    background: linear-gradient(135deg, #6a48e0, #9333ea);
+    transform: translateY(-1px);
+}
+.nav-badge-doc .nav-badge-icon { font-size: 16px; }
 .toolbar { margin-bottom: 16px; }
 .section-card {
     display: block;
