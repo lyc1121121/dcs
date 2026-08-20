@@ -5,6 +5,7 @@
 !/dcsagent/
 !/eaiagent/
 !/eaiserver/
+!/_dcs_portpolio/
 !.gitignore
 
 # 빌드 산출물 제외
