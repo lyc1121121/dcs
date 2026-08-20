@@ -53,6 +53,11 @@ h1 { font-size: 22px; margin-bottom: 16px; }
     cursor: default;
 }
 .nav-badge-title:hover { background: #1f2937; transform: none; }
+.nav-badge-jobradar {
+    background: #0e9f6e;
+    box-shadow: 0 1px 3px rgba(14, 159, 110, 0.4);
+}
+.nav-badge-jobradar:hover { background: #0b7f58; }
 .toolbar { margin-bottom: 16px; }
 .section-card {
     display: block;
