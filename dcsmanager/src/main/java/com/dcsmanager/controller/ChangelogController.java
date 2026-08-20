@@ -12,31 +12,28 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * 122단계: DCSManager 좌측 "개요" 탭 - 작업이력/포트폴리오 내용을 보여주고, 화면에서
+ * 124단계: DCSManager "개요" 옆 "이력" 탭 - 지금까지의 변경 이력을 기록해두고, 화면에서
  * 직접 수정도 가능하게 한다.
  */
 @Controller
-@RequestMapping("/portfolio")
-public class PortfolioController {
+@RequestMapping("/changelog")
+public class ChangelogController {
 
-    private static final String PAGE_KEY = "portfolio";
-    private static final String DEFAULT_RESOURCE = "portfolio-default.md";
+    private static final String PAGE_KEY = "changelog";
+    private static final String DEFAULT_RESOURCE = "changelog-default.md";
 
     private final PageContentService pageContentService;
 
-    public PortfolioController(PageContentService pageContentService) {
+    public ChangelogController(PageContentService pageContentService) {
         this.pageContentService = pageContentService;
     }
 
     @GetMapping
     public String view(Model model, HttpServletRequest request) {
-        // 페이지 본문이 커서 렌더링 도중 응답이 커밋될 수 있는데, CSRF 토큰은 세션에 지연 저장되므로
-        // 폼(th:action)을 만나는 시점에 세션이 아직 없으면 "커밋 후 세션 생성 불가" 예외가 난다.
-        // 스트리밍이 시작되기 전에 세션을 미리 만들어 둔다.
         request.getSession();
-        model.addAttribute("pageTitle", "개요");
+        model.addAttribute("pageTitle", "이력");
         model.addAttribute("backUrl", "/dcs");
-        model.addAttribute("formAction", "/portfolio");
+        model.addAttribute("formAction", "/changelog");
         model.addAttribute("contentHtml", pageContentService.getHtml(PAGE_KEY, DEFAULT_RESOURCE));
         model.addAttribute("contentMarkdown", pageContentService.getMarkdown(PAGE_KEY, DEFAULT_RESOURCE));
         return "page-content/view";
@@ -45,7 +42,7 @@ public class PortfolioController {
     @PostMapping
     public String save(@RequestParam String contentMarkdown, RedirectAttributes redirectAttributes) {
         pageContentService.save(PAGE_KEY, contentMarkdown);
-        redirectAttributes.addFlashAttribute("message", "개요 내용이 저장되었습니다.");
-        return "redirect:/portfolio";
+        redirectAttributes.addFlashAttribute("message", "이력 내용이 저장되었습니다.");
+        return "redirect:/changelog";
     }
 }

@@ -8,17 +8,16 @@ import javax.persistence.Table;
 import java.time.LocalDateTime;
 
 /**
- * 122단계: "개요" 탭에 표시되는 포트폴리오 내용. 화면에서 직접 수정 가능하도록 항상
- * id=1 단일 행만 사용한다(레코드가 없으면 최초 진입 시 기본 내용으로 생성됨).
+ * 122/124단계: "개요", "이력" 등 화면에서 직접 수정 가능한 정적 콘텐츠 탭들이 공용으로
+ * 쓰는 저장소. pageKey 별로 마크다운 원문 1건씩만 유지한다.
  */
 @Entity
-@Table(name = "portfolio_content")
-public class PortfolioContent {
-
-    public static final Long SINGLETON_ID = 1L;
+@Table(name = "page_content")
+public class PageContent {
 
     @Id
-    private Long id = SINGLETON_ID;
+    @Column(name = "page_key", length = 50, nullable = false, updatable = false)
+    private String pageKey;
 
     @Lob
     @Column(name = "content_markdown", columnDefinition = "LONGTEXT")
@@ -27,12 +26,12 @@ public class PortfolioContent {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public Long getId() {
-        return id;
+    public String getPageKey() {
+        return pageKey;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setPageKey(String pageKey) {
+        this.pageKey = pageKey;
     }
 
     public String getContentMarkdown() {

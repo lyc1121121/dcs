@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'DCSManager - ' + ${pageTitle}">DCSManager</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .page-content-body { line-height: 1.7; }
+        .page-content-body h1 { font-size: 26px; margin: 0 0 16px; }
+        .page-content-body h2 { font-size: 20px; margin: 32px 0 12px; border-bottom: 2px solid #e0e0e0; padding-bottom: 6px; }
+        .page-content-body h3 { font-size: 16px; margin: 20px 0 8px; }
+        .page-content-body p { margin: 8px 0; }
+        .page-content-body ul, .page-content-body ol { padding-left: 22px; }
+        .page-content-body li { margin: 4px 0; }
+        .page-content-body img { max-width: 100%; border-radius: 8px; margin: 12px 0; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+        .page-content-body code { background: #f0f2f5; padding: 2px 5px; border-radius: 4px; font-size: 13px; }
+        .page-content-body pre { background: #1f2937; color: #e5e7eb; padding: 14px 16px; border-radius: 8px; overflow-x: auto; }
+        .page-content-body pre code { background: none; padding: 0; color: inherit; }
+        .page-content-body table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+        .page-content-body th, .page-content-body td { border: 1px solid #e0e0e0; padding: 8px 10px; text-align: left; font-size: 14px; }
+        .page-content-body th { background: #fafafa; }
+        .page-content-body hr { border: none; border-top: 1px solid #e0e0e0; margin: 28px 0; }
+        .page-content-edit textarea {
+            width: 100%; min-height: 60vh; font-family: "D2Coding", "Consolas", monospace;
+            font-size: 13px; padding: 14px; border: 1px solid #ccc; border-radius: 6px; resize: vertical;
+        }
+        .page-content-toolbar { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header class="page-header">
+        <div class="title-row">
+            <a th:href="@{${backUrl}}" class="nav-badge">
+                <span class="nav-badge-icon">⬅️</span>DCSManager로
+            </a>
+            <h1 class="nav-badge nav-badge-title">
+                <span class="nav-badge-icon">📋</span><span th:text="${pageTitle}">개요</span>
+            </h1>
+        </div>
+    </header>
+
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+    <section class="section-card">
+        <div class="page-content-toolbar">
+            <button type="button" id="btn-view-mode" class="btn btn-primary btn-sm" onclick="showMode('view')">보기</button>
+            <button type="button" id="btn-edit-mode" class="btn btn-sm" onclick="showMode('edit')">수정</button>
+        </div>
+
+        <div id="page-content-view" class="page-content-body" th:utext="${contentHtml}"></div>
+
+        <form id="page-content-edit" class="page-content-edit" method="post" th:action="@{${formAction}}" style="display:none;">
+            <textarea name="contentMarkdown" th:text="${contentMarkdown}"></textarea>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">저장</button>
+                <button type="button" class="btn" onclick="showMode('view')">취소</button>
+            </div>
+        </form>
+    </section>
+</div>
+<script>
+    function showMode(mode) {
+        var isEdit = mode === 'edit';
+        document.getElementById('page-content-view').style.display = isEdit ? 'none' : '';
+        document.getElementById('page-content-edit').style.display = isEdit ? '' : 'none';
+        document.getElementById('btn-view-mode').classList.toggle('btn-primary', !isEdit);
+        document.getElementById('btn-edit-mode').classList.toggle('btn-primary', isEdit);
+    }
+</script>
+</body>
+</html>
