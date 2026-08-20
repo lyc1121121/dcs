@@ -19,11 +19,12 @@ body {
 }
 .page-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
 }
 h1 { font-size: 22px; margin-bottom: 16px; }
 .title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.meta-row { margin-bottom: 8px; }
 .title-row h1 { margin: 0; }
 .nav-badge {
     display: inline-flex;
