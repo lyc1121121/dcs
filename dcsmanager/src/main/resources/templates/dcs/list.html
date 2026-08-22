@@ -136,10 +136,10 @@
                 <th>DCS_ID</th>
                 <th>단말기 ID</th>
                 <th>송신파일개수</th>
-                <th>송신시간간격(초)</th>
-                <th>SND 시뮬</th>
-                <th>eai_server 도착여부</th>
-                <th>RCV 테스트 (파일을 여기로 드래그)</th>
+                <th>송신간격(초)</th>
+                <th>SND파일생성</th>
+                <th>EAI_SERVER 도착여부</th>
+                <th>RCV로 파일송신 (파일을 여기로 드래그)</th>
             </tr>
             </thead>
             <tbody>
@@ -147,16 +147,16 @@
                 th:if="${statuses.get(dcs.dcsId) != null and !statuses.get(dcs.dcsId).stale and statuses.get(dcs.dcsId).running}">
                 <td th:text="${dcs.dcsId}"></td>
                 <td>
-                    <input type="text" class="terminal-input" value="196510005" maxlength="9"
-                           th:id="${'sim-terminal-' + dcs.dcsId}"/>
+                    <input type="text" class="terminal-input sim-input" value="196510005" maxlength="9"
+                           th:id="${'sim-terminal-' + dcs.dcsId}" th:data-id="${dcs.dcsId}" data-field="terminal"/>
                 </td>
                 <td>
-                    <input type="number" class="terminal-input" value="5" min="1"
-                           th:id="${'sim-count-' + dcs.dcsId}"/>
+                    <input type="number" class="terminal-input sim-input" value="5" min="1"
+                           th:id="${'sim-count-' + dcs.dcsId}" th:data-id="${dcs.dcsId}" data-field="count"/>
                 </td>
                 <td>
-                    <input type="number" class="terminal-input" value="1" min="0"
-                           th:id="${'sim-interval-' + dcs.dcsId}"/>
+                    <input type="number" class="terminal-input sim-input" value="1" min="0"
+                           th:id="${'sim-interval-' + dcs.dcsId}" th:data-id="${dcs.dcsId}" data-field="interval"/>
                 </td>
                 <td>
                     <button type="button" class="btn btn-sm" onclick="submitSimulate(this)"
@@ -508,6 +508,25 @@
     // ---- 105단계: 시뮬레이션 테스트 섹션 ----
     var TERMINAL_ID_PATTERN = /^[0-9]{9}$/;
 
+    // "시작" 클릭 -> 폼 제출(페이지 재로딩)이 되면 입력칸이 템플릿 기본값으로 되돌아가던 문제 수정:
+    // 제출 직전에 입력값을 localStorage에 저장해두고, 페이지가 다시 열릴 때 그대로 복원한다.
+    function simInputKey(dcsId, field) {
+        return 'simInput_' + field + '_' + dcsId;
+    }
+
+    function saveSimInputs(dcsId) {
+        document.querySelectorAll('.sim-input[data-id="' + dcsId + '"]').forEach(function (el) {
+            localStorage.setItem(simInputKey(dcsId, el.dataset.field), el.value);
+        });
+    }
+
+    document.querySelectorAll('.sim-input').forEach(function (el) {
+        var saved = localStorage.getItem(simInputKey(el.dataset.id, el.dataset.field));
+        if (saved !== null) {
+            el.value = saved;
+        }
+    });
+
     function submitSimulate(btn) {
         var dcsId = btn.dataset.id;
         var input = document.getElementById('sim-terminal-' + dcsId);
@@ -532,6 +551,7 @@
                 + intervalSeconds + '초 간격으로 생성할까요? (백그라운드에서 생성되며, 요청만 즉시 접수됩니다)')) {
             return;
         }
+        saveSimInputs(dcsId);
         // "마지막 시작" 시각과 "eai_server 도착여부" 필터 기준시각은 서버가 요청을 성공
         // 처리했을 때만(리다이렉트 시 플래시 속성으로) 기록된다 - 위쪽 페이지 로드 스크립트 참고.
         var form = document.createElement('form');
@@ -582,13 +602,19 @@
         return pad(date.getHours()) + ':' + pad(date.getMinutes()) + ':' + pad(date.getSeconds());
     }
 
+    function formatYmdHms(date) {
+        var pad = function (n) { return String(n).padStart(2, '0'); };
+        return date.getFullYear() + pad(date.getMonth() + 1) + pad(date.getDate())
+            + pad(date.getHours()) + pad(date.getMinutes()) + pad(date.getSeconds());
+    }
+
     function renderSimStartTime(dcsId) {
         var span = document.getElementById('sim-start-time-' + dcsId);
         if (!span) {
             return;
         }
         var since = getSimSince(dcsId);
-        span.textContent = since ? ('마지막 시작: ' + formatHms(new Date(since))) : '';
+        span.textContent = since ? ('마지막 시작: ' + formatYmdHms(new Date(since))) : '';
     }
 
     document.querySelectorAll('.sim-start-time').forEach(function (span) {
