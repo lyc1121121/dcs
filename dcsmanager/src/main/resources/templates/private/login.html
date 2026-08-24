@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>DCSManager - PRIVATE</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container login-container">
+    <header class="page-header">
+        <div class="title-row">
+            <a th:href="@{/dcs}" class="nav-badge">
+                <span class="nav-badge-icon">⬅️</span>DCSManager로
+            </a>
+            <h1 class="nav-badge nav-badge-title">
+                <span class="nav-badge-icon">🔒</span>PRIVATE
+            </h1>
+        </div>
+    </header>
+
+    <div th:if="${loginError}" class="alert alert-error" th:text="${loginError}"></div>
+
+    <form method="post" th:action="@{/private/login}" class="dcs-form">
+        <div class="form-row">
+            <label for="username">아이디</label>
+            <input type="text" id="username" name="username" autocomplete="username" autofocus="autofocus"/>
+        </div>
+        <div class="form-row">
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" name="password" autocomplete="current-password"/>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">입장</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

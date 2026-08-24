@@ -37,6 +37,9 @@
             <h1 class="nav-badge nav-badge-title">
                 <span class="nav-badge-icon">📋</span><span th:text="${pageTitle}">개요</span>
             </h1>
+            <a th:if="${logoutUrl}" th:href="@{${logoutUrl}}" class="nav-badge nav-badge-jobradar">
+                <span class="nav-badge-icon">🚪</span>로그아웃
+            </a>
         </div>
     </header>
 
