@@ -2,7 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>DCSManager - 목록</title>
+    <title>TMSManager - 목록</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
@@ -21,11 +21,11 @@
         </div>
         <div class="title-row">
             <h1 class="nav-badge nav-badge-title">
-                <span class="nav-badge-icon">🖥️</span>DCSManager
+                <span class="nav-badge-icon">🖥️</span>TMSManager
             </h1>
             <a href="http://100.125.13.91:9010/d/dcs-overview/b86e26c7-173f-5e25-8649-ddae63b346cf"
                target="_blank" rel="noopener" class="nav-badge">
-                <span class="nav-badge-icon">📊</span>DCS통합 모니터링
+                <span class="nav-badge-icon">📊</span>TMS통합 모니터링
             </a>
             <a href="http://100.125.13.91:9013/" target="_blank" rel="noopener" class="nav-badge">
                 <span class="nav-badge-icon">📦</span>Registry
@@ -46,7 +46,7 @@
     <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
 
     <div class="tabs">
-        <button type="button" id="btn-tab1" class="tab-button" onclick="showTab('tab1')">DCS 컨테이너</button>
+        <button type="button" id="btn-tab1" class="tab-button" onclick="showTab('tab1')">TMS 컨테이너</button>
         <button type="button" id="btn-tab2" class="tab-button" onclick="showTab('tab2')">기타 컨테이너</button>
     </div>
 
@@ -61,7 +61,7 @@
             <thead>
             <tr>
                 <th>삭제</th>
-                <th>DCS_ID</th>
+                <th>TMS_ID</th>
                 <th>IMAGE_VERSION</th>
                 <th>MODE</th>
                 <th>SIZE</th>
@@ -74,13 +74,13 @@
             </thead>
             <tbody id="tab1-body">
             <tr th:if="${#lists.isEmpty(dcsList)}">
-                <td colspan="10" class="empty">등록된 DCS 가 없습니다.</td>
+                <td colspan="10" class="empty">등록된 TMS 가 없습니다.</td>
             </tr>
             <tr th:each="dcs : ${dcsList}"
                 th:with="status=${statuses.get(dcs.dcsId)}, known=${status != null and !status.stale}">
                 <td>
                     <form th:action="@{/dcs/{id}/delete(id=${dcs.dcsId})}" method="post" class="inline-form"
-                          onsubmit="return confirm('DCS_ID [' + this.dataset.id + '] 를 삭제할까요? 이 작업은 되돌릴 수 없습니다.');"
+                          onsubmit="return confirm('TMS_ID [' + this.dataset.id + '] 를 삭제할까요? 이 작업은 되돌릴 수 없습니다.');"
                           th:data-id="${dcs.dcsId}">
                         <button type="submit" class="btn btn-sm btn-delete" th:disabled="${known and status.running}"
                                 title="삭제">&#10005;</button>
@@ -111,13 +111,13 @@
                             th:data-port2="${dcs.portDcs2}"
                             th:data-server-ip="${dcs.dcsServerIp}">수정</button>
                     <form th:action="@{/dcs/{id}/up(id=${dcs.dcsId})}" method="post" class="inline-form"
-                          onsubmit="return confirm('DCS_ID [' + this.dataset.id + '] 컨테이너를 올릴까요?');"
+                          onsubmit="return confirm('TMS_ID [' + this.dataset.id + '] 컨테이너를 올릴까요?');"
                           th:data-id="${dcs.dcsId}">
                         <button type="submit" class="btn btn-sm btn-up" th:disabled="${known and status.running}"
                                 title="컨테이너 올리기">&#9650;</button>
                     </form>
                     <form th:action="@{/dcs/{id}/down(id=${dcs.dcsId})}" method="post" class="inline-form"
-                          onsubmit="return confirm('DCS_ID [' + this.dataset.id + '] 컨테이너를 내릴까요?');"
+                          onsubmit="return confirm('TMS_ID [' + this.dataset.id + '] 컨테이너를 내릴까요?');"
                           th:data-id="${dcs.dcsId}">
                         <button type="submit" class="btn btn-sm btn-down" th:disabled="${known and !status.running}"
                                 title="컨테이너 내리기">&#9660;</button>
@@ -129,11 +129,11 @@
         </section>
 
         <section class="section-card">
-        <h3>시뮬레이션 테스트 (실행중인 DCS만 표시)</h3>
+        <h3>시뮬레이션 테스트 (실행중인 TMS만 표시)</h3>
         <table class="dcs-table">
             <thead>
             <tr>
-                <th>DCS_ID</th>
+                <th>TMS_ID</th>
                 <th>단말기 ID</th>
                 <th>송신파일개수</th>
                 <th>송신간격(초)</th>
@@ -177,7 +177,7 @@
                 </td>
             </tr>
             <tr th:if="${#lists.isEmpty(dcsList)}">
-                <td colspan="7" class="empty">실행중인 DCS가 없습니다.</td>
+                <td colspan="7" class="empty">실행중인 TMS가 없습니다.</td>
             </tr>
             </tbody>
         </table>
@@ -242,7 +242,7 @@
 </div>
 
 <dialog id="createDialog" class="dcs-dialog">
-    <h2 id="createDialogHandle" class="dialog-handle">DCS 신규 등록</h2>
+    <h2 id="createDialogHandle" class="dialog-handle">TMS 신규 등록</h2>
 
     <form th:action="@{/dcs}" th:object="${dcsForm}" method="post" class="dcs-form">
 
@@ -253,24 +253,24 @@
         </div>
 
         <div class="form-row">
-            <label for="c-dcsId">DCS_ID (PK)</label>
+            <label for="c-dcsId">TMS_ID (PK)</label>
             <input type="text" id="c-dcsId" th:field="*{dcsId}" placeholder="10자리 숫자, 예: 1300100021"/>
             <p class="field-error" th:if="${#fields.hasErrors('dcsId')}" th:errors="*{dcsId}"></p>
         </div>
 
         <div class="form-row">
-            <label for="c-dcsImageVersion">DCS_IMAGE_VERSION</label>
+            <label for="c-dcsImageVersion">TMS_IMAGE_VERSION</label>
             <input type="text" id="c-dcsImageVersion" th:field="*{dcsImageVersion}"/>
             <p class="field-error" th:if="${#fields.hasErrors('dcsImageVersion')}" th:errors="*{dcsImageVersion}"></p>
         </div>
 
         <div class="form-row">
-            <label>DCS_DOT_ID</label>
-            <p class="readonly-value">DCS_ID 저장 시 자동 계산됩니다</p>
+            <label>TMS_DOT_ID</label>
+            <p class="readonly-value">TMS_ID 저장 시 자동 계산됩니다</p>
         </div>
 
         <div class="form-row">
-            <label for="c-dcsMode">DCS_MODE</label>
+            <label for="c-dcsMode">TMS_MODE</label>
             <select id="c-dcsMode" th:field="*{dcsMode}">
                 <option value="">선택하세요</option>
                 <option value="DEV">DEV (개발)</option>
@@ -280,28 +280,28 @@
         </div>
 
         <div class="form-row">
-            <label for="c-dcsSize">DCS_SIZE</label>
+            <label for="c-dcsSize">TMS_SIZE</label>
             <input type="number" id="c-dcsSize" th:field="*{dcsSize}" min="1"/>
             <p class="field-error" th:if="${#fields.hasErrors('dcsSize')}" th:errors="*{dcsSize}"></p>
         </div>
 
         <div class="form-row">
-            <label for="c-portDcs1">PORT_DCS1 (DCS2TerminalX.jar)</label>
+            <label for="c-portDcs1">PORT_TMS1 (DCS2TerminalX.jar)</label>
             <input type="number" id="c-portDcs1" th:field="*{portDcs1}" min="1" max="65535"/>
             <p class="field-error" th:if="${#fields.hasErrors('portDcs1')}" th:errors="*{portDcs1}"></p>
         </div>
 
         <div class="form-row">
-            <label for="c-portDcs2">PORT_DCS2 (DCS2TerminalX_tr.jar)</label>
+            <label for="c-portDcs2">PORT_TMS2 (DCS2TerminalX_tr.jar)</label>
             <input type="number" id="c-portDcs2" th:field="*{portDcs2}" min="1" max="65535"/>
             <p class="field-error" th:if="${#fields.hasErrors('portDcs2')}" th:errors="*{portDcs2}"></p>
         </div>
 
         <div class="form-row">
-            <label for="c-dcsServerIp">DCS_SERVER_IP</label>
+            <label for="c-dcsServerIp">TMS_SERVER_IP</label>
             <input type="text" id="c-dcsServerIp" th:field="*{dcsServerIp}" placeholder="예: 100.125.13.91"/>
             <p class="field-error" th:if="${#fields.hasErrors('dcsServerIp')}" th:errors="*{dcsServerIp}"></p>
-            <p class="hint">이 DCS_ID의 집계 컨테이너가 실제로 실행될 대상 서버의 IP입니다.</p>
+            <p class="hint">이 TMS_ID의 집계 컨테이너가 실제로 실행될 대상 서버의 IP입니다.</p>
         </div>
 
         <div class="form-actions">
@@ -312,7 +312,7 @@
 </dialog>
 
 <dialog id="editDialog" class="dcs-dialog">
-    <h2 id="editDialogHandle" class="dialog-handle">DCS 수정</h2>
+    <h2 id="editDialogHandle" class="dialog-handle">TMS 수정</h2>
 
     <form id="editForm" th:action="@{/dcs/{id}(id=${dcsForm.dcsId})}" th:object="${dcsForm}" method="post" class="dcs-form">
 
@@ -323,24 +323,24 @@
         </div>
 
         <div class="form-row">
-            <label for="e-dcsId">DCS_ID (PK)</label>
+            <label for="e-dcsId">TMS_ID (PK)</label>
             <input type="text" id="e-dcsId" th:field="*{dcsId}" readonly="readonly"/>
-            <p class="hint">DCS_ID는 수정할 수 없습니다.</p>
+            <p class="hint">TMS_ID는 수정할 수 없습니다.</p>
         </div>
 
         <div class="form-row">
-            <label for="e-dcsImageVersion">DCS_IMAGE_VERSION</label>
+            <label for="e-dcsImageVersion">TMS_IMAGE_VERSION</label>
             <input type="text" id="e-dcsImageVersion" th:field="*{dcsImageVersion}"/>
             <p class="field-error" th:if="${#fields.hasErrors('dcsImageVersion')}" th:errors="*{dcsImageVersion}"></p>
         </div>
 
         <div class="form-row">
-            <label>DCS_DOT_ID</label>
-            <p class="readonly-value">DCS_ID 기준으로 자동 계산됩니다</p>
+            <label>TMS_DOT_ID</label>
+            <p class="readonly-value">TMS_ID 기준으로 자동 계산됩니다</p>
         </div>
 
         <div class="form-row">
-            <label for="e-dcsMode">DCS_MODE</label>
+            <label for="e-dcsMode">TMS_MODE</label>
             <select id="e-dcsMode" th:field="*{dcsMode}">
                 <option value="">선택하세요</option>
                 <option value="DEV">DEV (개발)</option>
@@ -350,28 +350,28 @@
         </div>
 
         <div class="form-row">
-            <label for="e-dcsSize">DCS_SIZE</label>
+            <label for="e-dcsSize">TMS_SIZE</label>
             <input type="number" id="e-dcsSize" th:field="*{dcsSize}" min="1"/>
             <p class="field-error" th:if="${#fields.hasErrors('dcsSize')}" th:errors="*{dcsSize}"></p>
         </div>
 
         <div class="form-row">
-            <label for="e-portDcs1">PORT_DCS1 (DCS2TerminalX.jar)</label>
+            <label for="e-portDcs1">PORT_TMS1 (DCS2TerminalX.jar)</label>
             <input type="number" id="e-portDcs1" th:field="*{portDcs1}" min="1" max="65535"/>
             <p class="field-error" th:if="${#fields.hasErrors('portDcs1')}" th:errors="*{portDcs1}"></p>
         </div>
 
         <div class="form-row">
-            <label for="e-portDcs2">PORT_DCS2 (DCS2TerminalX_tr.jar)</label>
+            <label for="e-portDcs2">PORT_TMS2 (DCS2TerminalX_tr.jar)</label>
             <input type="number" id="e-portDcs2" th:field="*{portDcs2}" min="1" max="65535"/>
             <p class="field-error" th:if="${#fields.hasErrors('portDcs2')}" th:errors="*{portDcs2}"></p>
         </div>
 
         <div class="form-row">
-            <label for="e-dcsServerIp">DCS_SERVER_IP</label>
+            <label for="e-dcsServerIp">TMS_SERVER_IP</label>
             <input type="text" id="e-dcsServerIp" th:field="*{dcsServerIp}" placeholder="예: 100.125.13.91"/>
             <p class="field-error" th:if="${#fields.hasErrors('dcsServerIp')}" th:errors="*{dcsServerIp}"></p>
-            <p class="hint">이 DCS_ID의 집계 컨테이너가 실제로 실행될 대상 서버의 IP입니다.</p>
+            <p class="hint">이 TMS_ID의 집계 컨테이너가 실제로 실행될 대상 서버의 IP입니다.</p>
         </div>
 
         <div class="form-actions">
@@ -547,7 +547,7 @@
             alert('시간간격(초)은 0 이상의 숫자여야 합니다.');
             return;
         }
-        if (!confirm('DCS_ID [' + dcsId + '] 에 테스트 파일 ' + fileCount + '개를 '
+        if (!confirm('TMS_ID [' + dcsId + '] 에 테스트 파일 ' + fileCount + '개를 '
                 + intervalSeconds + '초 간격으로 생성할까요? (백그라운드에서 생성되며, 요청만 즉시 접수됩니다)')) {
             return;
         }

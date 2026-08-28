@@ -14,7 +14,7 @@ public final class DcsIdUtils {
 
     public static String toDotId(String dcsId) {
         if (dcsId == null || !dcsId.matches("\\d{10}")) {
-            throw new IllegalArgumentException("DCS_ID는 10자리 숫자여야 합니다: " + dcsId);
+            throw new IllegalArgumentException("TMS_ID는 10자리 숫자여야 합니다: " + dcsId);
         }
         StringBuilder sb = new StringBuilder();
         int pos = 0;

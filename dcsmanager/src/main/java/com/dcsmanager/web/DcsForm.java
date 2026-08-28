@@ -11,35 +11,35 @@ import javax.validation.constraints.Pattern;
 
 public class DcsForm {
 
-    @NotBlank(message = "DCS_ID는 필수입니다.")
-    @Pattern(regexp = "\\d{10}", message = "DCS_ID는 10자리 숫자여야 합니다.")
+    @NotBlank(message = "TMS_ID는 필수입니다.")
+    @Pattern(regexp = "\\d{10}", message = "TMS_ID는 10자리 숫자여야 합니다.")
     private String dcsId;
 
-    @NotBlank(message = "DCS_IMAGE_VERSION은 필수입니다.")
+    @NotBlank(message = "TMS_IMAGE_VERSION은 필수입니다.")
     private String dcsImageVersion = "latest";
 
     /** 화면 표시용. 실제 저장값은 서버에서 DCS_ID로부터 재계산한다. */
     private String dcsDotId;
 
-    @NotNull(message = "DCS_MODE를 선택하세요.")
+    @NotNull(message = "TMS_MODE를 선택하세요.")
     private DcsMode dcsMode;
 
-    @NotNull(message = "DCS_SIZE는 필수입니다.")
-    @Min(value = 1, message = "DCS_SIZE는 1 이상이어야 합니다.")
+    @NotNull(message = "TMS_SIZE는 필수입니다.")
+    @Min(value = 1, message = "TMS_SIZE는 1 이상이어야 합니다.")
     private Integer dcsSize = 1;
 
-    @NotNull(message = "PORT_DCS1은 필수입니다.")
+    @NotNull(message = "PORT_TMS1은 필수입니다.")
     @Min(value = 1) @Max(value = 65535)
     private Integer portDcs1;
 
-    @NotNull(message = "PORT_DCS2는 필수입니다.")
+    @NotNull(message = "PORT_TMS2는 필수입니다.")
     @Min(value = 1) @Max(value = 65535)
     private Integer portDcs2;
 
-    @NotBlank(message = "DCS_SERVER_IP는 필수입니다.")
+    @NotBlank(message = "TMS_SERVER_IP는 필수입니다.")
     @Pattern(
             regexp = "^((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)$",
-            message = "DCS_SERVER_IP는 올바른 IPv4 형식이어야 합니다. (예: 100.125.13.91)")
+            message = "TMS_SERVER_IP는 올바른 IPv4 형식이어야 합니다. (예: 100.125.13.91)")
     private String dcsServerIp;
 
     public static DcsForm from(Dcs dcs) {

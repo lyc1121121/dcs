@@ -71,7 +71,7 @@ public class DcsController {
         }
         if (!dcsServerClient.checkConnectivity(form.getDcsServerIp())) {
             model.addAttribute("popupError",
-                    "DCS_SERVER_IP [" + form.getDcsServerIp() + "] 와 통신할 수 없습니다. 주소를 확인하고 다시 입력해주세요.");
+                    "TMS_SERVER_IP [" + form.getDcsServerIp() + "] 와 통신할 수 없습니다. 주소를 확인하고 다시 입력해주세요.");
             return reopenCreateModal(model);
         }
         String portError = findPortInUseError(form, null);
@@ -85,7 +85,7 @@ public class DcsController {
             bindingResult.reject("global", ex.getMessage());
             return reopenCreateModal(model);
         }
-        redirectAttributes.addFlashAttribute("message", "DCS_ID [" + form.getDcsId() + "] 가 생성되었습니다.");
+        redirectAttributes.addFlashAttribute("message", "TMS_ID [" + form.getDcsId() + "] 가 생성되었습니다.");
         return "redirect:/dcs";
     }
 
@@ -114,7 +114,7 @@ public class DcsController {
         }
         if (!dcsServerClient.checkConnectivity(form.getDcsServerIp())) {
             model.addAttribute("popupError",
-                    "DCS_SERVER_IP [" + form.getDcsServerIp() + "] 와 통신할 수 없습니다. 주소를 확인하고 다시 입력해주세요.");
+                    "TMS_SERVER_IP [" + form.getDcsServerIp() + "] 와 통신할 수 없습니다. 주소를 확인하고 다시 입력해주세요.");
             return reopenEditModal(model);
         }
         String portError = findPortInUseError(form, "dcs" + dcsId);
@@ -128,7 +128,7 @@ public class DcsController {
             bindingResult.reject("global", ex.getMessage());
             return reopenEditModal(model);
         }
-        redirectAttributes.addFlashAttribute("message", "DCS_ID [" + dcsId + "] 가 수정되었습니다.");
+        redirectAttributes.addFlashAttribute("message", "TMS_ID [" + dcsId + "] 가 수정되었습니다.");
         return "redirect:/dcs";
     }
 
@@ -168,7 +168,7 @@ public class DcsController {
         DcsServerClient.DcsServerResult result = dcsServerClient.up(dcsId);
         redirectAttributes.addFlashAttribute(
                 result.isSuccess() ? "message" : "errorMessage",
-                "DCS_ID [" + dcsId + "] 올리기 요청 결과: " + result.getMessage());
+                "TMS_ID [" + dcsId + "] 올리기 요청 결과: " + result.getMessage());
         return "redirect:/dcs";
     }
 
@@ -177,7 +177,7 @@ public class DcsController {
         DcsServerClient.DcsServerResult result = dcsServerClient.down(dcsId);
         redirectAttributes.addFlashAttribute(
                 result.isSuccess() ? "message" : "errorMessage",
-                "DCS_ID [" + dcsId + "] 내리기 요청 결과: " + result.getMessage());
+                "TMS_ID [" + dcsId + "] 내리기 요청 결과: " + result.getMessage());
         return "redirect:/dcs";
     }
 
@@ -201,7 +201,7 @@ public class DcsController {
         DcsServerClient.DcsServerResult result = dcsServerClient.simulate(dcsId, terminalId, fileCount, intervalSeconds);
         redirectAttributes.addFlashAttribute(
                 result.isSuccess() ? "message" : "errorMessage",
-                "DCS_ID [" + dcsId + "] 시뮬 요청 결과: " + result.getMessage());
+                "TMS_ID [" + dcsId + "] 시뮬 요청 결과: " + result.getMessage());
         if (result.isSuccess()) {
             // "마지막 시작" 표시 및 eai_server 도착 필터 기준 시각은, 클릭 시점이 아니라
             // 실제로 서버가 요청을 성공 처리한 시점(112단계)을 기준으로 화면에 전달한다.
@@ -264,7 +264,7 @@ public class DcsController {
         boolean known = status != null && !status.isStale();
         if (known && status.isRunning()) {
             redirectAttributes.addFlashAttribute("errorMessage",
-                    "DCS_ID [" + dcsId + "] 는 실행 중이라 삭제할 수 없습니다. 먼저 내려주세요.");
+                    "TMS_ID [" + dcsId + "] 는 실행 중이라 삭제할 수 없습니다. 먼저 내려주세요.");
             return "redirect:/dcs";
         }
         try {
@@ -273,7 +273,7 @@ public class DcsController {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
             return "redirect:/dcs";
         }
-        redirectAttributes.addFlashAttribute("message", "DCS_ID [" + dcsId + "] 가 삭제되었습니다.");
+        redirectAttributes.addFlashAttribute("message", "TMS_ID [" + dcsId + "] 가 삭제되었습니다.");
         return "redirect:/dcs";
     }
 }

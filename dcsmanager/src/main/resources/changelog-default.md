@@ -5,6 +5,19 @@ DCSManager/DCSServer/DCSAgent 및 연동 시스템(eai_agent/eai_server, JobRada
 
 ## 2026-08-28
 
+- **152단계**: TMSManager 팝업창은 151단계에서 이미 전부 처리되어 추가 변경 없음(확인만
+  함). "tmoney" 문구는 TMSManager 자체엔 없었고, 그라파나 "TMS통합 모니터링" 대시보드
+  (dcs-overview)에서 발견 - 대시보드 제목("DCS 통합 모니터링 - 개요"→"TMS 통합 모니터링 -
+  개요")과 패널 제목("tmoneydcs 컨테이너"/"tmoneydcs 컨테이너 목록..."→"tanktms 컨테이너"/
+  "tanktms 컨테이너 목록...")을 Grafana API로 변경. 실제 컨테이너 이름을 대상으로 하는
+  Prometheus 쿼리(name=~"^dcs1300100.*" 등)는 그대로 유지 - 실제 컨테이너명이 안 바뀌었으므로
+- **151단계**: 화면에 보이는 문구 중 "DCS"를 "TMS"로 변경(대소문자 유지: DCS→TMS,
+  dcs→tms) - 브라우저 타이틀("DCSManager"→"TMSManager"), 탭/버튼/테이블 헤더("DCS_ID"→
+  "TMS_ID" 등), 폼 라벨과 안내문구, 확인창/에러/완료 메시지 전부 적용. 실제 서버 구성은
+  그대로 유지 - 도커 컨테이너 실제 이름(dcs1300100090 등), DB 컬럼/필드명, HTML id/name
+  속성, API 경로, 관련 실제 서비스명(DCSServer/DCSAgent)은 변경하지 않음(화면 표시 문구만
+  변경한다는 요청 취지에 따름). 폼 라벨의 "DCS2TerminalX.jar" 등 실제 파일명 언급도
+  그대로 둠(실제 파일명이 안 바뀌었으므로)
 - JobRadar "메모" 탭에 글자 서식(굵게/기울임/밑줄/색상 변경) 툴바와 이미지 붙여넣기
   추가 - DB 컬럼을 MEDIUMTEXT로 확장해 이미지 포함 메모도 저장 가능
 - **140단계**: JobRadar에 "메모" 탭 신설 - 중요 약속/채용정보 등을 자유 텍스트로 붙여넣어

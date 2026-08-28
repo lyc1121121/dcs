@@ -27,12 +27,12 @@ public class DcsService {
     @Transactional(readOnly = true)
     public Dcs get(String dcsId) {
         return dcsRepository.findById(dcsId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 DCS_ID 입니다: " + dcsId));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 TMS_ID 입니다: " + dcsId));
     }
 
     public Dcs create(DcsForm form) {
         if (dcsRepository.existsById(form.getDcsId())) {
-            throw new IllegalArgumentException("이미 존재하는 DCS_ID 입니다: " + form.getDcsId());
+            throw new IllegalArgumentException("이미 존재하는 TMS_ID 입니다: " + form.getDcsId());
         }
 
         Dcs dcs = new Dcs();
