@@ -5,6 +5,9 @@ DCSManager/DCSServer/DCSAgent 및 연동 시스템(eai_agent/eai_server, JobRada
 
 ## 2026-08-28
 
+- **153단계**: "TMS 신규 등록"/"TMS 수정" 팝업의 "PORT_TMS1 (DCS2TerminalX.jar)",
+  "PORT_TMS2 (DCS2TerminalX_tr.jar)" 라벨에서 괄호 속 jar 파일명 표기를 제거 -
+  "PORT_TMS1", "PORT_TMS2"로 표시
 - **152단계**: TMSManager 팝업창은 151단계에서 이미 전부 처리되어 추가 변경 없음(확인만
   함). "tmoney" 문구는 TMSManager 자체엔 없었고, 그라파나 "TMS통합 모니터링" 대시보드
   (dcs-overview)에서 발견 - 대시보드 제목("DCS 통합 모니터링 - 개요"→"TMS 통합 모니터링 -
