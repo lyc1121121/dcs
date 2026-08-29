@@ -2,12 +2,19 @@
 # -*- coding: utf-8 -*-
 """포트폴리오 PPTX 생성 스크립트. /working/result 의 md 문서를 기반으로 슬라이드 구성."""
 
+import os
+import subprocess
+
 from pptx import Presentation
 from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE, MSO_CONNECTOR
 from pptx.oxml.ns import qn
+
+TS = os.environ.get("PORTFOLIO_TS") or subprocess.check_output(
+    ["date", "+%Y%m%d%H%M%S"], env={**os.environ, "TZ": "Asia/Seoul"}
+).decode().strip()
 
 FONT = "맑은 고딕"
 NAVY = RGBColor(0x1F, 0x29, 0x37)
@@ -204,87 +211,25 @@ bullets(s, Inches(0.7), Inches(5.5), Inches(11.9), Inches(1.6),
         ], size=13, line_gap=6)
 add_footer(s, 3, 14)
 
-# ---------------------------------------------------------------- Slide 4: 실제 화면 재현
+# ---------------------------------------------------------------- Slide 4: 실행 화면 (실제 스크린샷)
 s = prs.slides.add_slide(BLANK)
 add_bg(s, WHITE)
-title_bar(s, "실제 개발 화면", "관제 콘솔 UI — 표시된 ID/IP는 예시 데이터로 대체")
+title_bar(s, "실행 화면", "관제 콘솔 UI 실제 스크린샷 - ID/IP는 예시 값으로 치환")
 
-PURPLE = RGBColor(0x7C, 0x3A, 0xED)
-BORDER = RGBColor(0xE0, 0xE0, 0xE0)
-PANEL_BG = RGBColor(0xFA, 0xFB, 0xFC)
+img_path = "main-screen.png"
+from PIL import Image as _PILImage
+_iw, _ih = _PILImage.open(img_path).size
+_max_w, _max_h = Inches(9.5), Inches(5.2)
+_scale = min(_max_w / _iw, _max_h / _ih)
+_w, _h = int(_iw * _scale), int(_ih * _scale)
+_left = int((prs.slide_width - _w) / 2)
+_top = Inches(1.55)
+pic = s.shapes.add_picture(img_path, _left, _top, width=_w, height=_h)
+pic.line.color.rgb = RGBColor(0xE0, 0xE0, 0xE0)
+pic.line.width = Pt(1)
 
-# 브라우저 크롬 느낌의 프레임
-frame_x, frame_y, frame_w = Inches(0.7), Inches(1.5), Inches(11.9)
-chrome = box(s, frame_x, frame_y, frame_w, Inches(0.4), "", fill=RGBColor(0xE8, 0xEA, 0xED), shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-for i in range(3):
-    box(s, frame_x + Inches(0.15) + Inches(0.22) * i, frame_y + Inches(0.12), Inches(0.14), Inches(0.14),
-        "", fill=RGBColor(0xC7, 0xCB, 0xD1), shape=MSO_SHAPE.OVAL)
-addr = box(s, frame_x + Inches(0.9), frame_y + Inches(0.06), Inches(4.0), Inches(0.28),
-           "내부망 관제 콘솔 주소", fill=WHITE, text_color=RGBColor(0x88, 0x88, 0x88), size=9, bold=False,
-           shape=MSO_SHAPE.ROUNDED_RECTANGLE)
-
-body_y = frame_y + Inches(0.4)
-body = s.shapes.add_shape(MSO_SHAPE.RECTANGLE, frame_x, body_y, frame_w, Inches(4.85))
-body.fill.solid(); body.fill.fore_color.rgb = WHITE
-body.line.color.rgb = BORDER
-body.shadow.inherit = False
-
-# 헤더 배지 줄
-bx = frame_x + Inches(0.25)
-by = body_y + Inches(0.2)
-box(s, bx, by, Inches(1.5), Inches(0.4), "🖥️ DCSManager", fill=NAVY, size=11)
-labels = ["📊 모니터링", "📦 Registry", "🐳 Advisor", "🗄️ MariaDB"]
-lx = bx + Inches(1.65)
-for lb in labels:
-    w = Inches(1.25)
-    box(s, lx, by, w, Inches(0.4), lb, fill=BLUE, size=10)
-    lx += w + Inches(0.12)
-
-# 탭
-ty = by + Inches(0.55)
-box(s, bx, ty, Inches(1.6), Inches(0.35), "DCS 컨테이너", fill=PURPLE, size=11)
-box(s, bx + Inches(1.6), ty, Inches(1.6), Inches(0.35), "기타 컨테이너", fill=RGBColor(0xEE, 0xEE, 0xEE), text_color=GRAY, size=11)
-
-# 섹션 카드 + 표
-sy = ty + Inches(0.55)
-panel = s.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, bx, sy, frame_w - Inches(0.5), Inches(2.0))
-panel.fill.solid(); panel.fill.fore_color.rgb = PANEL_BG
-panel.line.color.rgb = BORDER
-panel.shadow.inherit = False
-tf = add_textbox(s, bx + Inches(0.15), sy + Inches(0.08), Inches(3), Inches(0.3))
-set_text(tf, "컨테이너 리스트", size=13, bold=True, color=NAVY)
-
-headers = ["DCS_ID", "MODE", "SIZE", "PORT_1", "PORT_2", "SERVER_IP", "STATUS"]
-col_w = (frame_w - Inches(0.9)) / len(headers)
-hx = bx + Inches(0.15)
-hy = sy + Inches(0.5)
-for h in headers:
-    tf = add_textbox(s, hx, hy, col_w, Inches(0.3))
-    set_text(tf, h, size=10, bold=True, color=GRAY)
-    hx += col_w
-
-rows = [
-    ("5500100001", "PROD", "1", "40001", "50001", "10.0.0.11", "실행중", RGBColor(0xD6, 0x45, 0x45), GREEN),
-    ("5500100002", "DEV", "1", "40002", "50002", "10.0.0.12", "실행중", RGBColor(0x4A, 0x7F, 0xD6), GREEN),
-    ("5500100003", "PROD", "2", "40003", "50003", "10.0.0.11", "중지됨", RGBColor(0xD6, 0x45, 0x45), GRAY),
-]
-ry = hy + Inches(0.35)
-for dcs_id, mode, size_, p1, p2, ip, status, mode_color, status_color in rows:
-    vals = [dcs_id, None, size_, p1, p2, ip, None]
-    hx = bx + Inches(0.15)
-    for i, h in enumerate(headers):
-        if h == "MODE":
-            box(s, hx, ry, Inches(0.7), Inches(0.3), mode, fill=mode_color, size=9)
-        elif h == "STATUS":
-            box(s, hx, ry, Inches(0.9), Inches(0.3), status, fill=status_color, size=9)
-        else:
-            tf = add_textbox(s, hx, ry, col_w, Inches(0.3))
-            set_text(tf, vals[i], size=11, color=NAVY)
-        hx += col_w
-    ry += Inches(0.42)
-
-note = add_textbox(s, frame_x, Inches(6.55), frame_w, Inches(0.4))
-set_text(note, "※ ID·IP·포트는 전부 예시 데이터이며, 실제 화면 레이아웃/컴포넌트 구성을 그대로 재현했습니다.",
+note = add_textbox(s, Inches(0.7), _top + _h + Inches(0.15), Inches(11.9), Inches(0.5))
+set_text(note, "※ 서버 IP/컨테이너 ID는 예시 값으로 치환했습니다. 실제 화면 레이아웃/컴포넌트는 그대로입니다.",
          size=11, color=GRAY)
 add_footer(s, 4, 14)
 
@@ -416,5 +361,5 @@ set_text(tf2, "설계부터 운영/트러블슈팅까지 전 과정을 직접 �
          size=15, color=RGBColor(0xCB, 0xD5, 0xE1))
 add_footer(s, 14, 14)
 
-prs.save("/working/_dcs_portpolio/portfolio.pptx")
+prs.save(f"/working/_dcs_portpolio/{TS}_포트폴리오.pptx")
 print("saved")

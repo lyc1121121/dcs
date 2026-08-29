@@ -6,10 +6,16 @@
 
 ## 구성
 
-- [`PORTFOLIO.md`](./PORTFOLIO.md) — 프로젝트 개요, 아키텍처, 핵심 성과 요약 (메인 문서)
+- **`YYYYMMDDHHMMSS_포트폴리오.pptx`** — 제출용 슬라이드 (14장, 위 md 문서 내용을 재구성)
+- **`YYYYMMDDHHMMSS_포트폴리오.pdf`** — 제출용 문서 (표지 + 위 md 문서 3개를 이어붙인 형태)
+- [`PORTFOLIO.md`](./PORTFOLIO.md) — 프로젝트 개요, 실행 화면, 아키텍처, 핵심 성과 요약 (메인 문서)
 - [`CASE_STUDIES.md`](./CASE_STUDIES.md) — 실제로 겪고 해결한 기술적 문제 7가지를 상세히 정리
 - [`TECH_STACK.md`](./TECH_STACK.md) — 사용 기술 스택 목록
 - [`SECURITY_CHECKLIST.md`](./SECURITY_CHECKLIST.md) — 외부 제출 전 반드시 확인할 체크리스트 (제출 전에 꼭 읽어주세요)
+- `main-screen.png` — 관제 콘솔 실제 실행 화면(서버 IP·ID는 예시 값으로 치환), pptx/pdf에 삽입됨
+- `build_ppt.py` — pptx를 생성하는 스크립트(`cd`로 이 폴더에서 실행: `python3 build_ppt.py`).
+  실행하면 파일명이 `현재시각_포트폴리오.pptx`로 새로 생성됩니다(기존 파일은 덮어쓰지 않음 — 오래된
+  버전은 직접 정리해주세요)
 
 ## 제출 전 필수 확인사항
 
