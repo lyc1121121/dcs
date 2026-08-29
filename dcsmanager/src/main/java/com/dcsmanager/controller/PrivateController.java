@@ -43,7 +43,7 @@ public class PrivateController {
         model.addAttribute("logoutUrl", "/private/logout");
         model.addAttribute("contentHtml", pageContentService.getHtml(PAGE_KEY, DEFAULT_RESOURCE));
         model.addAttribute("contentMarkdown", pageContentService.getMarkdown(PAGE_KEY, DEFAULT_RESOURCE));
-        return "page-content/view";
+        return "private/view";
     }
 
     @PostMapping("/login")

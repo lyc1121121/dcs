@@ -17,6 +17,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeRequests(auth -> auth.anyRequest().permitAll());
+        // 158단계 후속: PRIVATE 파일탐색기에서 PDF를 iframe으로 미리보기 하려면
+        // 기본값(DENY) 대신 같은 출처(SAMEORIGIN)에서는 프레임 삽입을 허용해야 한다.
+        http.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
         return http.build();
     }
 }

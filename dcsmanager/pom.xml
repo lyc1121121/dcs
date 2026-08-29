@@ -71,6 +71,12 @@
             <artifactId>commonmark-ext-gfm-tables</artifactId>
             <version>0.21.0</version>
         </dependency>
+        <!-- 158단계 후속: 파일탐색기에서 pptx/docx 내용을 텍스트로 추출해서 보여주기 위함 -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
