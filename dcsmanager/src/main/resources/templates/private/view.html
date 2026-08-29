@@ -2,6 +2,8 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title th:text="'TMSManager - ' + ${pageTitle}">TMSManager</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
@@ -46,6 +48,8 @@
         .fb-viewer img { max-width: 100%; border-radius: 6px; }
         .fb-pdf-frame { width: 100%; height: 60vh; border: 1px solid #e0e0e0; border-radius: 6px; }
         .fb-empty { color: #999; text-align: center; padding: 60px 0; }
+        .fb-file-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .fb-file-header .btn { text-decoration: none; }
     </style>
 </head>
 <body>
@@ -208,8 +212,12 @@
                     viewer.innerHTML = '<div class="fb-empty">' + fbEscapeHtml(data.message || '조회 실패') + '</div>';
                     return;
                 }
-                var header = '<div class="hint" style="margin-bottom:8px">' + fbEscapeHtml(data.name) +
-                    ' (' + fbFormatSize(data.size) + ')</div>';
+                var header = '<div class="fb-file-header" style="margin-bottom:8px">' +
+                    '<span class="hint">' + fbEscapeHtml(data.name) + ' (' + fbFormatSize(data.size) + ')</span>' +
+                    '<a class="btn btn-sm" href="/private/files/download?path=' + encodeURIComponent(path) + '" download>⬇ 다운로드</a>' +
+                    '<button type="button" class="btn btn-sm" onclick="fbKakaoSend(\'' + fbEscapeHtml(path).replace(/'/g, "\\'") + '\')">📩 카카오톡으로 보내기</button>' +
+                    '<span id="fbKakaoStatus" class="hint"></span>' +
+                    '</div>';
                 if (data.type === 'image') {
                     viewer.innerHTML = header + '<img src="' + data.imageUrl + '" alt="' + fbEscapeHtml(data.name) + '">';
                 } else if (data.type === 'pdf') {
@@ -227,6 +235,24 @@
             })
             .catch(function () {
                 viewer.innerHTML = '<div class="fb-empty">조회 실패(네트워크 오류)</div>';
+            });
+    }
+
+    function fbKakaoSend(path) {
+        var status = document.getElementById('fbKakaoStatus');
+        if (status) { status.textContent = '전송 중...'; }
+        var csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        var csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+        var headers = {};
+        headers[csrfHeader] = csrfToken;
+        fetch('/private/files/kakao-send?path=' + encodeURIComponent(path), { method: 'POST', headers: headers })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!status) { return; }
+                status.textContent = data.ok ? '✅ 카카오톡으로 전송했습니다 (60분간 유효)' : '❌ 전송 실패: ' + (data.message || '');
+            })
+            .catch(function () {
+                if (status) { status.textContent = '❌ 전송 실패(네트워크 오류)'; }
             });
     }
 </script>

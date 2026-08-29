@@ -7,7 +7,9 @@ import org.apache.poi.xslf.usermodel.XSLFTextShape;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
+import com.dcsmanager.service.KakaoNotifier;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -25,17 +27,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * 158단계: PRIVATE 탭에 "파일탐색기" 추가 - 실제 CentOS 서버의 /working 아래를 읽기전용으로
@@ -73,6 +79,23 @@ public class FileBrowserController {
     private static final Path OFFICE_CACHE_DIR = Paths.get("/tmp/office-preview-cache");
     private static final Object CONVERT_LOCK = new Object();
     private static final long CONVERT_TIMEOUT_SECONDS = 60;
+
+    // 159단계: 카카오톡으로 보낸 링크는 로그인 없이 바로 열려야 하므로, 경로+만료시각을
+    // 서버만 아는 키로 서명한 토큰을 발급한다(재기동하면 키가 바뀌어 기존 링크는 무효화됨 -
+    // 어차피 60분짜리 임시 링크라 문제 없음). 토큰이 있는 요청만 파일 하나에 한해 예외적으로
+    // 로그인 없이 접근을 허용한다.
+    private static final byte[] SHARE_SECRET = new byte[32];
+    private static final long SHARE_TTL_SECONDS = 60 * 60;
+
+    static {
+        new SecureRandom().nextBytes(SHARE_SECRET);
+    }
+
+    private final KakaoNotifier kakaoNotifier;
+
+    public FileBrowserController(KakaoNotifier kakaoNotifier) {
+        this.kakaoNotifier = kakaoNotifier;
+    }
 
     private boolean isAuthenticated(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
@@ -255,6 +278,150 @@ public class FileBrowserController {
         response.setContentType("application/pdf");
         try (OutputStream out = response.getOutputStream()) {
             Files.copy(pdf, out);
+        }
+    }
+
+    /** 159단계: PRIVATE 화면에 이미 로그인된 상태라면, 그냥 이 링크로 원본 파일을 그대로 다운로드한다. */
+    @GetMapping("/download")
+    public void download(@RequestParam String path, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (!isAuthenticated(request)) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        Path file = resolveSafe(path);
+        if (file == null || !Files.isRegularFile(file)) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+        String name = file.getFileName().toString();
+        String contentType = Files.probeContentType(file);
+        response.setContentType(contentType != null ? contentType : "application/octet-stream");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + name + "\"");
+        try (OutputStream out = response.getOutputStream()) {
+            Files.copy(file, out);
+        }
+    }
+
+    /** 159단계: 선택한 파일의 카카오톡 공유 링크를 만들어서 "나에게 보내기"로 전송한다. */
+    @PostMapping("/kakao-send")
+    public Map<String, Object> kakaoSend(@RequestParam String path, HttpServletRequest request) {
+        if (!isAuthenticated(request)) {
+            return errorBody("unauthorized");
+        }
+        Path file = resolveSafe(path);
+        if (file == null || !Files.isRegularFile(file)) {
+            return errorBody("invalid path");
+        }
+        String token = createShareToken(path);
+        String base = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+        String shareUrl = base + "/private/files/shared?token=" + urlEncode(token);
+        String name = file.getFileName().toString();
+        // 아이폰 카카오톡에서는 "나에게 보내기" API의 버튼/카드 링크가 탭해도 반응이 없어서
+        // (실제 테스트로 확인됨), 대신 URL을 메시지 본문에 그냥 텍스트로 넣는다 - 카카오톡이
+        // 본문 안의 http(s):// 로 시작하는 텍스트는 플랫폼과 무관하게 항상 자동으로 링크
+        // 처리해준다.
+        kakaoNotifier.notify(name + " 파일 (60분 유효)\n" + shareUrl, shareUrl);
+        return okBody(shareUrl);
+    }
+
+    private Map<String, Object> okBody(String shareUrl) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("ok", true);
+        body.put("shareUrl", shareUrl);
+        return body;
+    }
+
+    /**
+     * 카카오톡 메시지의 링크를 탭했을 때 열리는 엔드포인트 - 의도적으로 로그인 없이 접근 가능하다.
+     * 대신 경로가 통째로 노출되지 않도록, 서버가 서명한 토큰(만료시각 포함)이 있어야만 그
+     * 토큰이 가리키는 파일 딱 하나만 열어준다.
+     */
+    @GetMapping("/shared")
+    public void shared(@RequestParam String token, HttpServletResponse response) throws IOException {
+        String relativePath = validateShareToken(token);
+        if (relativePath == null) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        Path file = resolveSafe(relativePath);
+        if (file == null || !Files.isRegularFile(file)) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+        String ext = extensionOf(file.getFileName().toString());
+        if (PPTX_EXT.contains(ext) || DOCX_EXT.contains(ext)) {
+            Path pdf;
+            try {
+                pdf = convertToPdfCached(file, relativePath);
+            } catch (Exception e) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                return;
+            }
+            response.setContentType("application/pdf");
+            try (OutputStream out = response.getOutputStream()) {
+                Files.copy(pdf, out);
+            }
+            return;
+        }
+        String contentType;
+        if (IMAGE_EXT.contains(ext)) {
+            contentType = "svg".equals(ext) ? "image/svg+xml" : "image/" + ("jpg".equals(ext) ? "jpeg" : ext);
+        } else if (PDF_EXT.contains(ext)) {
+            contentType = "application/pdf";
+        } else {
+            contentType = "application/octet-stream";
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + file.getFileName().toString() + "\"");
+        }
+        response.setContentType(contentType);
+        try (OutputStream out = response.getOutputStream()) {
+            Files.copy(file, out);
+        }
+    }
+
+    private String createShareToken(String relativePath) {
+        long exp = Instant.now().getEpochSecond() + SHARE_TTL_SECONDS;
+        String payload = relativePath + "|" + exp;
+        String payloadB64 = Base64.getUrlEncoder().withoutPadding().encodeToString(payload.getBytes(StandardCharsets.UTF_8));
+        String sig = hmac(payload);
+        return payloadB64 + "." + sig;
+    }
+
+    /** 토큰이 유효하고 만료 전이면 상대경로를 반환하고, 아니면 null. */
+    private String validateShareToken(String token) {
+        try {
+            int dot = token.lastIndexOf('.');
+            if (dot < 0) {
+                return null;
+            }
+            String payloadB64 = token.substring(0, dot);
+            String sig = token.substring(dot + 1);
+            String payload = new String(Base64.getUrlDecoder().decode(payloadB64), StandardCharsets.UTF_8);
+            if (!hmac(payload).equals(sig)) {
+                return null;
+            }
+            int bar = payload.lastIndexOf('|');
+            if (bar < 0) {
+                return null;
+            }
+            String relativePath = payload.substring(0, bar);
+            long exp = Long.parseLong(payload.substring(bar + 1));
+            if (Instant.now().getEpochSecond() > exp) {
+                return null;
+            }
+            return relativePath;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static String hmac(String data) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(SHARE_SECRET, "HmacSHA256"));
+            byte[] raw = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(raw);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
         }
     }
 

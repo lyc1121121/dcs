@@ -30,6 +30,11 @@ public class KakaoNotifier {
     }
 
     public void notify(String message) {
+        notify(message, "https://developers.kakao.com");
+    }
+
+    /** 159단계: 메시지를 탭했을 때 열릴 링크를 직접 지정할 수 있는 버전(파일탐색기 공유 링크용). */
+    public void notify(String message, String linkUrl) {
         if (!tokenStore.isConfigured()) {
             return;
         }
@@ -41,23 +46,28 @@ public class KakaoNotifier {
             log.warn("카카오 액세스 토큰이 없어 알림을 보내지 못했습니다: {}", message);
             return;
         }
-        if (send(accessToken, message)) {
+        if (send(accessToken, message, linkUrl)) {
             return;
         }
         // 액세스 토큰이 만료됐을 수 있으니 한 번 갱신 후 재시도한다.
         String refreshed = tokenStore.refresh();
         if (refreshed != null) {
-            send(refreshed, message);
+            send(refreshed, message, linkUrl);
         }
     }
 
-    private boolean send(String accessToken, String message) {
+    private boolean send(String accessToken, String message, String linkUrl) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
+        // 159단계: 예전 button_title 필드만으로는 실제 카카오톡에서 버튼이 안 그려짐(테스트로 확인됨).
+        // 지금 API가 쓰는 buttons 배열 형식으로 명시적인 링크 버튼을 넣어야 탭해서 바로 열림.
+        String linkJson = "{\"web_url\":\"" + escapeJson(linkUrl) + "\",\"mobile_web_url\":\"" + escapeJson(linkUrl) + "\"}";
         String templateObject = "{\"object_type\":\"text\",\"text\":\"" + escapeJson(message)
-                + "\",\"link\":{\"web_url\":\"https://developers.kakao.com\",\"mobile_web_url\":\"https://developers.kakao.com\"}}";
+                + "\",\"link\":" + linkJson
+                + ",\"button_title\":\"바로 열기\""
+                + ",\"buttons\":[{\"title\":\"바로 열기\",\"link\":" + linkJson + "}]}";
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("template_object", templateObject);
