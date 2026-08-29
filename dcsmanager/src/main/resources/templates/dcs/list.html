@@ -57,7 +57,7 @@
             <button type="button" class="btn btn-primary" onclick="document.getElementById('createDialog').showModal()">+ 신규 등록</button>
         </div>
 
-        <table class="dcs-table">
+        <table class="dcs-table" id="tab1-table">
             <thead>
             <tr>
                 <th>삭제</th>
@@ -185,7 +185,7 @@
     </div>
 
     <div id="tab2" class="tab-panel">
-        <table class="dcs-table">
+        <table class="dcs-table" id="tab2-table">
             <thead>
             <tr>
                 <th>삭제</th>
@@ -494,9 +494,11 @@
                 var newTab2 = doc.getElementById('tab2-body');
                 if (newTab1) {
                     document.getElementById('tab1-body').innerHTML = newTab1.innerHTML;
+                    sortTableRows('tab1-table', 'tab1-body');
                 }
                 if (newTab2) {
                     document.getElementById('tab2-body').innerHTML = newTab2.innerHTML;
+                    sortTableRows('tab2-table', 'tab2-body');
                 }
             })
             .catch(function () {
@@ -504,6 +506,81 @@
             });
     }
     setInterval(refreshLists, 5000);
+
+    // ---- 156단계: 컨테이너 리스트/기타 컨테이너 표 - 컬럼 헤더 클릭 정렬 ----
+    // 목록이 5초마다 서버 렌더링 결과로 통째로 교체되므로(refreshLists), 정렬 상태를
+    // 여기서 별도로 들고 있다가 교체될 때마다 다시 적용한다. 삭제/관리 컬럼처럼 정렬
+    // 의미가 없는 컬럼은 columns 배열에서 null로 표시해 클릭 정렬을 비활성화한다.
+    var tableSortState = {};
+
+    function sortCellValue(row, colIndex, type) {
+        var td = row.children[colIndex];
+        var text = td ? td.textContent.trim() : '';
+        if (type === 'number') {
+            var n = parseFloat(text.replace(/[^0-9.\-]/g, ''));
+            return isNaN(n) ? -Infinity : n;
+        }
+        return text;
+    }
+
+    function initSortableTable(tableId, bodyId, columns) {
+        var table = document.getElementById(tableId);
+        if (!table) { return; }
+        var ths = table.querySelectorAll('thead th');
+        ths.forEach(function (th, idx) {
+            th.setAttribute('data-label', th.textContent.trim());
+            var col = columns[idx];
+            if (!col) { return; }
+            th.classList.add('sortable-th');
+            th.addEventListener('click', function () {
+                var state = tableSortState[tableId] || {};
+                if (state.colIndex === idx) {
+                    state.dir = state.dir === 'asc' ? 'desc' : 'asc';
+                } else {
+                    state.colIndex = idx;
+                    state.dir = 'asc';
+                    state.type = col.type;
+                }
+                tableSortState[tableId] = state;
+                updateSortIndicators(tableId, columns);
+                sortTableRows(tableId, bodyId);
+            });
+        });
+    }
+
+    function updateSortIndicators(tableId, columns) {
+        var table = document.getElementById(tableId);
+        var state = tableSortState[tableId];
+        table.querySelectorAll('thead th').forEach(function (th, idx) {
+            var base = th.getAttribute('data-label');
+            var col = columns[idx];
+            th.textContent = (state && col && state.colIndex === idx)
+                ? base + (state.dir === 'asc' ? ' ▲' : ' ▼') : base;
+        });
+    }
+
+    function sortTableRows(tableId, bodyId) {
+        var state = tableSortState[tableId];
+        if (!state) { return; }
+        var tbody = document.getElementById(bodyId);
+        var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+        var dataRows = rows.filter(function (r) { return !r.querySelector('.empty'); });
+        var otherRows = rows.filter(function (r) { return r.querySelector('.empty'); });
+        if (dataRows.length === 0) { return; }
+        dataRows.sort(function (a, b) {
+            var av = sortCellValue(a, state.colIndex, state.type);
+            var bv = sortCellValue(b, state.colIndex, state.type);
+            var cmp = state.type === 'number' ? (av - bv) : String(av).localeCompare(String(bv), 'ko');
+            return state.dir === 'asc' ? cmp : -cmp;
+        });
+        dataRows.concat(otherRows).forEach(function (r) { tbody.appendChild(r); });
+    }
+
+    initSortableTable('tab1-table', 'tab1-body',
+        [null, {type: 'string'}, {type: 'string'}, {type: 'string'}, {type: 'number'},
+         {type: 'number'}, {type: 'number'}, {type: 'string'}, {type: 'string'}, null]);
+    initSortableTable('tab2-table', 'tab2-body',
+        [null, {type: 'string'}, {type: 'string'}, {type: 'string'}, {type: 'string'}, {type: 'string'}, null]);
 
     // ---- 105단계: 시뮬레이션 테스트 섹션 ----
     var TERMINAL_ID_PATTERN = /^[0-9]{9}$/;
