@@ -229,39 +229,62 @@
         fbLoad(fbCurrentPath);
     }
 
+    function fbFileNameFromPath(path) {
+        var parts = path.split('/');
+        return parts[parts.length - 1];
+    }
+
+    // 166단계: 큰 파일은 미리보기(content) 응답이 늦게 와서 "다운로드"/"카카오톡으로
+    // 보내기" 버튼도 그만큼 늦게 나타나는 문제가 있었음 - 그 버튼들은 파일 경로만
+    // 있으면 되고 미리보기 내용과는 무관하므로, 파일을 클릭한 즉시(응답을 기다리지
+    // 않고) 먼저 그려주고, 미리보기 내용만 별도 영역에서 비동기로 채운다.
+    var fbCurrentOpenPath = null;
+
     function fbOpenFile(path) {
+        fbCurrentOpenPath = path;
         var viewer = document.getElementById('fbViewer');
-        viewer.innerHTML = '<div class="fb-empty">불러오는 중...</div>';
+        var name = fbFileNameFromPath(path);
+        var header = '<div class="fb-file-header" style="margin-bottom:8px">' +
+            '<span class="hint" id="fbFileNameSize">' + fbEscapeHtml(name) + '</span>' +
+            '<a class="btn btn-sm" href="/private/files/download?path=' + encodeURIComponent(path) + '" download>⬇ 다운로드</a>' +
+            '<button type="button" class="btn btn-sm" onclick="fbKakaoSend(\'' + fbEscapeHtml(path).replace(/'/g, "\\'") + '\')">📩 카카오톡으로 보내기</button>' +
+            '<span id="fbKakaoStatus" class="hint"></span>' +
+            '</div>';
+        viewer.innerHTML = header + '<div id="fbContentArea"><div class="fb-empty">불러오는 중...</div></div>';
+
         fetch('/private/files/content?path=' + encodeURIComponent(path))
             .then(function (r) { return r.json(); })
             .then(function (data) {
+                if (fbCurrentOpenPath !== path) { return; } // 그새 다른 파일을 클릭함 - 이 응답은 버린다
+                var contentArea = document.getElementById('fbContentArea');
+                if (!contentArea) { return; }
                 if (!data.ok) {
-                    viewer.innerHTML = '<div class="fb-empty">' + fbEscapeHtml(data.message || '조회 실패') + '</div>';
+                    contentArea.innerHTML = '<div class="fb-empty">' + fbEscapeHtml(data.message || '조회 실패') + '</div>';
                     return;
                 }
-                var header = '<div class="fb-file-header" style="margin-bottom:8px">' +
-                    '<span class="hint">' + fbEscapeHtml(data.name) + ' (' + fbFormatSize(data.size) + ')</span>' +
-                    '<a class="btn btn-sm" href="/private/files/download?path=' + encodeURIComponent(path) + '" download>⬇ 다운로드</a>' +
-                    '<button type="button" class="btn btn-sm" onclick="fbKakaoSend(\'' + fbEscapeHtml(path).replace(/'/g, "\\'") + '\')">📩 카카오톡으로 보내기</button>' +
-                    '<span id="fbKakaoStatus" class="hint"></span>' +
-                    '</div>';
+                var nameSizeEl = document.getElementById('fbFileNameSize');
+                if (nameSizeEl) {
+                    nameSizeEl.textContent = data.name + ' (' + fbFormatSize(data.size) + ')';
+                }
                 if (data.type === 'image') {
-                    viewer.innerHTML = header + '<img src="' + data.imageUrl + '" alt="' + fbEscapeHtml(data.name) + '">';
+                    contentArea.innerHTML = '<img src="' + data.imageUrl + '" alt="' + fbEscapeHtml(data.name) + '">';
                 } else if (data.type === 'pdf') {
-                    viewer.innerHTML = header + '<iframe src="' + data.pdfUrl + '" class="fb-pdf-frame"></iframe>';
+                    contentArea.innerHTML = '<iframe src="' + data.pdfUrl + '" class="fb-pdf-frame"></iframe>';
                 } else if (data.type === 'office') {
-                    viewer.innerHTML = header +
+                    contentArea.innerHTML =
                         '<p class="hint">※ 서식·이미지 없이 텍스트 내용만 추출한 미리보기입니다.</p>' +
                         '<pre>' + fbEscapeHtml(data.text) + '</pre>';
                 } else if (data.type === 'text') {
                     var trunc = data.truncated ? '<p class="hint">※ 파일이 커서 앞부분(10MB)만 표시합니다.</p>' : '';
-                    viewer.innerHTML = header + trunc + '<pre>' + fbEscapeHtml(data.text) + '</pre>';
+                    contentArea.innerHTML = trunc + '<pre>' + fbEscapeHtml(data.text) + '</pre>';
                 } else {
-                    viewer.innerHTML = header + '<div class="fb-empty">미리보기를 지원하지 않는 파일 형식입니다.</div>';
+                    contentArea.innerHTML = '<div class="fb-empty">미리보기를 지원하지 않는 파일 형식입니다.</div>';
                 }
             })
             .catch(function () {
-                viewer.innerHTML = '<div class="fb-empty">조회 실패(네트워크 오류)</div>';
+                if (fbCurrentOpenPath !== path) { return; }
+                var contentArea = document.getElementById('fbContentArea');
+                if (contentArea) { contentArea.innerHTML = '<div class="fb-empty">조회 실패(네트워크 오류)</div>'; }
             });
     }
 
