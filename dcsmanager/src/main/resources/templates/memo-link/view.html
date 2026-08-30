@@ -69,6 +69,7 @@
         <div class="memo-link-tabs">
             <button type="button" class="memo-link-tab-btn active" id="tabBtnJobradarNotes" onclick="showMemoTab('jobradar')">JobRadar 메모</button>
             <button type="button" class="memo-link-tab-btn" id="tabBtnPrivateNotes" disabled title="164단계: 비활성화됨">private내역</button>
+            <button type="button" class="memo-link-tab-btn" id="tabBtnTechNotes" onclick="showMemoTab('tech')">기술메모</button>
         </div>
 
         <div id="panelJobradarNotes" class="memo-link-panel active">
@@ -84,11 +85,31 @@
             <div id="noteNewContent" class="note-editable" contenteditable="true"
                  data-placeholder="여기에 붙여넣기(Ctrl+V) 하세요..." onpaste="handleNotePaste(event, this)"></div>
             <div class="toolbar" style="margin-top:8px">
-                <button type="button" class="btn btn-primary" onclick="addNote()">추가</button>
+                <button type="button" class="btn btn-primary" onclick="addNote('jobradar')">추가</button>
                 <span id="notesStatus" class="hint"></span>
             </div>
 
             <div id="jobradarNotesList"><div class="memo-link-empty">불러오는 중...</div></div>
+        </div>
+
+        <div id="panelTechNotes" class="memo-link-panel">
+            <p class="hint">DCSManager 자체 저장소에 보관되는 기술/업무 메모입니다(이미지 붙여넣기 가능). 각 메모를 카카오톡 "나에게 보내기"로 바로 전송할 수 있습니다.</p>
+
+            <div class="note-toolbar">
+                <button type="button" onmousedown="event.preventDefault(); noteFormat('techNoteNewContent','bold')"><b>B</b></button>
+                <button type="button" onmousedown="event.preventDefault(); noteFormat('techNoteNewContent','italic')"><i>I</i></button>
+                <button type="button" onmousedown="event.preventDefault(); noteFormat('techNoteNewContent','underline')"><u>U</u></button>
+                <input type="color" class="note-color-input" title="글자색" value="#222222"
+                       onmousedown="noteFocusEditor('techNoteNewContent')" onchange="noteFormatColor('techNoteNewContent', this.value)">
+            </div>
+            <div id="techNoteNewContent" class="note-editable" contenteditable="true"
+                 data-placeholder="여기에 붙여넣기(Ctrl+V) 하세요..." onpaste="handleNotePaste(event, this)"></div>
+            <div class="toolbar" style="margin-top:8px">
+                <button type="button" class="btn btn-primary" onclick="addNote('tech')">추가</button>
+                <span id="techNotesStatus" class="hint"></span>
+            </div>
+
+            <div id="techNotesList"><div class="memo-link-empty">불러오는 중...</div></div>
         </div>
 
         <div id="panelPrivateNotes" class="memo-link-panel">
@@ -122,15 +143,25 @@
     function showMemoTab(name) {
         document.getElementById('panelJobradarNotes').classList.toggle('active', name === 'jobradar');
         document.getElementById('panelPrivateNotes').classList.toggle('active', name === 'private');
+        document.getElementById('panelTechNotes').classList.toggle('active', name === 'tech');
         document.getElementById('tabBtnJobradarNotes').classList.toggle('active', name === 'jobradar');
         document.getElementById('tabBtnPrivateNotes').classList.toggle('active', name === 'private');
+        document.getElementById('tabBtnTechNotes').classList.toggle('active', name === 'tech');
     }
 
-    // ---- JobRadar 메모 CRUD (JobRadar 자신의 메모 탭 JS와 동일한 방식, 프록시로만 전송) ----
-
-    var notesCache = [];
-    var editingNoteId = null;
+    // ---- 메모 CRUD (JobRadar 메모 / 기술메모 공용 - kind 로 구분) ----
+    // 167단계: 기술메모 탭이 추가되면서, 원래 JobRadar 메모 전용이던 CRUD 함수들을
+    // kind('jobradar'|'tech') 파라미터로 일반화했다. 기술메모에만 카카오톡 전송 버튼이
+    // 붙는다(파일탐색기의 카카오톡 전송과 같은 취지 - 이번엔 파일이 아니라 메모 텍스트).
+    var NOTE_KINDS = {
+        jobradar: { apiUrl: '/memo-link/jobradar-notes', listId: 'jobradarNotesList', newEditorId: 'noteNewContent', statusId: 'notesStatus', cache: [], editingId: null, kakao: false },
+        tech: { apiUrl: '/memo-link/tech-notes', listId: 'techNotesList', newEditorId: 'techNoteNewContent', statusId: 'techNotesStatus', cache: [], editingId: null, kakao: true }
+    };
     var noteSavedRange = null;
+
+    function noteEditorIdFor(kind, id) {
+        return kind + 'NoteEdit' + id;
+    }
 
     function formatNoteTimestamp(iso) {
         var d = new Date(iso);
@@ -190,13 +221,14 @@
         document.execCommand('insertText', false, text);
     }
 
-    function noteItemHtml(note) {
+    function noteItemHtml(kind, note) {
+        var state = NOTE_KINDS[kind];
         var meta = '등록: ' + formatNoteTimestamp(note.created_at);
         if (note.updated_at !== note.created_at) {
             meta += ' | 수정: ' + formatNoteTimestamp(note.updated_at);
         }
-        if (editingNoteId === note.id) {
-            var editorId = 'noteEdit' + note.id;
+        if (state.editingId === note.id) {
+            var editorId = noteEditorIdFor(kind, note.id);
             return '<div class="note-item" data-id="' + note.id + '">' +
                 '<div class="note-meta">' + meta + '</div>' +
                 '<div class="note-toolbar">' +
@@ -209,43 +241,50 @@
                 '<div class="note-editable" id="' + editorId + '" contenteditable="true" ' +
                     'onpaste="handleNotePaste(event, this)">' + note.content + '</div>' +
                 '<div class="note-actions">' +
-                    '<button type="button" class="btn btn-primary" onclick="saveEditNote(' + note.id + ')">저장</button>' +
-                    '<button type="button" class="btn" onclick="cancelEditNote()">취소</button>' +
+                    '<button type="button" class="btn btn-primary" onclick="saveEditNote(\'' + kind + '\', ' + note.id + ')">저장</button>' +
+                    '<button type="button" class="btn" onclick="cancelEditNote(\'' + kind + '\')">취소</button>' +
                 '</div>' +
             '</div>';
         }
+        var kakaoBtn = state.kakao
+            ? '<button type="button" class="btn" onclick="noteKakaoSend(\'' + kind + '\', ' + note.id + ')">📩 카카오톡으로 보내기</button>' +
+              '<span id="kakaoStatus-' + kind + '-' + note.id + '" class="hint"></span>'
+            : '';
         return '<div class="note-item" data-id="' + note.id + '">' +
             '<div class="note-meta">' + meta + '</div>' +
             '<div class="note-content">' + note.content + '</div>' +
             '<div class="note-actions">' +
-                '<button type="button" class="btn" onclick="startEditNote(' + note.id + ')">수정</button>' +
-                '<button type="button" class="btn btn-delete-note" onclick="deleteNote(' + note.id + ')">삭제</button>' +
+                '<button type="button" class="btn" onclick="startEditNote(\'' + kind + '\', ' + note.id + ')">수정</button>' +
+                '<button type="button" class="btn btn-delete-note" onclick="deleteNote(\'' + kind + '\', ' + note.id + ')">삭제</button>' +
+                kakaoBtn +
             '</div>' +
         '</div>';
     }
 
-    function renderNotes() {
-        var list = document.getElementById('jobradarNotesList');
-        if (!notesCache.length) {
+    function renderNotes(kind) {
+        var state = NOTE_KINDS[kind];
+        var list = document.getElementById(state.listId);
+        if (!state.cache.length) {
             list.innerHTML = '<div class="memo-link-empty">등록된 메모가 없습니다.</div>';
             return;
         }
-        list.innerHTML = notesCache.map(noteItemHtml).join('');
+        list.innerHTML = state.cache.map(function (n) { return noteItemHtml(kind, n); }).join('');
     }
 
-    function loadNotes() {
-        var status = document.getElementById('notesStatus');
+    function loadNotes(kind) {
+        var state = NOTE_KINDS[kind];
+        var status = document.getElementById(state.statusId);
         status.textContent = '불러오는 중...';
-        fetch('/memo-link/jobradar-notes')
+        fetch(state.apiUrl)
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (data.error) {
-                    document.getElementById('jobradarNotesList').innerHTML = '<div class="memo-link-empty">' + data.error + '</div>';
+                    document.getElementById(state.listId).innerHTML = '<div class="memo-link-empty">' + data.error + '</div>';
                     status.textContent = '';
                     return;
                 }
-                notesCache = data.notes || [];
-                renderNotes();
+                state.cache = data.notes || [];
+                renderNotes(kind);
                 status.textContent = '';
             })
             .catch(function () {
@@ -253,15 +292,16 @@
             });
     }
 
-    function addNote() {
-        var editor = document.getElementById('noteNewContent');
+    function addNote(kind) {
+        var state = NOTE_KINDS[kind];
+        var editor = document.getElementById(state.newEditorId);
         var content = editor.innerHTML.trim();
         if (!editor.textContent.trim() && !editor.querySelector('img')) { return; }
-        var status = document.getElementById('notesStatus');
+        var status = document.getElementById(state.statusId);
         status.textContent = '저장 중...';
         var headers = { 'Content-Type': 'application/json' };
         headers[CSRF_HEADER] = CSRF_TOKEN;
-        fetch('/memo-link/jobradar-notes', {
+        fetch(state.apiUrl, {
             method: 'POST',
             headers: headers,
             body: JSON.stringify({ content: content }),
@@ -274,30 +314,30 @@
                 }
                 editor.innerHTML = '';
                 status.textContent = '';
-                loadNotes();
+                loadNotes(kind);
             })
             .catch(function () {
                 status.textContent = '저장 실패';
             });
     }
 
-    function startEditNote(id) {
-        editingNoteId = id;
-        renderNotes();
+    function startEditNote(kind, id) {
+        NOTE_KINDS[kind].editingId = id;
+        renderNotes(kind);
     }
 
-    function cancelEditNote() {
-        editingNoteId = null;
-        renderNotes();
+    function cancelEditNote(kind) {
+        NOTE_KINDS[kind].editingId = null;
+        renderNotes(kind);
     }
 
-    function saveEditNote(id) {
-        var editor = document.getElementById('noteEdit' + id);
+    function saveEditNote(kind, id) {
+        var editor = document.getElementById(noteEditorIdFor(kind, id));
         var content = editor.innerHTML.trim();
         if (!editor.textContent.trim() && !editor.querySelector('img')) { return; }
         var headers = { 'Content-Type': 'application/json' };
         headers[CSRF_HEADER] = CSRF_TOKEN;
-        fetch('/memo-link/jobradar-notes/' + id, {
+        fetch(NOTE_KINDS[kind].apiUrl + '/' + id, {
             method: 'PUT',
             headers: headers,
             body: JSON.stringify({ content: content }),
@@ -308,29 +348,45 @@
                     alert(data.message || '저장 실패');
                     return;
                 }
-                editingNoteId = null;
-                loadNotes();
+                NOTE_KINDS[kind].editingId = null;
+                loadNotes(kind);
             })
             .catch(function () {
                 alert('저장 실패');
             });
     }
 
-    function deleteNote(id) {
+    function deleteNote(kind, id) {
         if (!confirm('이 메모를 삭제할까요?')) { return; }
         var headers = {};
         headers[CSRF_HEADER] = CSRF_TOKEN;
-        fetch('/memo-link/jobradar-notes/' + id, { method: 'DELETE', headers: headers })
+        fetch(NOTE_KINDS[kind].apiUrl + '/' + id, { method: 'DELETE', headers: headers })
             .then(function (r) { return r.json(); })
             .then(function () {
-                loadNotes();
+                loadNotes(kind);
             })
             .catch(function () {
                 alert('삭제 실패');
             });
     }
 
-    loadNotes();
+    function noteKakaoSend(kind, id) {
+        var statusEl = document.getElementById('kakaoStatus-' + kind + '-' + id);
+        if (statusEl) { statusEl.textContent = '전송 중...'; }
+        var headers = {};
+        headers[CSRF_HEADER] = CSRF_TOKEN;
+        fetch(NOTE_KINDS[kind].apiUrl + '/' + id + '/kakao-send', { method: 'POST', headers: headers })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (statusEl) { statusEl.textContent = data.ok ? '✅ 전송 완료' : '❌ ' + (data.message || '전송 실패'); }
+            })
+            .catch(function () {
+                if (statusEl) { statusEl.textContent = '❌ 전송 실패'; }
+            });
+    }
+
+    loadNotes('jobradar');
+    loadNotes('tech');
 
     // ---- private내역 조회/수정(같은 화면에서 벗어나지 않고 저장) ----
 

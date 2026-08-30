@@ -1,5 +1,8 @@
 package com.dcsmanager.controller;
 
+import com.dcsmanager.domain.TechNote;
+import com.dcsmanager.repository.TechNoteRepository;
+import com.dcsmanager.service.KakaoNotifier;
 import com.dcsmanager.service.PageContentService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -23,8 +26,13 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 162단계: TMSManager "JobRadar" 탭 오른쪽에 "메모연동" 탭을 신설 - JobRadar의 "메모"와
@@ -50,15 +58,23 @@ public class MemoLinkController {
     private static final String PRIVATE_PAGE_KEY = "private";
     private static final String PRIVATE_DEFAULT_RESOURCE = "private-default.md";
 
+    private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
     private final PageContentService pageContentService;
     private final RestTemplate restTemplate;
     private final String jobradarNotesUrl;
+    private final TechNoteRepository techNoteRepository;
+    private final KakaoNotifier kakaoNotifier;
 
     public MemoLinkController(PageContentService pageContentService,
                                RestTemplate restTemplate,
+                               TechNoteRepository techNoteRepository,
+                               KakaoNotifier kakaoNotifier,
                                @Value("${jobradar.base-url:http://jobradar:8090}") String jobradarBaseUrl) {
         this.pageContentService = pageContentService;
         this.restTemplate = restTemplate;
+        this.techNoteRepository = techNoteRepository;
+        this.kakaoNotifier = kakaoNotifier;
         this.jobradarNotesUrl = jobradarBaseUrl + "/api/notes";
     }
 
@@ -136,5 +152,122 @@ public class MemoLinkController {
         body.put("ok", true);
         body.put("html", pageContentService.getHtml(PRIVATE_PAGE_KEY, PRIVATE_DEFAULT_RESOURCE));
         return ResponseEntity.ok(body);
+    }
+
+    // ---- 167단계: "기술메모" 탭 - JobRadar 메모와 같은 기능(리치텍스트/이미지 붙여넣기/
+    // 추가·수정·삭제)이지만 DCSManager 자체 DB(tech_note 테이블)에 저장한다. ----
+
+    @GetMapping("/tech-notes")
+    @ResponseBody
+    public Map<String, Object> listTechNotes() {
+        List<Map<String, Object>> notes = new ArrayList<>();
+        for (TechNote n : techNoteRepository.findAllByOrderByUpdatedAtDesc()) {
+            notes.add(techNoteToMap(n));
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put("notes", notes);
+        return body;
+    }
+
+    @PostMapping("/tech-notes")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createTechNote(@RequestBody Map<String, String> data) {
+        String content = data.get("content") == null ? "" : data.get("content").trim();
+        Map<String, Object> body = new HashMap<>();
+        if (content.isEmpty()) {
+            body.put("ok", false);
+            body.put("message", "내용을 입력하세요.");
+            return ResponseEntity.badRequest().body(body);
+        }
+        TechNote note = new TechNote();
+        note.setContent(content);
+        LocalDateTime now = LocalDateTime.now();
+        note.setCreatedAt(now);
+        note.setUpdatedAt(now);
+        techNoteRepository.save(note);
+        body.put("ok", true);
+        body.put("id", note.getId());
+        return ResponseEntity.ok(body);
+    }
+
+    @PutMapping("/tech-notes/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateTechNote(@PathVariable long id, @RequestBody Map<String, String> data) {
+        String content = data.get("content") == null ? "" : data.get("content").trim();
+        Map<String, Object> body = new HashMap<>();
+        if (content.isEmpty()) {
+            body.put("ok", false);
+            body.put("message", "내용을 입력하세요.");
+            return ResponseEntity.badRequest().body(body);
+        }
+        Optional<TechNote> found = techNoteRepository.findById(id);
+        if (!found.isPresent()) {
+            body.put("ok", false);
+            body.put("message", "메모를 찾을 수 없습니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+        }
+        TechNote note = found.get();
+        note.setContent(content);
+        note.setUpdatedAt(LocalDateTime.now());
+        techNoteRepository.save(note);
+        body.put("ok", true);
+        return ResponseEntity.ok(body);
+    }
+
+    @DeleteMapping("/tech-notes/{id}")
+    @ResponseBody
+    public Map<String, Object> deleteTechNote(@PathVariable long id) {
+        techNoteRepository.deleteById(id);
+        Map<String, Object> body = new HashMap<>();
+        body.put("ok", true);
+        return body;
+    }
+
+    /** 기술메모 하나를 카카오톡 "나에게 보내기"로 전송한다(파일이 아니라 텍스트라, 링크 없이
+     * 내용을 그대로 - 너무 길면 잘라서 - 메시지 본문으로 보낸다). */
+    @PostMapping("/tech-notes/{id}/kakao-send")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> kakaoSendTechNote(@PathVariable long id) {
+        Map<String, Object> body = new HashMap<>();
+        Optional<TechNote> found = techNoteRepository.findById(id);
+        if (!found.isPresent()) {
+            body.put("ok", false);
+            body.put("message", "메모를 찾을 수 없습니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+        }
+        String plainText = stripHtml(found.get().getContent());
+        if (plainText.length() > 180) {
+            plainText = plainText.substring(0, 180) + "...";
+        }
+        kakaoNotifier.notify("[기술메모]\n" + plainText);
+        body.put("ok", true);
+        return ResponseEntity.ok(body);
+    }
+
+    private static String stripHtml(String html) {
+        if (html == null) {
+            return "";
+        }
+        String text = html
+                .replaceAll("(?i)<br\\s*/?>", "\n")
+                .replaceAll("(?i)</p>", "\n")
+                .replaceAll("(?i)</div>", "\n")
+                .replaceAll("<[^>]+>", "");
+        text = text.replace("&nbsp;", " ")
+                .replace("&amp;", "&")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&quot;", "\"")
+                .replace("&#39;", "'");
+        return text.trim();
+    }
+
+    private Map<String, Object> techNoteToMap(TechNote n) {
+        Map<String, Object> m = new HashMap<>();
+        m.put("id", n.getId());
+        m.put("content", n.getContent());
+        m.put("created_at", n.getCreatedAt().format(ISO));
+        m.put("updated_at", n.getUpdatedAt().format(ISO));
+        return m;
     }
 }

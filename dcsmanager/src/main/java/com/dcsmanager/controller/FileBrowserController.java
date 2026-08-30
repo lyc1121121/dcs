@@ -82,10 +82,10 @@ public class FileBrowserController {
 
     // 159단계: 카카오톡으로 보낸 링크는 로그인 없이 바로 열려야 하므로, 경로+만료시각을
     // 서버만 아는 키로 서명한 토큰을 발급한다(재기동하면 키가 바뀌어 기존 링크는 무효화됨 -
-    // 어차피 60분짜리 임시 링크라 문제 없음). 토큰이 있는 요청만 파일 하나에 한해 예외적으로
-    // 로그인 없이 접근을 허용한다.
+    // 어차피 24시간짜리 임시 링크라 문제 없음). 토큰이 있는 요청만 파일 하나에 한해
+    // 예외적으로 로그인 없이 접근을 허용한다.
     private static final byte[] SHARE_SECRET = new byte[32];
-    private static final long SHARE_TTL_SECONDS = 60 * 60;
+    private static final long SHARE_TTL_SECONDS = 24 * 60 * 60;
 
     static {
         new SecureRandom().nextBytes(SHARE_SECRET);
@@ -320,7 +320,7 @@ public class FileBrowserController {
         // (실제 테스트로 확인됨), 대신 URL을 메시지 본문에 그냥 텍스트로 넣는다 - 카카오톡이
         // 본문 안의 http(s):// 로 시작하는 텍스트는 플랫폼과 무관하게 항상 자동으로 링크
         // 처리해준다.
-        kakaoNotifier.notify(name + " 파일 (60분 유효)\n" + shareUrl, shareUrl);
+        kakaoNotifier.notify(name + " 파일 (24시간 유효)\n" + shareUrl, shareUrl);
         return okBody(shareUrl);
     }
 

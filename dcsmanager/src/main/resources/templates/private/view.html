@@ -299,7 +299,7 @@
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (!status) { return; }
-                status.textContent = data.ok ? '✅ 카카오톡으로 전송했습니다 (60분간 유효)' : '❌ 전송 실패: ' + (data.message || '');
+                status.textContent = data.ok ? '✅ 카카오톡으로 전송했습니다 (24시간 유효)' : '❌ 전송 실패: ' + (data.message || '');
             })
             .catch(function () {
                 if (status) { status.textContent = '❌ 전송 실패(네트워크 오류)'; }
