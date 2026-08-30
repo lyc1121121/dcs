@@ -15,6 +15,8 @@
         /* 기술메모 탭은 다른 탭들의 파란색과 구분되는 고유 강조색(보라색)을 쓴다 */
         .memo-link-tab-btn.tech-accent { border: 2px solid #7c3aed; color: #5b21b6; background: #ddd6fe; font-weight: 700; }
         .memo-link-tab-btn.tech-accent.active { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+        .memo-link-tab-btn.backup-accent { border: 2px solid #d97706; color: #92400e; background: #fde68a; font-weight: 700; }
+        .memo-link-tab-btn.backup-accent.active { background: #d97706; color: #fff; border-color: #d97706; }
         .memo-link-panel { display: none; }
         .memo-link-panel.active { display: block; }
         .page-content-body img { max-width: 100%; border-radius: 8px; margin: 12px 0; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
@@ -73,6 +75,7 @@
             <button type="button" class="memo-link-tab-btn active" id="tabBtnJobradarNotes" onclick="showMemoTab('jobradar')">JobRadar 메모</button>
             <button type="button" class="memo-link-tab-btn" id="tabBtnPrivateNotes" disabled title="164단계: 비활성화됨">private내역</button>
             <button type="button" class="memo-link-tab-btn tech-accent" id="tabBtnTechNotes" onclick="showMemoTab('tech')">기술메모</button>
+            <button type="button" class="memo-link-tab-btn backup-accent" id="tabBtnBackupNotes" onclick="showMemoTab('backup')">백업화면</button>
         </div>
 
         <div id="panelJobradarNotes" class="memo-link-panel active">
@@ -115,6 +118,26 @@
             <div id="techNotesList"><div class="memo-link-empty">불러오는 중...</div></div>
         </div>
 
+        <div id="panelBackupNotes" class="memo-link-panel">
+            <p class="hint">화면을 새로 디자인하기 전에 "이전 모습 + 구조 설명"을 남겨두는 곳입니다(이미지 붙여넣기 가능). 기술메모와 기능은 같고 데이터만 별도로 관리됩니다.</p>
+
+            <div class="note-toolbar">
+                <button type="button" onmousedown="event.preventDefault(); noteFormat('backupNoteNewContent','bold')"><b>B</b></button>
+                <button type="button" onmousedown="event.preventDefault(); noteFormat('backupNoteNewContent','italic')"><i>I</i></button>
+                <button type="button" onmousedown="event.preventDefault(); noteFormat('backupNoteNewContent','underline')"><u>U</u></button>
+                <input type="color" class="note-color-input" title="글자색" value="#222222"
+                       onmousedown="noteFocusEditor('backupNoteNewContent')" onchange="noteFormatColor('backupNoteNewContent', this.value)">
+            </div>
+            <div id="backupNoteNewContent" class="note-editable" contenteditable="true"
+                 data-placeholder="여기에 붙여넣기(Ctrl+V) 하세요..." onpaste="handleNotePaste(event, this)"></div>
+            <div class="toolbar" style="margin-top:8px">
+                <button type="button" class="btn btn-primary" onclick="addNote('backup')">추가</button>
+                <span id="backupNotesStatus" class="hint"></span>
+            </div>
+
+            <div id="backupNotesList"><div class="memo-link-empty">불러오는 중...</div></div>
+        </div>
+
         <div id="panelPrivateNotes" class="memo-link-panel">
             <div th:if="${privateUnlocked}">
                 <div class="page-content-toolbar" style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:16px;">
@@ -147,9 +170,11 @@
         document.getElementById('panelJobradarNotes').classList.toggle('active', name === 'jobradar');
         document.getElementById('panelPrivateNotes').classList.toggle('active', name === 'private');
         document.getElementById('panelTechNotes').classList.toggle('active', name === 'tech');
+        document.getElementById('panelBackupNotes').classList.toggle('active', name === 'backup');
         document.getElementById('tabBtnJobradarNotes').classList.toggle('active', name === 'jobradar');
         document.getElementById('tabBtnPrivateNotes').classList.toggle('active', name === 'private');
         document.getElementById('tabBtnTechNotes').classList.toggle('active', name === 'tech');
+        document.getElementById('tabBtnBackupNotes').classList.toggle('active', name === 'backup');
     }
 
     // ---- 메모 CRUD (JobRadar 메모 / 기술메모 공용 - kind 로 구분) ----
@@ -158,7 +183,8 @@
     // 붙는다(파일탐색기의 카카오톡 전송과 같은 취지 - 이번엔 파일이 아니라 메모 텍스트).
     var NOTE_KINDS = {
         jobradar: { apiUrl: '/memo-link/jobradar-notes', listId: 'jobradarNotesList', newEditorId: 'noteNewContent', statusId: 'notesStatus', cache: [], editingId: null, kakao: false },
-        tech: { apiUrl: '/memo-link/tech-notes', listId: 'techNotesList', newEditorId: 'techNoteNewContent', statusId: 'techNotesStatus', cache: [], editingId: null, kakao: true }
+        tech: { apiUrl: '/memo-link/tech-notes', listId: 'techNotesList', newEditorId: 'techNoteNewContent', statusId: 'techNotesStatus', cache: [], editingId: null, kakao: true },
+        backup: { apiUrl: '/memo-link/backup-notes', listId: 'backupNotesList', newEditorId: 'backupNoteNewContent', statusId: 'backupNotesStatus', cache: [], editingId: null, kakao: true }
     };
     var noteSavedRange = null;
 
@@ -390,6 +416,7 @@
 
     loadNotes('jobradar');
     loadNotes('tech');
+    loadNotes('backup');
 
     // ---- private내역 조회/수정(같은 화면에서 벗어나지 않고 저장) ----
 

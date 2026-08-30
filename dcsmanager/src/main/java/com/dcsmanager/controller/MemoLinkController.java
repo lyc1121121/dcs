@@ -1,6 +1,8 @@
 package com.dcsmanager.controller;
 
+import com.dcsmanager.domain.BackupNote;
 import com.dcsmanager.domain.TechNote;
+import com.dcsmanager.repository.BackupNoteRepository;
 import com.dcsmanager.repository.TechNoteRepository;
 import com.dcsmanager.service.KakaoNotifier;
 import com.dcsmanager.service.PageContentService;
@@ -64,16 +66,19 @@ public class MemoLinkController {
     private final RestTemplate restTemplate;
     private final String jobradarNotesUrl;
     private final TechNoteRepository techNoteRepository;
+    private final BackupNoteRepository backupNoteRepository;
     private final KakaoNotifier kakaoNotifier;
 
     public MemoLinkController(PageContentService pageContentService,
                                RestTemplate restTemplate,
                                TechNoteRepository techNoteRepository,
+                               BackupNoteRepository backupNoteRepository,
                                KakaoNotifier kakaoNotifier,
                                @Value("${jobradar.base-url:http://jobradar:8090}") String jobradarBaseUrl) {
         this.pageContentService = pageContentService;
         this.restTemplate = restTemplate;
         this.techNoteRepository = techNoteRepository;
+        this.backupNoteRepository = backupNoteRepository;
         this.kakaoNotifier = kakaoNotifier;
         this.jobradarNotesUrl = jobradarBaseUrl + "/api/notes";
     }
@@ -263,6 +268,105 @@ public class MemoLinkController {
     }
 
     private Map<String, Object> techNoteToMap(TechNote n) {
+        Map<String, Object> m = new HashMap<>();
+        m.put("id", n.getId());
+        m.put("content", n.getContent());
+        m.put("created_at", n.getCreatedAt().format(ISO));
+        m.put("updated_at", n.getUpdatedAt().format(ISO));
+        return m;
+    }
+
+    // ---- 169단계: "백업화면" 탭 - 화면을 새로 디자인하기 전에 "이전 모습 + 구조 설명"을
+    // 남겨두는 용도. 기능은 기술메모(167단계)와 완전히 동일하지만 데이터는 별개
+    // (backup_note 테이블)로 관리한다. ----
+
+    @GetMapping("/backup-notes")
+    @ResponseBody
+    public Map<String, Object> listBackupNotes() {
+        List<Map<String, Object>> notes = new ArrayList<>();
+        for (BackupNote n : backupNoteRepository.findAllByOrderByUpdatedAtDesc()) {
+            notes.add(backupNoteToMap(n));
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put("notes", notes);
+        return body;
+    }
+
+    @PostMapping("/backup-notes")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createBackupNote(@RequestBody Map<String, String> data) {
+        String content = data.get("content") == null ? "" : data.get("content").trim();
+        Map<String, Object> body = new HashMap<>();
+        if (content.isEmpty()) {
+            body.put("ok", false);
+            body.put("message", "내용을 입력하세요.");
+            return ResponseEntity.badRequest().body(body);
+        }
+        BackupNote note = new BackupNote();
+        note.setContent(content);
+        LocalDateTime now = LocalDateTime.now();
+        note.setCreatedAt(now);
+        note.setUpdatedAt(now);
+        backupNoteRepository.save(note);
+        body.put("ok", true);
+        body.put("id", note.getId());
+        return ResponseEntity.ok(body);
+    }
+
+    @PutMapping("/backup-notes/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateBackupNote(@PathVariable long id, @RequestBody Map<String, String> data) {
+        String content = data.get("content") == null ? "" : data.get("content").trim();
+        Map<String, Object> body = new HashMap<>();
+        if (content.isEmpty()) {
+            body.put("ok", false);
+            body.put("message", "내용을 입력하세요.");
+            return ResponseEntity.badRequest().body(body);
+        }
+        Optional<BackupNote> found = backupNoteRepository.findById(id);
+        if (!found.isPresent()) {
+            body.put("ok", false);
+            body.put("message", "메모를 찾을 수 없습니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+        }
+        BackupNote note = found.get();
+        note.setContent(content);
+        note.setUpdatedAt(LocalDateTime.now());
+        backupNoteRepository.save(note);
+        body.put("ok", true);
+        return ResponseEntity.ok(body);
+    }
+
+    @DeleteMapping("/backup-notes/{id}")
+    @ResponseBody
+    public Map<String, Object> deleteBackupNote(@PathVariable long id) {
+        backupNoteRepository.deleteById(id);
+        Map<String, Object> body = new HashMap<>();
+        body.put("ok", true);
+        return body;
+    }
+
+    /** 백업화면 메모 하나를 카카오톡 "나에게 보내기"로 전송한다(기술메모와 동일한 방식). */
+    @PostMapping("/backup-notes/{id}/kakao-send")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> kakaoSendBackupNote(@PathVariable long id) {
+        Map<String, Object> body = new HashMap<>();
+        Optional<BackupNote> found = backupNoteRepository.findById(id);
+        if (!found.isPresent()) {
+            body.put("ok", false);
+            body.put("message", "메모를 찾을 수 없습니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+        }
+        String plainText = stripHtml(found.get().getContent());
+        if (plainText.length() > 180) {
+            plainText = plainText.substring(0, 180) + "...";
+        }
+        kakaoNotifier.notify("[백업화면]\n" + plainText);
+        body.put("ok", true);
+        return ResponseEntity.ok(body);
+    }
+
+    private Map<String, Object> backupNoteToMap(BackupNote n) {
         Map<String, Object> m = new HashMap<>();
         m.put("id", n.getId());
         m.put("content", n.getContent());
