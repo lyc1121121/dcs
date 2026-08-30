@@ -12,6 +12,9 @@
             cursor: pointer; font-size: 14px; color: #555; }
         .memo-link-tab-btn.active { background: #1f6feb; color: #fff; border-color: #1f6feb; }
         .memo-link-tab-btn:disabled { opacity: 0.45; cursor: not-allowed; background: #f3f3f3; }
+        /* 기술메모 탭은 다른 탭들의 파란색과 구분되는 고유 강조색(보라색)을 쓴다 */
+        .memo-link-tab-btn.tech-accent { border: 2px solid #7c3aed; color: #5b21b6; background: #ddd6fe; font-weight: 700; }
+        .memo-link-tab-btn.tech-accent.active { background: #7c3aed; color: #fff; border-color: #7c3aed; }
         .memo-link-panel { display: none; }
         .memo-link-panel.active { display: block; }
         .page-content-body img { max-width: 100%; border-radius: 8px; margin: 12px 0; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
@@ -69,7 +72,7 @@
         <div class="memo-link-tabs">
             <button type="button" class="memo-link-tab-btn active" id="tabBtnJobradarNotes" onclick="showMemoTab('jobradar')">JobRadar 메모</button>
             <button type="button" class="memo-link-tab-btn" id="tabBtnPrivateNotes" disabled title="164단계: 비활성화됨">private내역</button>
-            <button type="button" class="memo-link-tab-btn" id="tabBtnTechNotes" onclick="showMemoTab('tech')">기술메모</button>
+            <button type="button" class="memo-link-tab-btn tech-accent" id="tabBtnTechNotes" onclick="showMemoTab('tech')">기술메모</button>
         </div>
 
         <div id="panelJobradarNotes" class="memo-link-panel active">
