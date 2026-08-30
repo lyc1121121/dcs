@@ -7,41 +7,31 @@
 </head>
 <body>
 <div class="container">
-    <header class="page-header">
-        <div class="title-row meta-row">
-            <a th:href="@{/portfolio}" class="nav-badge nav-badge-doc">
-                <span class="nav-badge-icon">📋</span>개요
-            </a>
-            <a th:href="@{/changelog}" class="nav-badge nav-badge-doc">
-                <span class="nav-badge-icon">🕒</span>이력
-            </a>
-            <a href="http://100.125.13.91:8091/" target="_blank" rel="noopener" class="nav-badge nav-badge-jobradar">
-                <span class="nav-badge-icon">🧭</span>JobRadar
-            </a>
-            <a th:href="@{/memo-link}" class="nav-badge nav-badge-doc">
-                <span class="nav-badge-icon">🔗</span>메모연동
-            </a>
-        </div>
-        <div class="title-row">
-            <h1 class="nav-badge nav-badge-title">
-                <span class="nav-badge-icon">🖥️</span>TMSManager
-            </h1>
-            <a href="http://100.125.13.91:9010/d/dcs-overview/b86e26c7-173f-5e25-8649-ddae63b346cf"
-               target="_blank" rel="noopener" class="nav-badge">
-                <span class="nav-badge-icon">📊</span>TMS통합 모니터링
-            </a>
-            <a href="http://100.125.13.91:9013/" target="_blank" rel="noopener" class="nav-badge">
-                <span class="nav-badge-icon">📦</span>Registry
-            </a>
-            <a href="http://100.125.13.91:4000/" target="_blank" rel="noopener" class="nav-badge">
-                <span class="nav-badge-icon">🐳</span>Advisor
-            </a>
-            <a href="http://100.125.13.91:4001/metrics" target="_blank" rel="noopener" class="nav-badge">
-                <span class="nav-badge-icon">📡</span>NodeExporter
-            </a>
-            <a href="http://100.125.13.91:9012/" target="_blank" rel="noopener" class="nav-badge">
-                <span class="nav-badge-icon">🗄️</span>MariaDB
-            </a>
+    <header class="page-header" style="align-self: stretch;">
+        <div class="topnav">
+            <div class="brand">
+                <span class="brand-icon">🖥️</span>
+                <div>
+                    <div class="brand-text">TMSManager</div>
+                    <div class="brand-sub">컨테이너 오케스트레이션 콘솔</div>
+                </div>
+            </div>
+            <div class="nav-links">
+                <div class="nav-group nav-group-external">
+                    <a href="http://100.125.13.91:9010/d/dcs-overview/b86e26c7-173f-5e25-8649-ddae63b346cf"
+                       target="_blank" rel="noopener" class="nav-pill">📊 TMS통합 모니터링</a>
+                    <a href="http://100.125.13.91:9013/" target="_blank" rel="noopener" class="nav-pill">📦 Registry</a>
+                    <a href="http://100.125.13.91:4000/" target="_blank" rel="noopener" class="nav-pill">🐳 Advisor</a>
+                    <a href="http://100.125.13.91:4001/metrics" target="_blank" rel="noopener" class="nav-pill">📡 NodeExporter</a>
+                    <a href="http://100.125.13.91:9012/" target="_blank" rel="noopener" class="nav-pill">🗄️ MariaDB</a>
+                </div>
+                <div class="nav-group nav-group-internal">
+                    <a th:href="@{/portfolio}" class="nav-pill">📋 개요</a>
+                    <a th:href="@{/changelog}" class="nav-pill">🕒 이력</a>
+                    <a href="http://100.125.13.91:8091/" target="_blank" rel="noopener" class="nav-pill">🧭 JobRadar</a>
+                    <a th:href="@{/memo-link}" class="nav-pill accent">🔗 메모연동</a>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -49,17 +39,18 @@
     <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
 
     <div class="tabs">
-        <button type="button" id="btn-tab1" class="tab-button" onclick="showTab('tab1')">TMS 컨테이너</button>
-        <button type="button" id="btn-tab2" class="tab-button" onclick="showTab('tab2')">기타 컨테이너</button>
+        <button type="button" id="btn-tab1" class="tab-button" onclick="showTab('tab1', true)">TMS 컨테이너</button>
+        <button type="button" id="btn-tab2" class="tab-button" onclick="showTab('tab2', true)">기타 컨테이너</button>
     </div>
 
     <div id="tab1" class="tab-panel">
         <section class="section-card">
-        <h3>컨테이너 리스트</h3>
-        <div class="toolbar">
+        <div class="section-card-header">
+            <h3>컨테이너 리스트</h3>
             <button type="button" class="btn btn-primary" onclick="document.getElementById('createDialog').showModal()">+ 신규 등록</button>
         </div>
 
+        <div class="table-scroll">
         <table class="dcs-table" id="tab1-table">
             <thead>
             <tr>
@@ -89,16 +80,16 @@
                                 title="삭제">&#10005;</button>
                     </form>
                 </td>
-                <td th:text="${dcs.dcsId}"></td>
+                <td class="mono" th:text="${dcs.dcsId}"></td>
                 <td th:text="${dcs.dcsImageVersion}"></td>
                 <td>
                     <span th:text="${dcs.dcsMode}"
                           th:classappend="${dcs.dcsMode.name() == 'PROD'} ? 'badge badge-prod' : 'badge badge-dev'"></span>
                 </td>
                 <td th:text="${dcs.dcsSize}"></td>
-                <td th:text="${dcs.portDcs1}"></td>
-                <td th:text="${dcs.portDcs2}"></td>
-                <td th:text="${dcs.dcsServerIp}" th:classappend="${!known} ? 'cell-unknown'"></td>
+                <td class="mono" th:text="${dcs.portDcs1}"></td>
+                <td class="mono" th:text="${dcs.portDcs2}"></td>
+                <td class="mono" th:text="${dcs.dcsServerIp}" th:classappend="${!known} ? 'cell-unknown'"></td>
                 <td>
                     <span th:if="${known and status.running}" class="badge badge-running">실행중</span>
                     <span th:if="${known and !status.running}" class="badge badge-stopped">중지됨</span>
@@ -129,10 +120,12 @@
             </tr>
             </tbody>
         </table>
+        </div>
         </section>
 
         <section class="section-card">
-        <h3>시뮬레이션 테스트 (실행중인 TMS만 표시)</h3>
+        <h3>시뮬레이션 테스트</h3>
+        <div class="table-scroll">
         <table class="dcs-table">
             <thead>
             <tr>
@@ -148,7 +141,7 @@
             <tbody>
             <tr th:each="dcs : ${dcsList}"
                 th:if="${statuses.get(dcs.dcsId) != null and !statuses.get(dcs.dcsId).stale and statuses.get(dcs.dcsId).running}">
-                <td th:text="${dcs.dcsId}"></td>
+                <td class="mono" th:text="${dcs.dcsId}"></td>
                 <td>
                     <input type="text" class="terminal-input sim-input" value="196510005" maxlength="9"
                            th:id="${'sim-terminal-' + dcs.dcsId}" th:data-id="${dcs.dcsId}" data-field="terminal"/>
@@ -179,15 +172,21 @@
                     </div>
                 </td>
             </tr>
-            <tr th:if="${#lists.isEmpty(dcsList)}">
+            <tr th:if="${!hasRunningDcs}">
                 <td colspan="7" class="empty">실행중인 TMS가 없습니다.</td>
             </tr>
             </tbody>
         </table>
+        </div>
         </section>
     </div>
 
     <div id="tab2" class="tab-panel">
+        <section class="section-card">
+        <div class="section-card-header">
+            <h3>컨테이너 리스트</h3>
+        </div>
+        <div class="table-scroll">
         <table class="dcs-table" id="tab2-table">
             <thead>
             <tr>
@@ -214,10 +213,10 @@
                                 title="삭제">&#10005;</button>
                     </form>
                 </td>
-                <td th:text="${c.name}"></td>
+                <td class="mono" th:text="${c.name}"></td>
                 <td th:text="${c.image}"></td>
-                <td th:text="${c.ports}"></td>
-                <td th:text="${c.serverIp}"></td>
+                <td class="mono wrap-col" th:text="${c.ports}"></td>
+                <td class="mono" th:text="${c.serverIp}"></td>
                 <td>
                     <span th:if="${c.running}" class="badge badge-running">실행중</span>
                     <span th:unless="${c.running}" class="badge badge-stopped">중지됨</span>
@@ -241,6 +240,8 @@
             </tr>
             </tbody>
         </table>
+        </div>
+        </section>
     </div>
 </div>
 
@@ -458,12 +459,17 @@
     makeDraggable('editDialog', 'editDialogHandle');
     makeDraggable('arrivedDialog', 'arrivedDialogHandle');
 
-    function showTab(id) {
+    function showTab(id, scrollTop) {
         document.getElementById('tab1').style.display = (id === 'tab2') ? 'none' : '';
         document.getElementById('tab2').style.display = (id === 'tab2') ? '' : 'none';
         document.getElementById('btn-tab1').classList.toggle('active', id !== 'tab2');
         document.getElementById('btn-tab2').classList.toggle('active', id === 'tab2');
         location.hash = id;
+        // 175-9단계: 탭을 선택했을 때 세로 스크롤이 남아있으면 맨 위로 올려준다.
+        // 초기 로딩 시(showTab 최초 호출) 에는 스크롤하지 않도록 scrollTop 인자로 구분한다.
+        if (scrollTop) {
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
     }
     showTab(location.hash === '#tab2' ? 'tab2' : 'tab1');
 

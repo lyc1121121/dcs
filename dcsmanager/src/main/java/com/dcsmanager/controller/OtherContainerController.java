@@ -34,6 +34,13 @@ public class OtherContainerController {
 
     @PostMapping("/{name}/delete")
     public String delete(@PathVariable String name, @RequestParam String serverIp, RedirectAttributes redirectAttributes) {
+        boolean running = dcsServerClient.listOtherContainers().stream()
+                .anyMatch(c -> c.getName().equals(name) && c.getServerIp().equals(serverIp) && c.isRunning());
+        if (running) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "[" + name + "] 는 실행 중이라 삭제할 수 없습니다. 먼저 내려주세요.");
+            return "redirect:/dcs#tab2";
+        }
         DcsServerClient.DcsServerResult result = dcsServerClient.deleteOtherContainer(serverIp, name);
         flash(redirectAttributes, result, "[" + name + "] 삭제 요청 결과: ");
         return "redirect:/dcs#tab2";

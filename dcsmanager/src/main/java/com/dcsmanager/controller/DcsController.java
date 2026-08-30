@@ -47,13 +47,32 @@ public class DcsController {
 
     @GetMapping
     public String list(Model model) {
-        model.addAttribute("dcsList", dcsService.findAll());
-        model.addAttribute("statuses", statusCache.get());
-        model.addAttribute("otherContainers", dcsServerClient.listOtherContainers());
+        populateListModel(model);
         if (!model.containsAttribute("dcsForm")) {
             model.addAttribute("dcsForm", new DcsForm());
         }
         return "dcs/list";
+    }
+
+    /**
+     * dcs/list.html 이 매 요청마다 필요로 하는 목록/상태 모델 속성을 채운다.
+     * "시뮬레이션 테스트" 표는 실행 중인 TMS만 보여주는데, 그 필터 조건과 무관하게
+     * "실행중인 TMS가 없습니다" 빈 안내문을 dcsList 전체 개수로만 판단하고 있어서
+     * (175-6단계) 등록된 TMS가 있지만 전부 중지 상태일 때 표가 완전히 빈 채로
+     * 아무 안내도 없이 나타나는 버그가 있었다 - hasRunningDcs 로 필터 조건과
+     * 동일한 기준을 공유해서 고침.
+     */
+    private void populateListModel(Model model) {
+        List<Dcs> dcsList = dcsService.findAll();
+        Map<String, DcsServerClient.DcsStatus> statuses = statusCache.get();
+        boolean hasRunningDcs = dcsList.stream().anyMatch(dcs -> {
+            DcsServerClient.DcsStatus status = statuses.get(dcs.getDcsId());
+            return status != null && !status.isStale() && status.isRunning();
+        });
+        model.addAttribute("dcsList", dcsList);
+        model.addAttribute("statuses", statuses);
+        model.addAttribute("otherContainers", dcsServerClient.listOtherContainers());
+        model.addAttribute("hasRunningDcs", hasRunningDcs);
     }
 
     @GetMapping("/new")
@@ -90,9 +109,7 @@ public class DcsController {
     }
 
     private String reopenCreateModal(Model model) {
-        model.addAttribute("dcsList", dcsService.findAll());
-        model.addAttribute("statuses", statusCache.get());
-        model.addAttribute("otherContainers", dcsServerClient.listOtherContainers());
+        populateListModel(model);
         model.addAttribute("openCreateModal", true);
         return "dcs/list";
     }
@@ -133,9 +150,7 @@ public class DcsController {
     }
 
     private String reopenEditModal(Model model) {
-        model.addAttribute("dcsList", dcsService.findAll());
-        model.addAttribute("statuses", statusCache.get());
-        model.addAttribute("otherContainers", dcsServerClient.listOtherContainers());
+        populateListModel(model);
         model.addAttribute("openEditModal", true);
         return "dcs/list";
     }
