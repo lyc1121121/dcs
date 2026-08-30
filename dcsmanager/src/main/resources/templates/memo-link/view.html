@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>TMSManager - 메모연동</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .memo-link-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .memo-link-tab-btn { padding: 8px 16px; border: 1px solid #ddd; border-radius: 6px; background: #fff;
+            cursor: pointer; font-size: 14px; color: #555; }
+        .memo-link-tab-btn.active { background: #1f6feb; color: #fff; border-color: #1f6feb; }
+        .memo-link-tab-btn:disabled { opacity: 0.45; cursor: not-allowed; background: #f3f3f3; }
+        .memo-link-panel { display: none; }
+        .memo-link-panel.active { display: block; }
+        .page-content-body img { max-width: 100%; border-radius: 8px; margin: 12px 0; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+        .memo-link-empty { color: #999; text-align: center; padding: 40px 0; }
+        .memo-link-locked { text-align: center; padding: 40px 0; color: #555; }
+
+        /* JobRadar 메모 탭과 동일한 스타일(app/static/style.css 107~127행 참고, 여기 그대로 옮김) */
+        .note-editable {
+            width: 100%; min-height: 90px; padding: 10px; border: 1px solid #ccc; border-radius: 4px;
+            font-size: 14px; font-family: inherit; white-space: pre-wrap; word-break: break-word;
+            line-height: 1.5; background: #fff;
+        }
+        .note-editable:focus { outline: 2px solid #2f6fed; outline-offset: -1px; }
+        .note-editable:empty:before { content: attr(data-placeholder); color: #999; }
+        .note-toolbar { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+        .note-toolbar button {
+            width: 28px; height: 28px; border: 1px solid #ccc; border-radius: 4px; background: #fff;
+            cursor: pointer; font-size: 13px; line-height: 1;
+        }
+        .note-toolbar button:hover { background: #eef2fb; border-color: #2f6fed; }
+        .note-color-input { width: 28px; height: 28px; padding: 0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+        .note-pasted-image { max-width: 100%; border-radius: 4px; margin: 4px 0; display: block; }
+        #jobradarNotesList { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+        .note-item { border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px 14px; background: #fafafa; }
+        .note-meta { font-size: 12px; color: #888; margin-bottom: 6px; }
+        .note-content { white-space: pre-wrap; word-break: break-word; font-size: 14px; line-height: 1.5; margin-bottom: 8px; }
+        .note-content img { max-width: 100%; border-radius: 6px; margin: 6px 0; }
+        .note-actions { display: flex; gap: 8px; }
+        .note-item .note-editable { margin-bottom: 8px; background: #fff; }
+        .btn-delete-note { border-color: #d9534f; color: #d9534f; }
+
+        .page-content-edit textarea {
+            width: 100%; min-height: 40vh; font-family: "D2Coding", "Consolas", monospace;
+            font-size: 13px; padding: 14px; border: 1px solid #ccc; border-radius: 6px; resize: vertical;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header class="page-header">
+        <div class="title-row">
+            <a th:href="@{/dcs}" class="nav-badge">
+                <span class="nav-badge-icon">⬅️</span>TMSManager로
+            </a>
+            <h1 class="nav-badge nav-badge-title">
+                <span class="nav-badge-icon">🔗</span>메모연동
+            </h1>
+            <a href="http://100.125.13.91:8091/" target="_blank" rel="noopener" class="nav-badge nav-badge-jobradar">
+                <span class="nav-badge-icon">🧭</span>JobRadar 열기
+            </a>
+        </div>
+    </header>
+
+    <section class="section-card">
+        <div class="memo-link-tabs">
+            <button type="button" class="memo-link-tab-btn active" id="tabBtnJobradarNotes" onclick="showMemoTab('jobradar')">JobRadar 메모</button>
+            <button type="button" class="memo-link-tab-btn" id="tabBtnPrivateNotes" disabled title="164단계: 비활성화됨">private내역</button>
+        </div>
+
+        <div id="panelJobradarNotes" class="memo-link-panel active">
+            <p class="hint">JobRadar "메모" 탭과 완전히 같은 데이터입니다(이미지 붙여넣기 가능) - 여기서 추가/수정/삭제하면 JobRadar에도 그대로 반영됩니다.</p>
+
+            <div class="note-toolbar">
+                <button type="button" onmousedown="event.preventDefault(); noteFormat('noteNewContent','bold')"><b>B</b></button>
+                <button type="button" onmousedown="event.preventDefault(); noteFormat('noteNewContent','italic')"><i>I</i></button>
+                <button type="button" onmousedown="event.preventDefault(); noteFormat('noteNewContent','underline')"><u>U</u></button>
+                <input type="color" class="note-color-input" title="글자색" value="#222222"
+                       onmousedown="noteFocusEditor('noteNewContent')" onchange="noteFormatColor('noteNewContent', this.value)">
+            </div>
+            <div id="noteNewContent" class="note-editable" contenteditable="true"
+                 data-placeholder="여기에 붙여넣기(Ctrl+V) 하세요..." onpaste="handleNotePaste(event, this)"></div>
+            <div class="toolbar" style="margin-top:8px">
+                <button type="button" class="btn btn-primary" onclick="addNote()">추가</button>
+                <span id="notesStatus" class="hint"></span>
+            </div>
+
+            <div id="jobradarNotesList"><div class="memo-link-empty">불러오는 중...</div></div>
+        </div>
+
+        <div id="panelPrivateNotes" class="memo-link-panel">
+            <div th:if="${privateUnlocked}">
+                <div class="page-content-toolbar" style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:16px;">
+                    <button type="button" id="btn-private-view-mode" class="btn btn-primary btn-sm" onclick="showPrivateMode('view')">보기</button>
+                    <button type="button" id="btn-private-edit-mode" class="btn btn-sm" onclick="showPrivateMode('edit')">수정</button>
+                </div>
+                <div id="private-content-view" class="page-content-body" th:utext="${privateHtml}"></div>
+                <div id="private-content-edit" class="page-content-edit" style="display:none;">
+                    <p class="hint">※ 이미지를 그냥 붙여넣기(Ctrl+V)하면 마크다운 이미지로 자동 삽입됩니다.</p>
+                    <textarea id="privateContentMarkdown" th:text="${privateMarkdown}" onpaste="handleMarkdownImagePaste(event, this)"></textarea>
+                    <div class="form-actions" style="margin-top:10px">
+                        <button type="button" class="btn btn-primary" onclick="savePrivateContent()">저장</button>
+                        <button type="button" class="btn" onclick="showPrivateMode('view')">취소</button>
+                        <span id="privateSaveStatus" class="hint"></span>
+                    </div>
+                </div>
+            </div>
+            <div th:unless="${privateUnlocked}" class="memo-link-locked">
+                🔒 PRIVATE에 먼저 로그인해야 볼 수 있습니다.<br><br>
+                <a th:href="@{/private}" class="btn btn-primary">PRIVATE 로그인하러 가기</a>
+            </div>
+        </div>
+    </section>
+</div>
+<script>
+    var CSRF_TOKEN = document.querySelector('meta[name="_csrf"]').content;
+    var CSRF_HEADER = document.querySelector('meta[name="_csrf_header"]').content;
+
+    function showMemoTab(name) {
+        document.getElementById('panelJobradarNotes').classList.toggle('active', name === 'jobradar');
+        document.getElementById('panelPrivateNotes').classList.toggle('active', name === 'private');
+        document.getElementById('tabBtnJobradarNotes').classList.toggle('active', name === 'jobradar');
+        document.getElementById('tabBtnPrivateNotes').classList.toggle('active', name === 'private');
+    }
+
+    // ---- JobRadar 메모 CRUD (JobRadar 자신의 메모 탭 JS와 동일한 방식, 프록시로만 전송) ----
+
+    var notesCache = [];
+    var editingNoteId = null;
+    var noteSavedRange = null;
+
+    function formatNoteTimestamp(iso) {
+        var d = new Date(iso);
+        var pad = function (n) { return String(n).padStart(2, '0'); };
+        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' +
+            pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    }
+
+    function noteFocusEditor(editorId) {
+        document.getElementById(editorId).focus();
+    }
+
+    function noteSaveSelection() {
+        var sel = window.getSelection();
+        if (sel.rangeCount > 0) { noteSavedRange = sel.getRangeAt(0); }
+    }
+
+    function noteRestoreSelection() {
+        var sel = window.getSelection();
+        if (noteSavedRange) {
+            sel.removeAllRanges();
+            sel.addRange(noteSavedRange);
+        }
+    }
+
+    function noteFormat(editorId, cmd) {
+        document.getElementById(editorId).focus();
+        document.execCommand(cmd, false, null);
+    }
+
+    function noteFormatColor(editorId, color) {
+        document.getElementById(editorId).focus();
+        noteRestoreSelection();
+        document.execCommand('foreColor', false, color);
+    }
+
+    function handleNotePaste(e, editorEl) {
+        var cd = e.clipboardData || window.clipboardData;
+        if (!cd) { return; }
+        var items = cd.items || [];
+        var imageItem = null;
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].type && items[i].type.indexOf('image') === 0) { imageItem = items[i]; break; }
+        }
+        e.preventDefault();
+        if (imageItem) {
+            var file = imageItem.getAsFile();
+            var reader = new FileReader();
+            reader.onload = function (evt) {
+                editorEl.focus();
+                document.execCommand('insertHTML', false, '<img class="note-pasted-image" src="' + evt.target.result + '">');
+            };
+            reader.readAsDataURL(file);
+            return;
+        }
+        var text = cd.getData('text/plain');
+        document.execCommand('insertText', false, text);
+    }
+
+    function noteItemHtml(note) {
+        var meta = '등록: ' + formatNoteTimestamp(note.created_at);
+        if (note.updated_at !== note.created_at) {
+            meta += ' | 수정: ' + formatNoteTimestamp(note.updated_at);
+        }
+        if (editingNoteId === note.id) {
+            var editorId = 'noteEdit' + note.id;
+            return '<div class="note-item" data-id="' + note.id + '">' +
+                '<div class="note-meta">' + meta + '</div>' +
+                '<div class="note-toolbar">' +
+                    '<button type="button" onmousedown="event.preventDefault(); noteFormat(\'' + editorId + '\',\'bold\')"><b>B</b></button>' +
+                    '<button type="button" onmousedown="event.preventDefault(); noteFormat(\'' + editorId + '\',\'italic\')"><i>I</i></button>' +
+                    '<button type="button" onmousedown="event.preventDefault(); noteFormat(\'' + editorId + '\',\'underline\')"><u>U</u></button>' +
+                    '<input type="color" class="note-color-input" title="글자색" value="#222222" ' +
+                        'onmousedown="noteFocusEditor(\'' + editorId + '\')" onchange="noteFormatColor(\'' + editorId + '\', this.value)">' +
+                '</div>' +
+                '<div class="note-editable" id="' + editorId + '" contenteditable="true" ' +
+                    'onpaste="handleNotePaste(event, this)">' + note.content + '</div>' +
+                '<div class="note-actions">' +
+                    '<button type="button" class="btn btn-primary" onclick="saveEditNote(' + note.id + ')">저장</button>' +
+                    '<button type="button" class="btn" onclick="cancelEditNote()">취소</button>' +
+                '</div>' +
+            '</div>';
+        }
+        return '<div class="note-item" data-id="' + note.id + '">' +
+            '<div class="note-meta">' + meta + '</div>' +
+            '<div class="note-content">' + note.content + '</div>' +
+            '<div class="note-actions">' +
+                '<button type="button" class="btn" onclick="startEditNote(' + note.id + ')">수정</button>' +
+                '<button type="button" class="btn btn-delete-note" onclick="deleteNote(' + note.id + ')">삭제</button>' +
+            '</div>' +
+        '</div>';
+    }
+
+    function renderNotes() {
+        var list = document.getElementById('jobradarNotesList');
+        if (!notesCache.length) {
+            list.innerHTML = '<div class="memo-link-empty">등록된 메모가 없습니다.</div>';
+            return;
+        }
+        list.innerHTML = notesCache.map(noteItemHtml).join('');
+    }
+
+    function loadNotes() {
+        var status = document.getElementById('notesStatus');
+        status.textContent = '불러오는 중...';
+        fetch('/memo-link/jobradar-notes')
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.error) {
+                    document.getElementById('jobradarNotesList').innerHTML = '<div class="memo-link-empty">' + data.error + '</div>';
+                    status.textContent = '';
+                    return;
+                }
+                notesCache = data.notes || [];
+                renderNotes();
+                status.textContent = '';
+            })
+            .catch(function () {
+                status.textContent = '불러오기 실패';
+            });
+    }
+
+    function addNote() {
+        var editor = document.getElementById('noteNewContent');
+        var content = editor.innerHTML.trim();
+        if (!editor.textContent.trim() && !editor.querySelector('img')) { return; }
+        var status = document.getElementById('notesStatus');
+        status.textContent = '저장 중...';
+        var headers = { 'Content-Type': 'application/json' };
+        headers[CSRF_HEADER] = CSRF_TOKEN;
+        fetch('/memo-link/jobradar-notes', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({ content: content }),
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data.ok) {
+                    status.textContent = data.message || '저장 실패';
+                    return;
+                }
+                editor.innerHTML = '';
+                status.textContent = '';
+                loadNotes();
+            })
+            .catch(function () {
+                status.textContent = '저장 실패';
+            });
+    }
+
+    function startEditNote(id) {
+        editingNoteId = id;
+        renderNotes();
+    }
+
+    function cancelEditNote() {
+        editingNoteId = null;
+        renderNotes();
+    }
+
+    function saveEditNote(id) {
+        var editor = document.getElementById('noteEdit' + id);
+        var content = editor.innerHTML.trim();
+        if (!editor.textContent.trim() && !editor.querySelector('img')) { return; }
+        var headers = { 'Content-Type': 'application/json' };
+        headers[CSRF_HEADER] = CSRF_TOKEN;
+        fetch('/memo-link/jobradar-notes/' + id, {
+            method: 'PUT',
+            headers: headers,
+            body: JSON.stringify({ content: content }),
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data.ok) {
+                    alert(data.message || '저장 실패');
+                    return;
+                }
+                editingNoteId = null;
+                loadNotes();
+            })
+            .catch(function () {
+                alert('저장 실패');
+            });
+    }
+
+    function deleteNote(id) {
+        if (!confirm('이 메모를 삭제할까요?')) { return; }
+        var headers = {};
+        headers[CSRF_HEADER] = CSRF_TOKEN;
+        fetch('/memo-link/jobradar-notes/' + id, { method: 'DELETE', headers: headers })
+            .then(function (r) { return r.json(); })
+            .then(function () {
+                loadNotes();
+            })
+            .catch(function () {
+                alert('삭제 실패');
+            });
+    }
+
+    loadNotes();
+
+    // ---- private내역 조회/수정(같은 화면에서 벗어나지 않고 저장) ----
+
+    function showPrivateMode(mode) {
+        var isEdit = mode === 'edit';
+        var viewEl = document.getElementById('private-content-view');
+        var editEl = document.getElementById('private-content-edit');
+        if (!viewEl || !editEl) { return; }
+        viewEl.style.display = isEdit ? 'none' : '';
+        editEl.style.display = isEdit ? '' : 'none';
+        document.getElementById('btn-private-view-mode').classList.toggle('btn-primary', !isEdit);
+        document.getElementById('btn-private-edit-mode').classList.toggle('btn-primary', isEdit);
+    }
+
+    function handleMarkdownImagePaste(e, textarea) {
+        var items = (e.clipboardData || window.clipboardData) ? (e.clipboardData || window.clipboardData).items : null;
+        if (!items) { return; }
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') === 0) {
+                e.preventDefault();
+                var file = items[i].getAsFile();
+                var reader = new FileReader();
+                reader.onload = function (evt) {
+                    var start = textarea.selectionStart;
+                    var end = textarea.selectionEnd;
+                    var value = textarea.value;
+                    var insertText = '\n![](' + evt.target.result + ')\n';
+                    textarea.value = value.slice(0, start) + insertText + value.slice(end);
+                    var newPos = start + insertText.length;
+                    textarea.selectionStart = textarea.selectionEnd = newPos;
+                    textarea.focus();
+                };
+                reader.readAsDataURL(file);
+                return;
+            }
+        }
+    }
+
+    function savePrivateContent() {
+        var textarea = document.getElementById('privateContentMarkdown');
+        var status = document.getElementById('privateSaveStatus');
+        status.textContent = '저장 중...';
+        var headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        headers[CSRF_HEADER] = CSRF_TOKEN;
+        fetch('/memo-link/private-content', {
+            method: 'POST',
+            headers: headers,
+            body: 'contentMarkdown=' + encodeURIComponent(textarea.value),
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data.ok) {
+                    status.textContent = data.message || '저장 실패';
+                    return;
+                }
+                document.getElementById('private-content-view').innerHTML = data.html;
+                status.textContent = '저장되었습니다.';
+                showPrivateMode('view');
+            })
+            .catch(function () {
+                status.textContent = '저장 실패';
+            });
+    }
+</script>
+</body>
+</html>

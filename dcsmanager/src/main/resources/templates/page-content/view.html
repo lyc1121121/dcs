@@ -54,7 +54,8 @@
         <div id="page-content-view" class="page-content-body" th:utext="${contentHtml}"></div>
 
         <form id="page-content-edit" class="page-content-edit" method="post" th:action="@{${formAction}}" style="display:none;">
-            <textarea name="contentMarkdown" th:text="${contentMarkdown}"></textarea>
+            <p class="hint">※ 이미지를 그냥 붙여넣기(Ctrl+V)하면 마크다운 이미지로 자동 삽입됩니다.</p>
+            <textarea name="contentMarkdown" th:text="${contentMarkdown}" onpaste="handleMarkdownImagePaste(event, this)"></textarea>
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">저장</button>
                 <button type="button" class="btn" onclick="showMode('view')">취소</button>
@@ -69,6 +70,32 @@
         document.getElementById('page-content-edit').style.display = isEdit ? '' : 'none';
         document.getElementById('btn-view-mode').classList.toggle('btn-primary', !isEdit);
         document.getElementById('btn-edit-mode').classList.toggle('btn-primary', isEdit);
+    }
+
+    // 161단계: textarea(마크다운)에 이미지를 붙여넣으면 data: URI 마크다운 이미지 문법으로
+    // 커서 위치에 삽입한다. 저장은 여전히 순수 마크다운 텍스트라 별도 업로드/저장소가 필요 없다.
+    function handleMarkdownImagePaste(e, textarea) {
+        var items = (e.clipboardData || window.clipboardData) ? (e.clipboardData || window.clipboardData).items : null;
+        if (!items) { return; }
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') === 0) {
+                e.preventDefault();
+                var file = items[i].getAsFile();
+                var reader = new FileReader();
+                reader.onload = function (evt) {
+                    var start = textarea.selectionStart;
+                    var end = textarea.selectionEnd;
+                    var value = textarea.value;
+                    var insertText = '\n![](' + evt.target.result + ')\n';
+                    textarea.value = value.slice(0, start) + insertText + value.slice(end);
+                    var newPos = start + insertText.length;
+                    textarea.selectionStart = textarea.selectionEnd = newPos;
+                    textarea.focus();
+                };
+                reader.readAsDataURL(file);
+                return;
+            }
+        }
     }
 </script>
 </body>
