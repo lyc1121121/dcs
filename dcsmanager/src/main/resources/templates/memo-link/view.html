@@ -38,6 +38,21 @@
         }
         .note-toolbar button:hover { background: #eef2fb; border-color: #2f6fed; }
         .note-color-input { width: 28px; height: 28px; padding: 0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+        /* 176-2단계: 글자색 선택이 <input type=color> 팝업을 닫는 즉시 바로 적용돼서
+           실수로 색이 바뀌기 쉽고 불편하다는 피드백 - "적용" 버튼으로 확정하는
+           직접 만든 팝업으로 교체 */
+        .note-color-trigger {
+            width: 28px; height: 28px; border: 1px solid #ccc; border-radius: 4px; background: #fff;
+            cursor: pointer; font-size: 13px; font-weight: 700; line-height: 1;
+            border-bottom: 3px solid #d33; color: #333;
+        }
+        .note-color-trigger:hover { background: #eef2fb; border-color: #2f6fed; border-bottom-color: #d33; }
+        .note-color-popup {
+            display: none; position: absolute; z-index: 50; gap: 8px; align-items: center;
+            background: #fff; border: 1px solid #d0d5e0; border-radius: 8px; padding: 8px 10px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+        }
+        .note-color-popup.open { display: flex; }
         .note-pasted-image { max-width: 100%; border-radius: 4px; margin: 4px 0; display: block; }
         #jobradarNotesList { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
         .note-item { border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px 14px; background: #fafafa; }
@@ -85,8 +100,10 @@
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('noteNewContent','bold')"><b>B</b></button>
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('noteNewContent','italic')"><i>I</i></button>
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('noteNewContent','underline')"><u>U</u></button>
-                <input type="color" class="note-color-input" title="글자색" value="#222222"
-                       onmousedown="noteFocusEditor('noteNewContent')" onchange="noteFormatColor('noteNewContent', this.value)">
+                <button type="button" onmousedown="event.preventDefault(); noteFormat('noteNewContent','strikeThrough')"><s>S</s></button>
+                <button type="button" class="note-color-trigger" title="글자색"
+                        onmousedown="event.preventDefault(); noteSaveSelection();"
+                        onclick="openNoteColorPopup('noteNewContent', this)">A</button>
             </div>
             <div id="noteNewContent" class="note-editable" contenteditable="true"
                  data-placeholder="여기에 붙여넣기(Ctrl+V) 하세요..." onpaste="handleNotePaste(event, this)"></div>
@@ -105,8 +122,10 @@
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('techNoteNewContent','bold')"><b>B</b></button>
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('techNoteNewContent','italic')"><i>I</i></button>
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('techNoteNewContent','underline')"><u>U</u></button>
-                <input type="color" class="note-color-input" title="글자색" value="#222222"
-                       onmousedown="noteFocusEditor('techNoteNewContent')" onchange="noteFormatColor('techNoteNewContent', this.value)">
+                <button type="button" onmousedown="event.preventDefault(); noteFormat('techNoteNewContent','strikeThrough')"><s>S</s></button>
+                <button type="button" class="note-color-trigger" title="글자색"
+                        onmousedown="event.preventDefault(); noteSaveSelection();"
+                        onclick="openNoteColorPopup('techNoteNewContent', this)">A</button>
             </div>
             <div id="techNoteNewContent" class="note-editable" contenteditable="true"
                  data-placeholder="여기에 붙여넣기(Ctrl+V) 하세요..." onpaste="handleNotePaste(event, this)"></div>
@@ -125,8 +144,10 @@
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('backupNoteNewContent','bold')"><b>B</b></button>
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('backupNoteNewContent','italic')"><i>I</i></button>
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('backupNoteNewContent','underline')"><u>U</u></button>
-                <input type="color" class="note-color-input" title="글자색" value="#222222"
-                       onmousedown="noteFocusEditor('backupNoteNewContent')" onchange="noteFormatColor('backupNoteNewContent', this.value)">
+                <button type="button" onmousedown="event.preventDefault(); noteFormat('backupNoteNewContent','strikeThrough')"><s>S</s></button>
+                <button type="button" class="note-color-trigger" title="글자색"
+                        onmousedown="event.preventDefault(); noteSaveSelection();"
+                        onclick="openNoteColorPopup('backupNoteNewContent', this)">A</button>
             </div>
             <div id="backupNoteNewContent" class="note-editable" contenteditable="true"
                  data-placeholder="여기에 붙여넣기(Ctrl+V) 하세요..." onpaste="handleNotePaste(event, this)"></div>
@@ -161,6 +182,12 @@
             </div>
         </div>
     </section>
+    <!-- 176-2단계: 메모 글자색 선택용 팝업 - 색을 고른 뒤 "적용"을 눌러야 실제로 적용됨 -->
+    <div id="noteColorPopup" class="note-color-popup">
+        <input type="color" id="noteColorPopupInput" class="note-color-input" value="#222222">
+        <button type="button" class="btn btn-primary btn-sm" onmousedown="event.preventDefault();" onclick="applyNoteColorPopup()">적용</button>
+        <button type="button" class="btn btn-sm" onmousedown="event.preventDefault();" onclick="closeNoteColorPopup()">취소</button>
+    </div>
 </div>
 <script>
     var CSRF_TOKEN = document.querySelector('meta[name="_csrf"]').content;
@@ -227,6 +254,40 @@
         document.execCommand('foreColor', false, color);
     }
 
+    // 176-2단계: 글자색 팝업 - 열 때 저장해둔 선택 영역(noteSavedRange)에, "적용"을
+    // 누른 시점의 색상 값을 적용한다. 색상 input 자체를 조작하는 동안에는 아무것도
+    // 바뀌지 않고, "적용"을 눌러야만 실제로 반영된다.
+    var noteColorPopupEditorId = null;
+
+    function openNoteColorPopup(editorId, btnEl) {
+        noteColorPopupEditorId = editorId;
+        var popup = document.getElementById('noteColorPopup');
+        var rect = btnEl.getBoundingClientRect();
+        popup.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+        popup.style.left = (rect.left + window.scrollX) + 'px';
+        popup.classList.add('open');
+    }
+
+    function applyNoteColorPopup() {
+        var color = document.getElementById('noteColorPopupInput').value;
+        if (noteColorPopupEditorId) {
+            noteFormatColor(noteColorPopupEditorId, color);
+        }
+        closeNoteColorPopup();
+    }
+
+    function closeNoteColorPopup() {
+        document.getElementById('noteColorPopup').classList.remove('open');
+        noteColorPopupEditorId = null;
+    }
+
+    document.addEventListener('mousedown', function (e) {
+        var popup = document.getElementById('noteColorPopup');
+        if (popup.classList.contains('open') && !popup.contains(e.target) && !e.target.classList.contains('note-color-trigger')) {
+            closeNoteColorPopup();
+        }
+    });
+
     function handleNotePaste(e, editorEl) {
         var cd = e.clipboardData || window.clipboardData;
         if (!cd) { return; }
@@ -264,8 +325,10 @@
                     '<button type="button" onmousedown="event.preventDefault(); noteFormat(\'' + editorId + '\',\'bold\')"><b>B</b></button>' +
                     '<button type="button" onmousedown="event.preventDefault(); noteFormat(\'' + editorId + '\',\'italic\')"><i>I</i></button>' +
                     '<button type="button" onmousedown="event.preventDefault(); noteFormat(\'' + editorId + '\',\'underline\')"><u>U</u></button>' +
-                    '<input type="color" class="note-color-input" title="글자색" value="#222222" ' +
-                        'onmousedown="noteFocusEditor(\'' + editorId + '\')" onchange="noteFormatColor(\'' + editorId + '\', this.value)">' +
+                    '<button type="button" onmousedown="event.preventDefault(); noteFormat(\'' + editorId + '\',\'strikeThrough\')"><s>S</s></button>' +
+                    '<button type="button" class="note-color-trigger" title="글자색" ' +
+                        'onmousedown="event.preventDefault(); noteSaveSelection();" ' +
+                        'onclick="openNoteColorPopup(\'' + editorId + '\', this)">A</button>' +
                 '</div>' +
                 '<div class="note-editable" id="' + editorId + '" contenteditable="true" ' +
                     'onpaste="handleNotePaste(event, this)">' + note.content + '</div>' +
