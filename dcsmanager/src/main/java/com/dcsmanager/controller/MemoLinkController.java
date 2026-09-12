@@ -134,9 +134,18 @@ public class MemoLinkController {
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(resp.getBody());
         } catch (Exception e) {
+            // 2026-09-12 수정: 원래 "error" 필드만 채워서 반환했는데, 프론트엔드
+            // addNote()는 data.message 를 우선 읽어서 화면에 보여주므로 "error"만
+            // 있으면 실제 원인이 묻히고 뭉뚱그린 "저장 실패"만 뜨는 문제가 있었음.
+            // "message" 필드도 같이 채워서 화면에 실제 원인이 보이도록 함.
+            // return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+            //         .contentType(MediaType.APPLICATION_JSON)
+            //         .body("{\"ok\":false,\"error\":\"JobRadar 요청 실패\"}");
+            String reason = e.getClass().getSimpleName() + (e.getMessage() != null ? ": " + e.getMessage() : "");
+            String json = "{\"ok\":false,\"error\":\"JobRadar 요청 실패\",\"message\":\"JobRadar 요청 실패 (" + reason.replace("\"", "'") + ")\"}";
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body("{\"ok\":false,\"error\":\"JobRadar 요청 실패\"}");
+                    .body(json);
         }
     }
 

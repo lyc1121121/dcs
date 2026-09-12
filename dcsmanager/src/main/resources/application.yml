@@ -1,5 +1,12 @@
 server:
   port: ${SERVER_PORT:8080}
+  # 2026-09-12 추가: 원래 세션 타임아웃을 지정하지 않아 Spring Boot 기본값인 30분이
+  # 적용되고 있었음. memo-link 화면에서 메모를 30분 넘게 작성하다 "추가"를 누르면
+  # 세션이 이미 끊겨 CSRF 검증에 실패(403)하고, 화면에는 뭉뚱그려 "저장실패"만 표시되는
+  # 문제가 있었음 - 넉넉하게 늘려서 이 문제를 없앰.
+  servlet:
+    session:
+      timeout: 8h
 
 spring:
   datasource:
