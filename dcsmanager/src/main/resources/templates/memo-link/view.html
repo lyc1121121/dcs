@@ -47,6 +47,14 @@
             border-bottom: 3px solid #d33; color: #333;
         }
         .note-color-trigger:hover { background: #eef2fb; border-color: #2f6fed; border-bottom-color: #d33; }
+        /* 306단계 추가: 글자 크기 선택 버튼 - 색상 버튼과 같은 톤이되 구분되게 파란 밑줄 */
+        .note-size-trigger {
+            width: 28px; height: 28px; border: 1px solid #ccc; border-radius: 4px; background: #fff;
+            cursor: pointer; font-size: 11px; font-weight: 700; line-height: 1;
+            border-bottom: 3px solid #2f6fed; color: #333;
+        }
+        .note-size-trigger:hover { background: #eef2fb; border-color: #2f6fed; border-bottom-color: #2f6fed; }
+        .note-size-popup select { padding: 4px 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
         .note-color-popup {
             display: none; position: absolute; z-index: 50; gap: 8px; align-items: center;
             background: #fff; border: 1px solid #d0d5e0; border-radius: 8px; padding: 8px 10px;
@@ -97,13 +105,16 @@
             <p class="hint">JobRadar와 공유하는 메모입니다(이미지 붙여넣기 가능) - JobRadar 자체 화면에는 이제 별도 탭이 없고, 여기서만 추가/수정/삭제합니다.</p>
 
             <div class="note-toolbar">
-                <button type="button" onmousedown="event.preventDefault(); noteFormat('noteNewContent','bold')"><b>B</b></button>
+                <button type="button" class="opens-size-popup" onmousedown="event.preventDefault(); noteFormat('noteNewContent','bold'); noteSaveSelection(); openNoteSizePopup('noteNewContent', this)"><b>B</b></button>
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('noteNewContent','italic')"><i>I</i></button>
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('noteNewContent','underline')"><u>U</u></button>
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('noteNewContent','strikeThrough')"><s>S</s></button>
                 <button type="button" class="note-color-trigger" title="글자색"
                         onmousedown="event.preventDefault(); noteSaveSelection();"
                         onclick="openNoteColorPopup('noteNewContent', this)">A</button>
+                <button type="button" class="note-size-trigger opens-size-popup" title="글자 크기"
+                        onmousedown="event.preventDefault(); noteSaveSelection();"
+                        onclick="openNoteSizePopup('noteNewContent', this)">크기</button>
             </div>
             <div id="noteNewContent" class="note-editable" contenteditable="true"
                  data-placeholder="여기에 붙여넣기(Ctrl+V) 하세요..." onpaste="handleNotePaste(event, this)"></div>
@@ -119,13 +130,16 @@
             <p class="hint">DCSManager 자체 저장소에 보관되는 기술/업무 메모입니다(이미지 붙여넣기 가능). 각 메모를 카카오톡 "나에게 보내기"로 바로 전송할 수 있습니다.</p>
 
             <div class="note-toolbar">
-                <button type="button" onmousedown="event.preventDefault(); noteFormat('techNoteNewContent','bold')"><b>B</b></button>
+                <button type="button" class="opens-size-popup" onmousedown="event.preventDefault(); noteFormat('techNoteNewContent','bold'); noteSaveSelection(); openNoteSizePopup('techNoteNewContent', this)"><b>B</b></button>
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('techNoteNewContent','italic')"><i>I</i></button>
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('techNoteNewContent','underline')"><u>U</u></button>
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('techNoteNewContent','strikeThrough')"><s>S</s></button>
                 <button type="button" class="note-color-trigger" title="글자색"
                         onmousedown="event.preventDefault(); noteSaveSelection();"
                         onclick="openNoteColorPopup('techNoteNewContent', this)">A</button>
+                <button type="button" class="note-size-trigger opens-size-popup" title="글자 크기"
+                        onmousedown="event.preventDefault(); noteSaveSelection();"
+                        onclick="openNoteSizePopup('techNoteNewContent', this)">크기</button>
             </div>
             <div id="techNoteNewContent" class="note-editable" contenteditable="true"
                  data-placeholder="여기에 붙여넣기(Ctrl+V) 하세요..." onpaste="handleNotePaste(event, this)"></div>
@@ -141,13 +155,16 @@
             <p class="hint">화면을 새로 디자인하기 전에 "이전 모습 + 구조 설명"을 남겨두는 곳입니다(이미지 붙여넣기 가능). 기술메모와 기능은 같고 데이터만 별도로 관리됩니다.</p>
 
             <div class="note-toolbar">
-                <button type="button" onmousedown="event.preventDefault(); noteFormat('backupNoteNewContent','bold')"><b>B</b></button>
+                <button type="button" class="opens-size-popup" onmousedown="event.preventDefault(); noteFormat('backupNoteNewContent','bold'); noteSaveSelection(); openNoteSizePopup('backupNoteNewContent', this)"><b>B</b></button>
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('backupNoteNewContent','italic')"><i>I</i></button>
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('backupNoteNewContent','underline')"><u>U</u></button>
                 <button type="button" onmousedown="event.preventDefault(); noteFormat('backupNoteNewContent','strikeThrough')"><s>S</s></button>
                 <button type="button" class="note-color-trigger" title="글자색"
                         onmousedown="event.preventDefault(); noteSaveSelection();"
                         onclick="openNoteColorPopup('backupNoteNewContent', this)">A</button>
+                <button type="button" class="note-size-trigger opens-size-popup" title="글자 크기"
+                        onmousedown="event.preventDefault(); noteSaveSelection();"
+                        onclick="openNoteSizePopup('backupNoteNewContent', this)">크기</button>
             </div>
             <div id="backupNoteNewContent" class="note-editable" contenteditable="true"
                  data-placeholder="여기에 붙여넣기(Ctrl+V) 하세요..." onpaste="handleNotePaste(event, this)"></div>
@@ -187,6 +204,18 @@
         <input type="color" id="noteColorPopupInput" class="note-color-input" value="#222222">
         <button type="button" class="btn btn-primary btn-sm" onmousedown="event.preventDefault();" onclick="applyNoteColorPopup()">적용</button>
         <button type="button" class="btn btn-sm" onmousedown="event.preventDefault();" onclick="closeNoteColorPopup()">취소</button>
+    </div>
+    <!-- 306단계 추가: 메모 글자 크기 선택용 팝업 - 크기를 고른 뒤 "적용"을 눌러야 실제로 적용됨(색상 팝업과 동일한 방식) -->
+    <div id="noteSizePopup" class="note-color-popup note-size-popup">
+        <select id="noteSizePopupInput">
+            <option value="12">작게 (12px)</option>
+            <option value="14" selected>보통 (14px)</option>
+            <option value="18">크게 (18px)</option>
+            <option value="24">아주 크게 (24px)</option>
+            <option value="32">최대 (32px)</option>
+        </select>
+        <button type="button" class="btn btn-primary btn-sm" onmousedown="event.preventDefault();" onclick="applyNoteSizePopup()">적용</button>
+        <button type="button" class="btn btn-sm" onmousedown="event.preventDefault();" onclick="closeNoteSizePopup()">취소</button>
     </div>
 </div>
 <script>
@@ -288,6 +317,80 @@
         }
     });
 
+    // 306단계 추가: 글자 크기 팝업 - 색상 팝업과 동일한 방식(팝업 열 때 선택영역을
+    // 저장해두고, "적용"을 눌러야 실제로 반영). execCommand('fontSize')는 1~7 단계
+    // 값만 받고 실제 px는 못 정하므로, 임시로 size=7을 지정해 표시한 뒤 그 <font
+    // size="7"> 태그를 찾아 size 속성을 지우고 원하는 px의 인라인 스타일로 바꿔치기한다.
+    function noteFormatSize(editorId, px) {
+        var editor = document.getElementById(editorId);
+        editor.focus();
+        noteRestoreSelection();
+        document.execCommand('fontSize', false, '7');
+        var marked = editor.querySelectorAll('font[size="7"]');
+        for (var i = 0; i < marked.length; i++) {
+            marked[i].removeAttribute('size');
+            marked[i].style.fontSize = px + 'px';
+        }
+    }
+
+    var noteSizePopupEditorId = null;
+
+    // 2026-09-13 추가: 팝업을 열 때 현재 선택된(또는 커서 위치의) 글자 크기를
+    // 미리 계산해서 드롭다운 기본값으로 보여준다 - 매번 "보통"으로 초기화되지
+    // 않고, 지금 글자가 실제로 몇 px인지 반영한다.
+    function noteCurrentFontSize(editorId) {
+        var sel = window.getSelection();
+        var node = (sel && sel.rangeCount > 0) ? sel.getRangeAt(0).startContainer : null;
+        var el = (node && node.nodeType === 3) ? node.parentElement : node;
+        var editor = document.getElementById(editorId);
+        if (!el || !editor.contains(el)) {
+            el = editor;
+        }
+        var px = parseInt(window.getComputedStyle(el).fontSize, 10);
+        return px || 14;
+    }
+
+    function openNoteSizePopup(editorId, btnEl) {
+        noteSizePopupEditorId = editorId;
+        var popup = document.getElementById('noteSizePopup');
+        var rect = btnEl.getBoundingClientRect();
+        popup.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+        popup.style.left = (rect.left + window.scrollX) + 'px';
+
+        var current = noteCurrentFontSize(editorId);
+        var select = document.getElementById('noteSizePopupInput');
+        var closest = null;
+        for (var i = 0; i < select.options.length; i++) {
+            var v = parseInt(select.options[i].value, 10);
+            if (closest === null || Math.abs(v - current) < Math.abs(closest - current)) {
+                closest = v;
+            }
+        }
+        select.value = String(closest);
+
+        popup.classList.add('open');
+    }
+
+    function applyNoteSizePopup() {
+        var px = document.getElementById('noteSizePopupInput').value;
+        if (noteSizePopupEditorId) {
+            noteFormatSize(noteSizePopupEditorId, px);
+        }
+        closeNoteSizePopup();
+    }
+
+    function closeNoteSizePopup() {
+        document.getElementById('noteSizePopup').classList.remove('open');
+        noteSizePopupEditorId = null;
+    }
+
+    document.addEventListener('mousedown', function (e) {
+        var popup = document.getElementById('noteSizePopup');
+        if (popup.classList.contains('open') && !popup.contains(e.target) && !e.target.closest('.opens-size-popup')) {
+            closeNoteSizePopup();
+        }
+    });
+
     function handleNotePaste(e, editorEl) {
         var cd = e.clipboardData || window.clipboardData;
         if (!cd) { return; }
@@ -322,13 +425,16 @@
             return '<div class="note-item" data-id="' + note.id + '">' +
                 '<div class="note-meta">' + meta + '</div>' +
                 '<div class="note-toolbar">' +
-                    '<button type="button" onmousedown="event.preventDefault(); noteFormat(\'' + editorId + '\',\'bold\')"><b>B</b></button>' +
+                    '<button type="button" class="opens-size-popup" onmousedown="event.preventDefault(); noteFormat(\'' + editorId + '\',\'bold\'); noteSaveSelection(); openNoteSizePopup(\'' + editorId + '\', this)"><b>B</b></button>' +
                     '<button type="button" onmousedown="event.preventDefault(); noteFormat(\'' + editorId + '\',\'italic\')"><i>I</i></button>' +
                     '<button type="button" onmousedown="event.preventDefault(); noteFormat(\'' + editorId + '\',\'underline\')"><u>U</u></button>' +
                     '<button type="button" onmousedown="event.preventDefault(); noteFormat(\'' + editorId + '\',\'strikeThrough\')"><s>S</s></button>' +
                     '<button type="button" class="note-color-trigger" title="글자색" ' +
                         'onmousedown="event.preventDefault(); noteSaveSelection();" ' +
                         'onclick="openNoteColorPopup(\'' + editorId + '\', this)">A</button>' +
+                    '<button type="button" class="note-size-trigger opens-size-popup" title="글자 크기" ' +
+                        'onmousedown="event.preventDefault(); noteSaveSelection();" ' +
+                        'onclick="openNoteSizePopup(\'' + editorId + '\', this)">크기</button>' +
                 '</div>' +
                 '<div class="note-editable" id="' + editorId + '" contenteditable="true" ' +
                     'onpaste="handleNotePaste(event, this)">' + note.content + '</div>' +
