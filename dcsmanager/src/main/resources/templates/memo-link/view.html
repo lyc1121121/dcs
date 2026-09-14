@@ -248,6 +248,20 @@
         return kind + 'NoteEdit' + id;
     }
 
+    // 2026-09-14 추가: 9/12에는 "새 메모 추가" 입력창만 임시저장이 됐고,
+    // 기존 메모를 "수정" 중일 때는 임시저장이 전혀 없어서 세션 만료 등으로
+    // 저장에 실패하고 새로고침하면 수정하던 내용이 그대로 사라지는 문제가 있었음.
+    // 같은 방식(localStorage)으로 수정 중 내용도 보호.
+    function noteEditDraftKey(kind, id) {
+        return 'memoLinkEditDraft_' + kind + '_' + id;
+    }
+
+    function saveNoteEditDraft(kind, id) {
+        var editor = document.getElementById(noteEditorIdFor(kind, id));
+        if (!editor) { return; }
+        localStorage.setItem(noteEditDraftKey(kind, id), editor.innerHTML);
+    }
+
     function formatNoteTimestamp(iso) {
         var d = new Date(iso);
         var pad = function (n) { return String(n).padStart(2, '0'); };
@@ -422,6 +436,10 @@
         }
         if (state.editingId === note.id) {
             var editorId = noteEditorIdFor(kind, note.id);
+            // 2026-09-14 추가: 저장 실패 후 재진입/새로고침 시 복구할 수 있도록,
+            // 임시저장된 내용이 있으면 서버에서 불러온 원본(note.content) 대신 그걸 사용.
+            var editDraft = localStorage.getItem(noteEditDraftKey(kind, note.id));
+            var editorContent = editDraft !== null ? editDraft : note.content;
             return '<div class="note-item" data-id="' + note.id + '">' +
                 '<div class="note-meta">' + meta + '</div>' +
                 '<div class="note-toolbar">' +
@@ -437,10 +455,11 @@
                         'onclick="openNoteSizePopup(\'' + editorId + '\', this)">크기</button>' +
                 '</div>' +
                 '<div class="note-editable" id="' + editorId + '" contenteditable="true" ' +
-                    'onpaste="handleNotePaste(event, this)">' + note.content + '</div>' +
+                    'onpaste="handleNotePaste(event, this)" ' +
+                    'oninput="saveNoteEditDraft(\'' + kind + '\', ' + note.id + ')">' + editorContent + '</div>' +
                 '<div class="note-actions">' +
                     '<button type="button" class="btn btn-primary" onclick="saveEditNote(\'' + kind + '\', ' + note.id + ')">저장</button>' +
-                    '<button type="button" class="btn" onclick="cancelEditNote(\'' + kind + '\')">취소</button>' +
+                    '<button type="button" class="btn" onclick="cancelEditNote(\'' + kind + '\', ' + note.id + ')">취소</button>' +
                 '</div>' +
             '</div>';
         }
@@ -557,7 +576,11 @@
         renderNotes(kind);
     }
 
-    function cancelEditNote(kind) {
+    function cancelEditNote(kind, id) {
+        // 2026-09-14 수정: 취소 시엔 사용자가 명시적으로 수정을 포기한 것이므로
+        // 남아있던 임시저장분도 같이 지운다(id를 안 받던 예전 시그니처에 id 추가).
+        // if (id !== undefined) { }
+        if (id !== undefined) { localStorage.removeItem(noteEditDraftKey(kind, id)); }
         NOTE_KINDS[kind].editingId = null;
         renderNotes(kind);
     }
@@ -568,27 +591,62 @@
         if (!editor.textContent.trim() && !editor.querySelector('img')) { return; }
         var headers = { 'Content-Type': 'application/json' };
         headers[CSRF_HEADER] = CSRF_TOKEN;
+        // 2026-09-14 수정: addNote()와 동일하게, 실패 시 HTTP 상태/서버 메시지를
+        // 그대로 보여주고(세션 만료로 인한 403인지 알 수 있도록) - 예전엔
+        // 뭉뚱그린 "저장 실패"만 alert로 띄웠음. 또한 성공 시 임시저장분 정리.
+        // fetch(NOTE_KINDS[kind].apiUrl + '/' + id, {
+        //     method: 'PUT',
+        //     headers: headers,
+        //     body: JSON.stringify({ content: content }),
+        // })
+        //     .then(function (r) { return r.json(); })
+        //     .then(function (data) {
+        //         if (!data.ok) {
+        //             alert(data.message || '저장 실패');
+        //             return;
+        //         }
+        //         NOTE_KINDS[kind].editingId = null;
+        //         loadNotes(kind);
+        //     })
+        //     .catch(function () {
+        //         alert('저장 실패');
+        //     });
         fetch(NOTE_KINDS[kind].apiUrl + '/' + id, {
             method: 'PUT',
             headers: headers,
             body: JSON.stringify({ content: content }),
         })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (!data.ok) {
-                    alert(data.message || '저장 실패');
+            .then(function (r) {
+                return r.text().then(function (text) {
+                    var data;
+                    try { data = JSON.parse(text); } catch (e) { data = null; }
+                    return { httpStatus: r.status, data: data, raw: text };
+                });
+            })
+            .then(function (result) {
+                var data = result.data;
+                if (!data || !data.ok) {
+                    var reason = (data && (data.message || data.error))
+                        || (result.raw && result.raw.slice(0, 200))
+                        || ('HTTP ' + result.httpStatus);
+                    alert('저장 실패: ' + reason
+                        + (result.httpStatus === 403 ? ' (세션 만료 가능성 - 새로고침 후 재시도. 입력 중이던 내용은 임시저장되어 있습니다)' : ''));
                     return;
                 }
+                localStorage.removeItem(noteEditDraftKey(kind, id));
                 NOTE_KINDS[kind].editingId = null;
                 loadNotes(kind);
             })
-            .catch(function () {
-                alert('저장 실패');
+            .catch(function (e) {
+                alert('저장 실패: ' + (e && e.message ? e.message : '네트워크 오류') + ' (입력 중이던 내용은 임시저장되어 있습니다)');
             });
     }
 
     function deleteNote(kind, id) {
         if (!confirm('이 메모를 삭제할까요?')) { return; }
+        // 2026-09-14 추가: 지운 메모에 대한 임시저장분이 localStorage에 남아
+        // 떠도는 걸 방지.
+        localStorage.removeItem(noteEditDraftKey(kind, id));
         var headers = {};
         headers[CSRF_HEADER] = CSRF_TOKEN;
         fetch(NOTE_KINDS[kind].apiUrl + '/' + id, { method: 'DELETE', headers: headers })
@@ -688,29 +746,88 @@
         }
     }
 
+    // 2026-09-14 추가: private내역 수정 중에도 새 메모 입력창과 같은 방식으로
+    // localStorage에 임시저장 - 그동안 여긴 임시저장이 전혀 없어서 세션 만료로
+    // 저장 실패 후 새로고침하면 수정하던 내용이 그대로 사라지는 문제가 있었음.
+    var PRIVATE_DRAFT_KEY = 'memoLinkPrivateDraft';
+
+    function savePrivateDraft() {
+        var textarea = document.getElementById('privateContentMarkdown');
+        if (!textarea) { return; }
+        if (textarea.value) {
+            localStorage.setItem(PRIVATE_DRAFT_KEY, textarea.value);
+        } else {
+            localStorage.removeItem(PRIVATE_DRAFT_KEY);
+        }
+    }
+
+    (function restorePrivateDraft() {
+        var textarea = document.getElementById('privateContentMarkdown');
+        if (!textarea) { return; }
+        var saved = localStorage.getItem(PRIVATE_DRAFT_KEY);
+        if (saved !== null && saved !== textarea.value) {
+            textarea.value = saved;
+            var status = document.getElementById('privateSaveStatus');
+            if (status) { status.textContent = '이전에 저장하지 못한 임시 내용을 복원했습니다.'; }
+        }
+        textarea.addEventListener('input', savePrivateDraft);
+    })();
+
     function savePrivateContent() {
         var textarea = document.getElementById('privateContentMarkdown');
         var status = document.getElementById('privateSaveStatus');
         status.textContent = '저장 중...';
         var headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         headers[CSRF_HEADER] = CSRF_TOKEN;
+        // 2026-09-14 수정: 실패 시 HTTP 상태/서버 메시지를 그대로 보여주고,
+        // 성공 시에만 임시저장분을 지움(예전엔 뭉뚱그린 "저장 실패"만 표시).
+        // fetch('/memo-link/private-content', {
+        //     method: 'POST',
+        //     headers: headers,
+        //     body: 'contentMarkdown=' + encodeURIComponent(textarea.value),
+        // })
+        //     .then(function (r) { return r.json(); })
+        //     .then(function (data) {
+        //         if (!data.ok) {
+        //             status.textContent = data.message || '저장 실패';
+        //             return;
+        //         }
+        //         document.getElementById('private-content-view').innerHTML = data.html;
+        //         status.textContent = '저장되었습니다.';
+        //         showPrivateMode('view');
+        //     })
+        //     .catch(function () {
+        //         status.textContent = '저장 실패';
+        //     });
         fetch('/memo-link/private-content', {
             method: 'POST',
             headers: headers,
             body: 'contentMarkdown=' + encodeURIComponent(textarea.value),
         })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (!data.ok) {
-                    status.textContent = data.message || '저장 실패';
+            .then(function (r) {
+                return r.text().then(function (text) {
+                    var data;
+                    try { data = JSON.parse(text); } catch (e) { data = null; }
+                    return { httpStatus: r.status, data: data, raw: text };
+                });
+            })
+            .then(function (result) {
+                var data = result.data;
+                if (!data || !data.ok) {
+                    var reason = (data && (data.message || data.error))
+                        || (result.raw && result.raw.slice(0, 200))
+                        || ('HTTP ' + result.httpStatus);
+                    status.textContent = '저장 실패: ' + reason
+                        + (result.httpStatus === 403 ? ' (세션 만료 가능성 - 새로고침 후 재시도. 입력 중이던 내용은 임시저장되어 있습니다)' : '');
                     return;
                 }
+                localStorage.removeItem(PRIVATE_DRAFT_KEY);
                 document.getElementById('private-content-view').innerHTML = data.html;
                 status.textContent = '저장되었습니다.';
                 showPrivateMode('view');
             })
-            .catch(function () {
-                status.textContent = '저장 실패';
+            .catch(function (e) {
+                status.textContent = '저장 실패: ' + (e && e.message ? e.message : '네트워크 오류') + ' (입력 중이던 내용은 임시저장되어 있습니다)';
             });
     }
 </script>
