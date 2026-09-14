@@ -1,0 +1,7 @@
+services:
+  raspi:
+    build: .
+    container_name: raspi
+    restart: unless-stopped
+    ports:
+      - "8092:80"
