@@ -238,9 +238,9 @@
     // kind('jobradar'|'tech') 파라미터로 일반화했다. 기술메모에만 카카오톡 전송 버튼이
     // 붙는다(파일탐색기의 카카오톡 전송과 같은 취지 - 이번엔 파일이 아니라 메모 텍스트).
     var NOTE_KINDS = {
-        jobradar: { apiUrl: '/memo-link/jobradar-notes', listId: 'jobradarNotesList', newEditorId: 'noteNewContent', statusId: 'notesStatus', cache: [], editingId: null, kakao: false },
-        tech: { apiUrl: '/memo-link/tech-notes', listId: 'techNotesList', newEditorId: 'techNoteNewContent', statusId: 'techNotesStatus', cache: [], editingId: null, kakao: true },
-        backup: { apiUrl: '/memo-link/backup-notes', listId: 'backupNotesList', newEditorId: 'backupNoteNewContent', statusId: 'backupNotesStatus', cache: [], editingId: null, kakao: true }
+        jobradar: { apiUrl: '/memo-link/jobradar-notes', listId: 'jobradarNotesList', newEditorId: 'noteNewContent', statusId: 'notesStatus', cache: [], editingId: null, kakao: false, autoSaveId: null, editAutoSaveTimer: null },
+        tech: { apiUrl: '/memo-link/tech-notes', listId: 'techNotesList', newEditorId: 'techNoteNewContent', statusId: 'techNotesStatus', cache: [], editingId: null, kakao: true, autoSaveId: null, editAutoSaveTimer: null },
+        backup: { apiUrl: '/memo-link/backup-notes', listId: 'backupNotesList', newEditorId: 'backupNoteNewContent', statusId: 'backupNotesStatus', cache: [], editingId: null, kakao: true, autoSaveId: null, editAutoSaveTimer: null }
     };
     var noteSavedRange = null;
 
@@ -521,26 +521,12 @@
         // 2026-09-12 수정: 원래는 실패 시 항상 뭉뚱그린 "저장 실패"만 보여줘서
         // 실제 원인(세션 만료로 인한 403 등)을 알 수가 없었음. HTTP 상태 코드와
         // 서버가 보내는 error/message 필드를 최대한 화면에 그대로 보여주도록 수정.
-        // fetch(state.apiUrl, {
-        //     method: 'POST',
-        //     headers: headers,
-        //     body: JSON.stringify({ content: content }),
-        // })
-        //     .then(function (r) { return r.json(); })
-        //     .then(function (data) {
-        //         if (!data.ok) {
-        //             status.textContent = data.message || '저장 실패';
-        //             return;
-        //         }
-        //         editor.innerHTML = '';
-        //         status.textContent = '';
-        //         loadNotes(kind);
-        //     })
-        //     .catch(function () {
-        //         status.textContent = '저장 실패';
-        //     });
-        fetch(state.apiUrl, {
-            method: 'POST',
+        // 2026-09-14 수정: 10분 자동저장으로 이미 서버에 저장된 draft(state.autoSaveId)가
+        // 있다면 새로 만들지 않고(POST) 그 메모를 최종 업데이트(PUT)한다.
+        var isUpdate = !!state.autoSaveId;
+        var url = isUpdate ? (state.apiUrl + '/' + state.autoSaveId) : state.apiUrl;
+        fetch(url, {
+            method: isUpdate ? 'PUT' : 'POST',
             headers: headers,
             body: JSON.stringify({ content: content }),
         })
@@ -563,6 +549,8 @@
                 }
                 editor.innerHTML = '';
                 localStorage.removeItem(noteDraftKey(kind));
+                state.autoSaveId = null;
+                localStorage.removeItem(noteAutoSaveIdKey(kind));
                 status.textContent = '';
                 loadNotes(kind);
             })
@@ -571,9 +559,41 @@
             });
     }
 
+    // 2026-09-14 추가: "수정" 중일 때도 10분마다 서버에 실제로 자동저장한다
+    // (localStorage 임시저장은 이 브라우저에서만 살아있으므로, 그와 별개로).
+    function stopEditAutoSave(kind) {
+        var state = NOTE_KINDS[kind];
+        if (state.editAutoSaveTimer) {
+            clearInterval(state.editAutoSaveTimer);
+            state.editAutoSaveTimer = null;
+        }
+    }
+
+    function autoSaveEditNote(kind, id) {
+        var editor = document.getElementById(noteEditorIdFor(kind, id));
+        if (!editor) { stopEditAutoSave(kind); return; }
+        var content = editor.innerHTML.trim();
+        if (!editor.textContent.trim() && !editor.querySelector('img')) { return; }
+        var headers = { 'Content-Type': 'application/json' };
+        headers[CSRF_HEADER] = CSRF_TOKEN;
+        fetch(NOTE_KINDS[kind].apiUrl + '/' + id, {
+            method: 'PUT',
+            headers: headers,
+            body: JSON.stringify({ content: content }),
+        }).catch(function () { /* 실패해도 localStorage 임시저장은 살아있으니 10분 뒤 재시도 */ });
+    }
+
+    function startEditAutoSave(kind, id) {
+        stopEditAutoSave(kind);
+        NOTE_KINDS[kind].editAutoSaveTimer = setInterval(function () {
+            autoSaveEditNote(kind, id);
+        }, 10 * 60 * 1000);
+    }
+
     function startEditNote(kind, id) {
         NOTE_KINDS[kind].editingId = id;
         renderNotes(kind);
+        startEditAutoSave(kind, id);
     }
 
     function cancelEditNote(kind, id) {
@@ -581,6 +601,7 @@
         // 남아있던 임시저장분도 같이 지운다(id를 안 받던 예전 시그니처에 id 추가).
         // if (id !== undefined) { }
         if (id !== undefined) { localStorage.removeItem(noteEditDraftKey(kind, id)); }
+        stopEditAutoSave(kind);
         NOTE_KINDS[kind].editingId = null;
         renderNotes(kind);
     }
@@ -634,6 +655,7 @@
                     return;
                 }
                 localStorage.removeItem(noteEditDraftKey(kind, id));
+                stopEditAutoSave(kind);
                 NOTE_KINDS[kind].editingId = null;
                 loadNotes(kind);
             })
@@ -689,20 +711,62 @@
         }
     }
 
+    // 2026-09-14 추가: "추가" 작성 중이던 내용을 브라우저 localStorage뿐 아니라
+    // 서버에도 10분마다 실제로 저장(자동저장)해서, 이 브라우저/기기를 벗어나도
+    // 안전하도록 한다. 첫 자동저장 때는 새 메모를 만들고(id 기억), 이후로는 같은
+    // id를 계속 덮어써서(PUT) "추가"를 누르기 전에 중복 메모가 쌓이지 않게 한다.
+    function noteAutoSaveIdKey(kind) {
+        return 'memoLinkAutoSaveId_' + kind;
+    }
+
     function saveNoteDraft(kind) {
-        var editor = document.getElementById(NOTE_KINDS[kind].newEditorId);
+        var state = NOTE_KINDS[kind];
+        var editor = document.getElementById(state.newEditorId);
         if (editor.textContent.trim() || editor.querySelector('img')) {
             localStorage.setItem(noteDraftKey(kind), editor.innerHTML);
         } else {
             localStorage.removeItem(noteDraftKey(kind));
+            // 박스를 비웠는데 이전에 자동저장으로 만들어둔 메모가 있다면, 고아로
+            // 남기지 않고 지운다(다음에 전혀 다른 내용을 쓰기 시작했을 때 예전
+            // 자동저장 메모에 엉뚱하게 덮어써지는 것도 방지).
+            if (state.autoSaveId) {
+                var headers = {};
+                headers[CSRF_HEADER] = CSRF_TOKEN;
+                fetch(state.apiUrl + '/' + state.autoSaveId, { method: 'DELETE', headers: headers }).catch(function () {});
+                state.autoSaveId = null;
+                localStorage.removeItem(noteAutoSaveIdKey(kind));
+            }
         }
+    }
+
+    function autoSaveNewNote(kind) {
+        var state = NOTE_KINDS[kind];
+        var editor = document.getElementById(state.newEditorId);
+        if (!editor) { return; }
+        var content = editor.innerHTML.trim();
+        if (!editor.textContent.trim() && !editor.querySelector('img')) { return; }
+        var isUpdate = !!state.autoSaveId;
+        var url = isUpdate ? (state.apiUrl + '/' + state.autoSaveId) : state.apiUrl;
+        var headers = { 'Content-Type': 'application/json' };
+        headers[CSRF_HEADER] = CSRF_TOKEN;
+        fetch(url, { method: isUpdate ? 'PUT' : 'POST', headers: headers, body: JSON.stringify({ content: content }) })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data && data.ok && !isUpdate && data.id) {
+                    state.autoSaveId = data.id;
+                    localStorage.setItem(noteAutoSaveIdKey(kind), String(data.id));
+                }
+            })
+            .catch(function () { /* 실패해도 localStorage 임시저장은 살아있으니 10분 뒤 재시도 */ });
     }
 
     ['jobradar', 'tech', 'backup'].forEach(function (kind) {
         restoreNoteDraft(kind);
+        NOTE_KINDS[kind].autoSaveId = localStorage.getItem(noteAutoSaveIdKey(kind)) || null;
         document.getElementById(NOTE_KINDS[kind].newEditorId).addEventListener('input', function () {
             saveNoteDraft(kind);
         });
+        setInterval(function () { autoSaveNewNote(kind); }, 10 * 60 * 1000);
     });
 
     loadNotes('jobradar');
@@ -720,6 +784,8 @@
         editEl.style.display = isEdit ? '' : 'none';
         document.getElementById('btn-private-view-mode').classList.toggle('btn-primary', !isEdit);
         document.getElementById('btn-private-edit-mode').classList.toggle('btn-primary', isEdit);
+        // 2026-09-14 추가: "수정" 모드로 들어가 있는 동안 10분마다 서버에 자동저장.
+        if (isEdit) { startPrivateAutoSave(); } else { stopPrivateAutoSave(); }
     }
 
     function handleMarkdownImagePaste(e, textarea) {
@@ -759,6 +825,44 @@
         } else {
             localStorage.removeItem(PRIVATE_DRAFT_KEY);
         }
+    }
+
+    // 2026-09-14 추가: "수정" 모드로 열려있는 동안 10분마다 서버에 실제로
+    // 자동저장한다(localStorage 임시저장과 별개로, 이 브라우저를 벗어나도 안전하게).
+    var privateAutoSaveTimer = null;
+
+    function stopPrivateAutoSave() {
+        if (privateAutoSaveTimer) {
+            clearInterval(privateAutoSaveTimer);
+            privateAutoSaveTimer = null;
+        }
+    }
+
+    function startPrivateAutoSave() {
+        stopPrivateAutoSave();
+        privateAutoSaveTimer = setInterval(autoSavePrivateContent, 10 * 60 * 1000);
+    }
+
+    function autoSavePrivateContent() {
+        var textarea = document.getElementById('privateContentMarkdown');
+        if (!textarea || !textarea.value) { return; }
+        var headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        headers[CSRF_HEADER] = CSRF_TOKEN;
+        fetch('/memo-link/private-content', {
+            method: 'POST',
+            headers: headers,
+            body: 'contentMarkdown=' + encodeURIComponent(textarea.value),
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data && data.ok) {
+                    localStorage.removeItem(PRIVATE_DRAFT_KEY);
+                    document.getElementById('private-content-view').innerHTML = data.html;
+                    var status = document.getElementById('privateSaveStatus');
+                    if (status) { status.textContent = '자동저장됨 (' + new Date().toLocaleTimeString('ko-KR') + ')'; }
+                }
+            })
+            .catch(function () { /* 실패해도 localStorage 임시저장은 살아있으니 10분 뒤 재시도 */ });
     }
 
     (function restorePrivateDraft() {
@@ -825,6 +929,7 @@
                 document.getElementById('private-content-view').innerHTML = data.html;
                 status.textContent = '저장되었습니다.';
                 showPrivateMode('view');
+                // showPrivateMode('view')가 stopPrivateAutoSave()도 호출함
             })
             .catch(function (e) {
                 status.textContent = '저장 실패: ' + (e && e.message ? e.message : '네트워크 오류') + ' (입력 중이던 내용은 임시저장되어 있습니다)';
