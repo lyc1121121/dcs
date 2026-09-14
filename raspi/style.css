@@ -116,6 +116,12 @@ section.product.alt > .inner { display: flex; flex-wrap: wrap; align-items: cent
 .doc-subnav { list-style: none; margin: 4px 0 4px 10px; padding: 0 0 0 10px; border-left: 2px solid #eee; display: flex; flex-direction: column; gap: 1px; }
 .doc-subnav a { padding: 5px 8px; font-size: 12px; color: var(--muted); }
 .doc-subnav a:hover { color: var(--rpi-red); background: var(--panel); }
+/* 320단계 추가: 실제 사이트처럼 "Computers" 대분류 라벨 + 각 항목마다
+   펼침/접힘 삼각형(▼/▶) 표시 - 현재 페이지만 펼쳐져 보이고 나머지는
+   접힌 상태로 보이되, 전부 하위 메뉴가 있다는 걸 시각적으로 알 수 있게 함. */
+.doc-sidebar-group { font-weight: 700; font-size: 13px; margin: 0 0 6px; color: var(--ink); }
+.doc-sidebar .tri { display: inline-block; width: 14px; font-size: 10px; color: var(--muted); }
+.doc-sidebar a.current .tri { color: #fff; }
 @media (max-width: 720px) {
     .doc-layout { flex-direction: column; }
     .doc-sidebar { position: static; flex: none; width: 100%; }
