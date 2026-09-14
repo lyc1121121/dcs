@@ -120,8 +120,17 @@ section.product.alt > .inner { display: flex; flex-wrap: wrap; align-items: cent
    펼침/접힘 삼각형(▼/▶) 표시 - 현재 페이지만 펼쳐져 보이고 나머지는
    접힌 상태로 보이되, 전부 하위 메뉴가 있다는 걸 시각적으로 알 수 있게 함. */
 .doc-sidebar-group { font-weight: 700; font-size: 13px; margin: 0 0 6px; color: var(--ink); }
-.doc-sidebar .tri { display: inline-block; width: 14px; font-size: 10px; color: var(--muted); }
-.doc-sidebar a.current .tri { color: #fff; }
+/* 321단계 수정: .tri가 <a> 안이 아니라 옆에 나란히 오는 <button>으로 바뀜
+   (아코디언 클릭과 링크 이동을 분리하기 위함) - 한 줄에 나란히 배치. */
+.doc-sidebar li { display: flex; flex-wrap: wrap; align-items: center; }
+.doc-sidebar .tri {
+    flex: 0 0 20px; width: 20px; height: 24px; padding: 0; margin-right: 2px;
+    border: none; background: none; cursor: pointer; font-size: 10px; color: var(--muted);
+}
+.doc-sidebar .tri:hover { color: var(--rpi-red); }
+.doc-sidebar .tri[aria-expanded="true"] { color: var(--rpi-red); }
+.doc-sidebar li > a { flex: 1 1 auto; }
+.doc-subnav { flex-basis: 100%; }
 @media (max-width: 720px) {
     .doc-layout { flex-direction: column; }
     .doc-sidebar { position: static; flex: none; width: 100%; }

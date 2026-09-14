@@ -31,29 +31,69 @@
 </div>
 
 <div class="doc-layout">
-    <aside class="doc-sidebar">
+    <aside class="doc-sidebar" data-current-slug="software-sources">
         <h4>문서 카테고리</h4>
         <div class="doc-sidebar-group">▼ Computers</div>
         <ul>
-            <li><a href="getting-started.html"><span class="tri">▶</span>시작하기</a></li>
-            <li><a href="os.html"><span class="tri">▶</span>Raspberry Pi OS</a></li>
-            <li><a href="configuration.html"><span class="tri">▶</span>환경 설정</a></li>
-            <li><a href="config-txt.html"><span class="tri">▶</span>config.txt</a></li>
-            <li><a href="linux-kernel.html"><span class="tri">▶</span>리눅스 커널</a></li>
-            <li><a href="remote-access.html"><span class="tri">▶</span>원격 접속</a></li>
-            <li><a href="camera-software.html"><span class="tri">▶</span>카메라 소프트웨어</a></li>
-            <li><a href="ai-software.html"><span class="tri">▶</span>AI 소프트웨어</a></li>
-            <li><a href="hardware.html"><span class="tri">▶</span>Raspberry Pi 컴퓨터 하드웨어</a></li>
-            <li><a href="keyboard-computers.html"><span class="tri">▶</span>키보드 컴퓨터</a></li>
-            <li><a href="compute-module.html"><span class="tri">▶</span>Compute Module 하드웨어</a></li>
-            <li><a href="processors.html"><span class="tri">▶</span>프로세서</a></li>
-            <li><a href="io-controllers.html"><span class="tri">▶</span>I/O 컨트롤러</a></li>
-            <li><a href="software-sources.html" class="current"><span class="tri">▼</span>소프트웨어 소스</a>
-                <ul class="doc-subnav">
-                    <li><a href="#sec-1">개요</a></li>
-                    <li><a href="#sec-2">Raspberry Pi OS에서 소프트웨어 소스 찾기</a></li>
-                    <li><a href="#sec-3">GitHub 조직</a></li>
-                    <li><a href="#sec-4">주요 저장소</a></li>
+            <li>
+                <button type="button" class="tri" data-slug="getting-started" aria-expanded="false">▶</button><a href="getting-started.html">시작하기</a>
+                <ul class="doc-subnav" hidden></ul>
+            </li>
+            <li>
+                <button type="button" class="tri" data-slug="os" aria-expanded="false">▶</button><a href="os.html">Raspberry Pi OS</a>
+                <ul class="doc-subnav" hidden></ul>
+            </li>
+            <li>
+                <button type="button" class="tri" data-slug="configuration" aria-expanded="false">▶</button><a href="configuration.html">환경 설정</a>
+                <ul class="doc-subnav" hidden></ul>
+            </li>
+            <li>
+                <button type="button" class="tri" data-slug="config-txt" aria-expanded="false">▶</button><a href="config-txt.html">config.txt</a>
+                <ul class="doc-subnav" hidden></ul>
+            </li>
+            <li>
+                <button type="button" class="tri" data-slug="linux-kernel" aria-expanded="false">▶</button><a href="linux-kernel.html">리눅스 커널</a>
+                <ul class="doc-subnav" hidden></ul>
+            </li>
+            <li>
+                <button type="button" class="tri" data-slug="remote-access" aria-expanded="false">▶</button><a href="remote-access.html">원격 접속</a>
+                <ul class="doc-subnav" hidden></ul>
+            </li>
+            <li>
+                <button type="button" class="tri" data-slug="camera-software" aria-expanded="false">▶</button><a href="camera-software.html">카메라 소프트웨어</a>
+                <ul class="doc-subnav" hidden></ul>
+            </li>
+            <li>
+                <button type="button" class="tri" data-slug="ai-software" aria-expanded="false">▶</button><a href="ai-software.html">AI 소프트웨어</a>
+                <ul class="doc-subnav" hidden></ul>
+            </li>
+            <li>
+                <button type="button" class="tri" data-slug="hardware" aria-expanded="false">▶</button><a href="hardware.html">Raspberry Pi 컴퓨터 하드웨어</a>
+                <ul class="doc-subnav" hidden></ul>
+            </li>
+            <li>
+                <button type="button" class="tri" data-slug="keyboard-computers" aria-expanded="false">▶</button><a href="keyboard-computers.html">키보드 컴퓨터</a>
+                <ul class="doc-subnav" hidden></ul>
+            </li>
+            <li>
+                <button type="button" class="tri" data-slug="compute-module" aria-expanded="false">▶</button><a href="compute-module.html">Compute Module 하드웨어</a>
+                <ul class="doc-subnav" hidden></ul>
+            </li>
+            <li>
+                <button type="button" class="tri" data-slug="processors" aria-expanded="false">▶</button><a href="processors.html">프로세서</a>
+                <ul class="doc-subnav" hidden></ul>
+            </li>
+            <li>
+                <button type="button" class="tri" data-slug="io-controllers" aria-expanded="false">▶</button><a href="io-controllers.html">I/O 컨트롤러</a>
+                <ul class="doc-subnav" hidden></ul>
+            </li>
+            <li>
+                <button type="button" class="tri" data-slug="software-sources" aria-expanded="true">▼</button><a href="software-sources.html" class="current">소프트웨어 소스</a>
+                <ul class="doc-subnav" data-populated="1">
+                        <li><a href="#sec-1">개요</a></li>
+                        <li><a href="#sec-2">Raspberry Pi OS에서 소프트웨어 소스 찾기</a></li>
+                        <li><a href="#sec-3">GitHub 조직</a></li>
+                        <li><a href="#sec-4">주요 저장소</a></li>
                 </ul>
             </li>
         </ul>
@@ -113,5 +153,6 @@
     </div>
 </footer>
 
+<script src="sidebar.js"></script>
 </body>
 </html>
