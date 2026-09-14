@@ -107,11 +107,19 @@
     <h2 id="sec-2">하드웨어 준비물</h2>
     <h3>부팅 미디어</h3>
     <p>Raspberry Pi는 운영체제 이미지를 담은 비휘발성 저장장치가 필요합니다. 가장 흔한 것은 microSD 카드이며, 최신 모델은 USB 대용량 저장장치, 네트워크 부팅(PXE), PCIe 경유 NVMe도 지원합니다.</p>
+    <div class="doc-image-row">
+        <figure><img src="https://www.raspberrypi.com/documentation/computers/images/peripherals/microSD.png" alt="Raspberry Pi microSD 카드"><figcaption>microSD 카드</figcaption></figure>
+        <figure><img src="https://www.raspberrypi.com/documentation/computers/images/peripherals/sd-card.png" alt="Raspberry Pi에 microSD 카드 삽입"><figcaption>microSD 카드 삽입</figcaption></figure>
+    </div>
     <p><b>권장 최소 저장 용량</b> — Raspberry Pi OS(데스크탑): 32GB / Full: 32GB / Lite(헤드리스): 8GB</p>
     <p><b>최대 지원 용량</b>: 2TB 미만(MBR 한계). Raspberry Pi Zero, 초기형 Raspberry Pi, BCM2836 탑재 초기 Pi 2는 부팅 파티션이 256GB로 제한됩니다.</p>
 
     <h3>주변기기</h3>
     <p><b>입력장치</b>: USB 포트로 유/무선 키보드·마우스 연결(Raspberry Pi Zero는 micro USB OTG 어댑터 필요). USB 블루투스 동글이나 내장 블루투스 페어링도 지원됩니다.</p>
+    <div class="doc-image-row">
+        <figure><img src="https://www.raspberrypi.com/documentation/computers/images/peripherals/cable-key.png" alt="Raspberry Pi에 키보드 연결"><figcaption>키보드 연결</figcaption></figure>
+        <figure><img src="https://www.raspberrypi.com/documentation/computers/images/peripherals/cable-mouse.png" alt="Raspberry Pi에 마우스 연결"><figcaption>마우스 연결</figcaption></figure>
+    </div>
     <p><b>출력장치(디스플레이)</b></p>
     <table>
         <tr><th>모델</th><th>디스플레이 출력</th><th>필요 케이블</th></tr>
@@ -120,9 +128,11 @@
         <tr><td>Pi 3 (전체)</td><td>HDMI + 3.5mm TRRS</td><td>표준 HDMI 케이블</td></tr>
         <tr><td>Pi Zero (전체)</td><td>mini HDMI</td><td>mini-HDMI → HDMI 케이블</td></tr>
     </table>
+    <img src="https://www.raspberrypi.com/documentation/computers/images/peripherals/cable-hdmi.png" alt="Raspberry Pi에 micro HDMI 케이블 연결" style="max-width:260px">
     <p>오디오 출력은 모델에 따라 HDMI, USB, 블루투스, 3.5mm 잭 중에서 선택할 수 있습니다.</p>
 
     <h3>전원 공급 장치</h3>
+    <img src="https://www.raspberrypi.com/documentation/computers/images/peripherals/cable-power.png" alt="Raspberry Pi에 전원 공급 장치 연결" style="max-width:260px">
     <table>
         <tr><th>모델</th><th>전압/전류</th><th>공식 어댑터</th></tr>
         <tr><td>Pi 500+</td><td>5V @ 5A</td><td>27W USB-C</td></tr>
@@ -149,7 +159,9 @@
     <p><b>1단계</b> — Raspberry Pi Imager로 OS 설치, 호스트명·지역화·사용자 계정·Wi-Fi·원격접속까지 함께 설정하며 부팅 미디어를 준비합니다.</p>
     <p><b>2단계</b> — 키보드·마우스·디스플레이 등 주변기기를 연결합니다.</p>
     <p><b>3단계</b> — 부팅 미디어를 꽂은 뒤 USB-C(구형은 micro USB)로 전원을 연결합니다.</p>
+    <img src="https://www.raspberrypi.com/documentation/computers/images/peripherals/cable-all.png" alt="Raspberry Pi에 전원 공급 장치 연결하기" style="max-width:260px">
     <p><b>4단계</b> — (선택) Wi-Fi 또는 이더넷 케이블로 네트워크에 연결합니다.</p>
+    <img src="https://www.raspberrypi.com/documentation/computers/images/peripherals/cable-net.png" alt="Raspberry Pi에 이더넷 케이블 연결" style="max-width:260px">
 
     <h3>헤드리스(원격) 설정</h3>
     <p>최초 부팅 시 네트워크 연결과 SSH 또는 Raspberry Pi Connect를 통한 원격 접속이 필요합니다.</p>
