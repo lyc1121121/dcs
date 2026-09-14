@@ -30,7 +30,28 @@
     <h1>카메라 소프트웨어 (libcamera &amp; rpicam-apps)</h1>
 </div>
 
-<div class="doc-page">
+<div class="doc-layout">
+    <aside class="doc-sidebar">
+        <h4>문서 카테고리</h4>
+        <ul>
+            <li><a href="getting-started.html">시작하기</a></li>
+            <li><a href="os.html">Raspberry Pi OS</a></li>
+            <li><a href="configuration.html">환경 설정</a></li>
+            <li><a href="config-txt.html">config.txt</a></li>
+            <li><a href="linux-kernel.html">리눅스 커널</a></li>
+            <li><a href="remote-access.html">원격 접속</a></li>
+            <li><a href="camera-software.html" class="current">카메라 소프트웨어</a></li>
+            <li><a href="ai-software.html">AI 소프트웨어</a></li>
+            <li><a href="hardware.html">Raspberry Pi 컴퓨터 하드웨어</a></li>
+            <li><a href="keyboard-computers.html">키보드 컴퓨터</a></li>
+            <li><a href="compute-module.html">Compute Module 하드웨어</a></li>
+            <li><a href="processors.html">프로세서</a></li>
+            <li><a href="io-controllers.html">I/O 컨트롤러</a></li>
+            <li><a href="software-sources.html">소프트웨어 소스</a></li>
+        </ul>
+    </aside>
+
+    <div class="doc-page">
     <h2>개요</h2>
     <p>Raspberry Pi는 Camera Module 2(8MP), Camera Module 3(12MP), High Quality Camera(12MP), Global Shutter Camera(1.6MP), AI Camera(12MP) 등 공식 카메라 모듈을 제공합니다. 예전에 쓰이던 <code>raspivid</code>, <code>raspistill</code> 같은 레거시 도구는 이제 지원 종료되었습니다.</p>
 
@@ -66,6 +87,7 @@ rpicam-raw -t 2000 -o test.raw</code></pre>
 
     <h2>다중 카메라 지원</h2>
     <p><code>--list-cameras</code>로 사용 가능한 카메라 목록을 확인하고, <code>--camera</code> 옵션에 인덱스 번호를 지정해 카메라를 선택합니다. Raspberry Pi 5와 Compute Module에서는 두 카메라를 동시에 사용할 수 있고, 그 외 기기는 Video Mux 보드가 필요합니다(한 번에 한 카메라만 접근 가능).</p>
+</div>
 </div>
 
 <footer>

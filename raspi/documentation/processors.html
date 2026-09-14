@@ -30,7 +30,28 @@
     <h1>프로세서</h1>
 </div>
 
-<div class="doc-page">
+<div class="doc-layout">
+    <aside class="doc-sidebar">
+        <h4>문서 카테고리</h4>
+        <ul>
+            <li><a href="getting-started.html">시작하기</a></li>
+            <li><a href="os.html">Raspberry Pi OS</a></li>
+            <li><a href="configuration.html">환경 설정</a></li>
+            <li><a href="config-txt.html">config.txt</a></li>
+            <li><a href="linux-kernel.html">리눅스 커널</a></li>
+            <li><a href="remote-access.html">원격 접속</a></li>
+            <li><a href="camera-software.html">카메라 소프트웨어</a></li>
+            <li><a href="ai-software.html">AI 소프트웨어</a></li>
+            <li><a href="hardware.html">Raspberry Pi 컴퓨터 하드웨어</a></li>
+            <li><a href="keyboard-computers.html">키보드 컴퓨터</a></li>
+            <li><a href="compute-module.html">Compute Module 하드웨어</a></li>
+            <li><a href="processors.html" class="current">프로세서</a></li>
+            <li><a href="io-controllers.html">I/O 컨트롤러</a></li>
+            <li><a href="software-sources.html">소프트웨어 소스</a></li>
+        </ul>
+    </aside>
+
+    <div class="doc-page">
     <h2>SoC 비교표</h2>
     <table>
         <tr><th>프로세서</th><th>탑재 모델</th><th>CPU 코어</th><th>아키텍처</th><th>클럭</th><th>주요 특징</th></tr>
@@ -49,6 +70,7 @@
     <p><b>BCM2711</b> — GPU 성능 향상, PCIe 연결성, 네이티브 이더넷 통합을 갖춘 "상당한 업그레이드"로, Pi 3B+ 대비 약 50%의 성능 향상을 제공합니다.</p>
     <p><b>BCM2712</b> — 2.4GHz Cortex-A76 코어로 "2~3배 성능 향상"을 이뤄냈으며, 향상된 VideoCore VII GPU와 4Kp60 영상을 지원하는 전용 HEVC 하드웨어 디코더를 갖췄습니다.</p>
     <p><b>취약점 관련</b> — BCM2712의 Cortex-A76에는 알려진 보안 취약점(Spectre 계열)이 있으며, 마이크로코드가 아닌 커널 레벨 보호를 통해 Raspberry Pi OS에서 완화 처리됩니다.</p>
+</div>
 </div>
 
 <footer>

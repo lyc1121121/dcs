@@ -96,7 +96,28 @@ section.product.alt > .inner { display: flex; flex-wrap: wrap; align-items: cent
 .about-body img { max-width: 240px; margin-bottom: 24px; }
 
 /* 314단계 추가: 문서(documentation) 상세페이지 본문 - 코드/표/breadcrumb */
-.doc-page { padding: 0 32px 56px; max-width: 900px; margin: 0 auto; }
+/* 318단계 추가: 문서 상세페이지 왼쪽 트리 메뉴(sidebar) - 실제 raspberrypi.com
+   문서 페이지처럼 다른 카테고리로 바로 이동할 수 있게 함(기존엔 breadcrumb으로
+   목록 페이지로 돌아가야만 이동 가능했음). */
+.doc-layout {
+    display: flex; gap: 32px; max-width: 1200px; margin: 0 auto;
+    padding: 0 32px 56px; align-items: flex-start;
+}
+.doc-sidebar { flex: 0 0 220px; position: sticky; top: 96px; }
+.doc-sidebar h4 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--muted); margin: 0 0 10px;
+}
+.doc-sidebar ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; }
+.doc-sidebar a { display: block; padding: 7px 10px; border-radius: 6px; color: var(--ink); text-decoration: none; font-size: 13px; }
+.doc-sidebar a:hover { background: var(--panel); }
+.doc-sidebar a.current { background: var(--rpi-red); color: #fff; font-weight: 700; }
+@media (max-width: 720px) {
+    .doc-layout { flex-direction: column; }
+    .doc-sidebar { position: static; flex: none; width: 100%; }
+}
+
+.doc-page { padding: 0; max-width: none; margin: 0; flex: 1; min-width: 0; }
 .doc-page h2 { font-size: 22px; margin: 36px 0 12px; }
 .doc-page h3 { font-size: 17px; margin: 24px 0 8px; }
 .doc-page p { font-size: 15px; margin: 0 0 14px; }
