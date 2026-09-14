@@ -45,14 +45,19 @@
             <li><a href="hardware.html">Raspberry Pi 컴퓨터 하드웨어</a></li>
             <li><a href="keyboard-computers.html">키보드 컴퓨터</a></li>
             <li><a href="compute-module.html">Compute Module 하드웨어</a></li>
-            <li><a href="processors.html" class="current">프로세서</a></li>
+            <li><a href="processors.html" class="current">프로세서</a>
+                <ul class="doc-subnav">
+                    <li><a href="#sec-1">SoC 비교표</a></li>
+                    <li><a href="#sec-2">주요 특징 정리</a></li>
+                </ul>
+            </li>
             <li><a href="io-controllers.html">I/O 컨트롤러</a></li>
             <li><a href="software-sources.html">소프트웨어 소스</a></li>
         </ul>
     </aside>
 
     <div class="doc-page">
-    <h2>SoC 비교표</h2>
+    <h2 id="sec-1">SoC 비교표</h2>
     <table>
         <tr><th>프로세서</th><th>탑재 모델</th><th>CPU 코어</th><th>아키텍처</th><th>클럭</th><th>주요 특징</th></tr>
         <tr><td>BCM2835</td><td>Pi 1 A/A+/B/B+, Zero, Zero W, CM1</td><td>싱글코어</td><td>ARM1176JZF-S</td><td>표준</td><td>최초 칩, 기본 I/O</td></tr>
@@ -64,7 +69,7 @@
         <tr><td>RP3A0</td><td>Pi Zero 2 W</td><td>쿼드코어</td><td>Cortex-A53(64bit)</td><td>1.0GHz</td><td>SiP(System-in-Package), 512MB DRAM 내장</td></tr>
     </table>
 
-    <h2>주요 특징 정리</h2>
+    <h2 id="sec-2">주요 특징 정리</h2>
     <p><b>BCM2835</b> — 초기 Pi 모델에 쓰인 원조 싱글코어 프로세서. "주변장치 사양 문서에 여러 오류가 있다"는 점이 알려져 있으며, 관련 정오표(errata)가 공개되어 있습니다.</p>
     <p><b>BCM2836/2837/2837B0</b> — 점진적으로 개선된 쿼드코어 라인업으로, BCM2837B0에서 열 확산(히트스프레딩) 기술을 통한 열 관리가 도입되었습니다.</p>
     <p><b>BCM2711</b> — GPU 성능 향상, PCIe 연결성, 네이티브 이더넷 통합을 갖춘 "상당한 업그레이드"로, Pi 3B+ 대비 약 50%의 성능 향상을 제공합니다.</p>

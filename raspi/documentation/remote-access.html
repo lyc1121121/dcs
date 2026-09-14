@@ -39,7 +39,14 @@
             <li><a href="configuration.html">환경 설정</a></li>
             <li><a href="config-txt.html">config.txt</a></li>
             <li><a href="linux-kernel.html">리눅스 커널</a></li>
-            <li><a href="remote-access.html" class="current">원격 접속</a></li>
+            <li><a href="remote-access.html" class="current">원격 접속</a>
+                <ul class="doc-subnav">
+                    <li><a href="#sec-1">SSH</a></li>
+                    <li><a href="#sec-2">VNC</a></li>
+                    <li><a href="#sec-3">Raspberry Pi Connect</a></li>
+                    <li><a href="#sec-4">Raspberry Pi의 IP 주소 찾기</a></li>
+                </ul>
+            </li>
             <li><a href="camera-software.html">카메라 소프트웨어</a></li>
             <li><a href="ai-software.html">AI 소프트웨어</a></li>
             <li><a href="hardware.html">Raspberry Pi 컴퓨터 하드웨어</a></li>
@@ -52,7 +59,7 @@
     </aside>
 
     <div class="doc-page">
-    <h2>SSH</h2>
+    <h2 id="sec-1">SSH</h2>
     <h3>SSH 서버 활성화</h3>
     <ul>
         <li>데스크탑: 환경설정 &gt; Control Centre &gt; Interfaces 탭 &gt; SSH 활성화</li>
@@ -82,7 +89,7 @@ chmod 644 .ssh/authorized_keys</code></pre>
     <pre><code>AllowUsers alice bob</code></pre>
     <pre><code>sudo systemctl restart ssh</code></pre>
 
-    <h2>VNC</h2>
+    <h2 id="sec-2">VNC</h2>
     <h3>VNC 서버 활성화</h3>
     <ul>
         <li>그래픽으로: 환경설정 &gt; Control Centre &gt; Interfaces 탭 &gt; VNC 토글</li>
@@ -97,10 +104,10 @@ chmod 644 .ssh/authorized_keys</code></pre>
         <li>Raspberry Pi 계정 정보 입력</li>
     </ol>
 
-    <h2>Raspberry Pi Connect</h2>
+    <h2 id="sec-3">Raspberry Pi Connect</h2>
     <p>"IP 주소를 직접 찾거나 방화벽을 설정할 필요 없이" 다른 기기의 브라우저에서 Raspberry Pi Connect로 원격 접속할 수 있습니다. Wayland 시스템에서는 화면 공유를, 모든 모델에서는 원격 셸 접속을 제공합니다. 자세한 설정은 공식 Connect 문서를 참고하세요.</p>
 
-    <h2>Raspberry Pi의 IP 주소 찾기</h2>
+    <h2 id="sec-4">Raspberry Pi의 IP 주소 찾기</h2>
     <p><b>데스크탑</b>: 시스템 트레이의 네트워크 아이콘에 마우스 올리기</p>
     <pre><code># 커맨드라인
 hostname -I

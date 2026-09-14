@@ -37,7 +37,16 @@
             <li><a href="getting-started.html">시작하기</a></li>
             <li><a href="os.html">Raspberry Pi OS</a></li>
             <li><a href="configuration.html">환경 설정</a></li>
-            <li><a href="config-txt.html" class="current">config.txt</a></li>
+            <li><a href="config-txt.html" class="current">config.txt</a>
+                <ul class="doc-subnav">
+                    <li><a href="#sec-1">config.txt란?</a></li>
+                    <li><a href="#sec-2">파일 형식</a></li>
+                    <li><a href="#sec-3">주요 디스플레이 옵션</a></li>
+                    <li><a href="#sec-4">주요 하드웨어 설정 옵션</a></li>
+                    <li><a href="#sec-5">부팅 설정</a></li>
+                    <li><a href="#sec-6">GPIO 제어</a></li>
+                </ul>
+            </li>
             <li><a href="linux-kernel.html">리눅스 커널</a></li>
             <li><a href="remote-access.html">원격 접속</a></li>
             <li><a href="camera-software.html">카메라 소프트웨어</a></li>
@@ -52,10 +61,10 @@
     </aside>
 
     <div class="doc-page">
-    <h2>config.txt란?</h2>
+    <h2 id="sec-1">config.txt란?</h2>
     <p><code>config.txt</code>는 일반 PC의 BIOS를 대신하는 Raspberry Pi의 설정 방식입니다. "GPU는 Arm CPU와 리눅스가 초기화되기 전에 config.txt를 읽습니다." <code>/boot/firmware/</code>의 부팅 파티션에 위치하며, 단순한 속성=값 형식을 사용하고, 변경사항은 재부팅 후에만 적용됩니다.</p>
 
-    <h2>파일 형식</h2>
+    <h2 id="sec-2">파일 형식</h2>
     <p>한 줄에 하나의 <code>property=value</code> 문장을 쓰고, 주석은 <code>#</code>으로 표시합니다. 한 줄은 98자로 제한됩니다.</p>
     <pre><code># 오디오 활성화(snd_bcm2835 로드)
 dtparam=audio=on
@@ -66,21 +75,21 @@ camera_auto_detect=1
 # DRM VC4 V3D 드라이버 활성화
 dtoverlay=vc4-kms-v3d</code></pre>
 
-    <h2>주요 디스플레이 옵션</h2>
+    <h2 id="sec-3">주요 디스플레이 옵션</h2>
     <p><b>hdmi_enable_4kp60</b> — 일부 Raspberry Pi 4 모델에서 4K 모니터의 60Hz 주사율을 활성화합니다. 다만 "전력 소모와 발열이 증가"합니다.</p>
 
-    <h2>주요 하드웨어 설정 옵션</h2>
+    <h2 id="sec-4">주요 하드웨어 설정 옵션</h2>
     <p><b>camera_auto_detect</b> / <b>display_auto_detect</b> — 활성화하면 "펌웨어가 인식된 CSI 카메라"와 DSI 디스플레이에 대해 자동으로 오버레이를 로드합니다. Raspberry Pi OS에서는 기본적으로 켜져 있습니다.</p>
     <p><b>dtoverlay</b> — 특정 하드웨어 기능에 대한 커널 지원을 활성화하는 디바이스 트리 오버레이를 펌웨어가 로드하도록 요청합니다. 예: <code>dtoverlay=vc4-kms-v3d</code>는 그래픽 드라이버를 활성화합니다.</p>
     <p><b>dtparam</b> — I2C, SPI 같은 인터페이스에 대한 디바이스 트리 매개변수를 적용하며, 오버레이 설정과 함께 자주 사용됩니다.</p>
 
-    <h2>부팅 설정</h2>
+    <h2 id="sec-5">부팅 설정</h2>
     <p><b>kernel</b> — 로드할 커널 파일을 지정합니다. 모델마다 기본값이 다르며, 최신 Raspberry Pi 5는 해당 시스템에 최적화된 <code>kernel_2712.img</code>를 선호합니다.</p>
     <p><b>arm_64bit</b> — 1로 설정하면 64비트 모드로 부팅합니다. Pi 4 이상에서는 기본값이 1입니다(64비트만 지원하는 모델 제외).</p>
     <p><b>cmdline</b> — 대체 커널 커맨드라인 파일을 지정합니다(기본값: <code>cmdline.txt</code>).</p>
     <p><b>disable_splash</b> — 1로 설정하면 부팅 시 무지개 스플래시 화면이 사라집니다.</p>
 
-    <h2>GPIO 제어</h2>
+    <h2 id="sec-6">GPIO 제어</h2>
     <p><code>gpio</code> 지시자로 부팅 시 핀 상태를 설정할 수 있습니다.</p>
     <pre><code># GPIO12를 출력으로, high 상태로 설정
 gpio=12=op,dh

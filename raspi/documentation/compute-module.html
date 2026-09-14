@@ -44,7 +44,13 @@
             <li><a href="ai-software.html">AI 소프트웨어</a></li>
             <li><a href="hardware.html">Raspberry Pi 컴퓨터 하드웨어</a></li>
             <li><a href="keyboard-computers.html">키보드 컴퓨터</a></li>
-            <li><a href="compute-module.html" class="current">Compute Module 하드웨어</a></li>
+            <li><a href="compute-module.html" class="current">Compute Module 하드웨어</a>
+                <ul class="doc-subnav">
+                    <li><a href="#sec-1">Compute Module이란?</a></li>
+                    <li><a href="#sec-2">IO 보드와의 관계</a></li>
+                    <li><a href="#sec-3">현재 모델</a></li>
+                </ul>
+            </li>
             <li><a href="processors.html">프로세서</a></li>
             <li><a href="io-controllers.html">I/O 컨트롤러</a></li>
             <li><a href="software-sources.html">소프트웨어 소스</a></li>
@@ -52,15 +58,15 @@
     </aside>
 
     <div class="doc-page">
-    <h2>Compute Module이란?</h2>
+    <h2 id="sec-1">Compute Module이란?</h2>
     <p>Raspberry Pi Compute Module은 "임베디드/산업용 애플리케이션을 위해 설계된, 표준 Raspberry Pi 싱글보드 컴퓨터(SBC)의 소형 버전"입니다. 일반 Raspberry Pi 보드와 달리 HDMI, USB, 이더넷 같은 표준 커넥터가 없어, 커스텀 시스템에 통합하기에 적합합니다.</p>
     <p>이 모듈들은 "시스템온모듈(SoM) 형태"로, "디지털 사이니지, 씬 클라이언트, 공정 자동화 같은 산업·상업용 애플리케이션"을 대상으로 합니다.</p>
 
-    <h2>IO 보드와의 관계</h2>
+    <h2 id="sec-2">IO 보드와의 관계</h2>
     <p>Compute Module이 동작하려면 Compute Module IO 보드(CMIO)라는 캐리어 보드가 필요합니다. IO 보드는 전원 공급, GPIO 핀을 표준 헤더로 노출, 카메라/디스플레이 인터페이스 제공, HDMI·USB·네트워킹 표준 커넥터 제공 등 필수 연결성을 담당합니다.</p>
     <p>문서에 따르면 IO 보드는 "독립 제품으로 사용해 빠른 프로토타이핑과 임베디드 시스템 개발에 활용하거나, 자체 캐리어(IO) 보드를 설계할 때 참고용 레퍼런스 디자인으로 사용"할 수 있습니다.</p>
 
-    <h2>현재 모델</h2>
+    <h2 id="sec-3">현재 모델</h2>
     <table>
         <tr><th>모델</th><th>프로세서</th><th>RAM 옵션</th><th>저장공간</th><th>폼팩터</th></tr>
         <tr><td>CM5(2024)</td><td>BCM2712</td><td>2~16GB</td><td>0~64GB eMMC</td><td>듀얼 100핀 커넥터</td></tr>

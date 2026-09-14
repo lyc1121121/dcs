@@ -47,15 +47,22 @@
             <li><a href="compute-module.html">Compute Module 하드웨어</a></li>
             <li><a href="processors.html">프로세서</a></li>
             <li><a href="io-controllers.html">I/O 컨트롤러</a></li>
-            <li><a href="software-sources.html" class="current">소프트웨어 소스</a></li>
+            <li><a href="software-sources.html" class="current">소프트웨어 소스</a>
+                <ul class="doc-subnav">
+                    <li><a href="#sec-1">개요</a></li>
+                    <li><a href="#sec-2">Raspberry Pi OS에서 소프트웨어 소스 찾기</a></li>
+                    <li><a href="#sec-3">GitHub 조직</a></li>
+                    <li><a href="#sec-4">주요 저장소</a></li>
+                </ul>
+            </li>
         </ul>
     </aside>
 
     <div class="doc-page">
-    <h2>개요</h2>
+    <h2 id="sec-1">개요</h2>
     <p>Raspberry Pi는 제품용 오픈소스 코드를 공개하며, "3D·HEVC 디코드 같은 멀티미디어 가속, 카메라 이미징 파이프라인, AI 가속, 듀얼 HDMI, 오디오를 최적화하는 드라이버" 등 사용자 경험을 개선하는 소프트웨어에 중점을 둡니다.</p>
 
-    <h2>Raspberry Pi OS에서 소프트웨어 소스 찾기</h2>
+    <h2 id="sec-2">Raspberry Pi OS에서 소프트웨어 소스 찾기</h2>
     <p>apt 설정 파일을 수정해 소스 패키지를 받아올 수 있습니다.</p>
     <ol>
         <li><code>/etc/apt/sources.list.d/debian.sources</code>(64비트) 또는 <code>/etc/apt/sources.list.d/raspbian.sources</code>(32비트)를 편집</li>
@@ -65,7 +72,7 @@
     </ol>
     <p>빌드하려면 <code>devscripts</code> 패키지와 일반적인 Debian 빌드 절차가 필요합니다.</p>
 
-    <h2>GitHub 조직</h2>
+    <h2 id="sec-3">GitHub 조직</h2>
     <p>Raspberry Pi는 3개의 주요 GitHub 조직을 운영합니다.</p>
     <ul>
         <li><a href="https://github.com/raspberrypi">github.com/raspberrypi</a></li>
@@ -74,7 +81,7 @@
     </ul>
     <p>이 외에도 책·매거진 관련 콘텐츠 조직이 별도로 있습니다.</p>
 
-    <h2>주요 저장소</h2>
+    <h2 id="sec-4">주요 저장소</h2>
     <p><b>핵심 소스</b> — Raspberry Pi 1~5용 리눅스 커널, 펌웨어(변경이력 포함 클로즈드소스), EEPROM 부트로더 스크립트/바이너리</p>
     <p><b>라이브러리 &amp; 애플리케이션</b> — GPIO 유틸리티/pinctrl 도구, 카메라 제어용 libcamera/rpicam-apps, picamera2 파이썬 라이브러리, drmu 멀티미디어 라이브러리</p>
     <p><b>데스크탑 환경</b> — 데스크탑 메타패키지, 태스크바, 파일 관리자, Control Centre 및 설정 플러그인, 진단도구, Bookshelf, SD Card Copier 앱</p>

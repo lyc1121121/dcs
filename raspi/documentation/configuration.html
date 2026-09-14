@@ -36,7 +36,15 @@
         <ul>
             <li><a href="getting-started.html">시작하기</a></li>
             <li><a href="os.html">Raspberry Pi OS</a></li>
-            <li><a href="configuration.html" class="current">환경 설정</a></li>
+            <li><a href="configuration.html" class="current">환경 설정</a>
+                <ul class="doc-subnav">
+                    <li><a href="#sec-1">설정 방법 3가지</a></li>
+                    <li><a href="#sec-2">오디오/영상 출력</a></li>
+                    <li><a href="#sec-3">네트워킹</a></li>
+                    <li><a href="#sec-4">무선 연결</a></li>
+                    <li><a href="#sec-5">그 외 설정 항목</a></li>
+                </ul>
+            </li>
             <li><a href="config-txt.html">config.txt</a></li>
             <li><a href="linux-kernel.html">리눅스 커널</a></li>
             <li><a href="remote-access.html">원격 접속</a></li>
@@ -52,14 +60,14 @@
     </aside>
 
     <div class="doc-page">
-    <h2>설정 방법 3가지</h2>
+    <h2 id="sec-1">설정 방법 3가지</h2>
     <ol>
         <li><b>데스크탑 GUI</b> — 디스플레이가 있는 사용자를 위한 Control Centre 시각적 인터페이스</li>
         <li><b>raspi-config(터미널 메뉴)</b> — 세밀한 제어가 가능한 텍스트 기반 대화형 메뉴</li>
         <li><b>직접 CLI 편집</b> — 설정 파일을 수동으로 편집하거나 커맨드라인 사용</li>
     </ol>
 
-    <h2>오디오/영상 출력</h2>
+    <h2 id="sec-2">오디오/영상 출력</h2>
     <h3>오디오 설정</h3>
     <p>HDMI, 3.5mm 헤드폰 잭, USB 오디오 장치 중에서 선택할 수 있습니다. 기본은 첫 번째 HDMI 장치이며, 필요 시 헤드폰 잭이나 USB로 자동 전환됩니다.</p>
     <pre><code>wpctl status
@@ -77,7 +85,7 @@ wpctl set-default &lt;ID&gt;</code></pre>
     <h3>화면 꺼짐(Screen Blanking)</h3>
     <p>기본 10분 동안 조작이 없으면 꺼지도록 설정 가능합니다. cmdline.txt에 <code>consoleblank=600</code>처럼 초 단위로 지정합니다.</p>
 
-    <h2>네트워킹</h2>
+    <h2 id="sec-3">네트워킹</h2>
     <h3>호스트명 설정</h3>
     <p>호스트명을 설정하면 mDNS로 <code>pi@my-pi.local</code>처럼 접속할 수 있습니다. 영문 소문자, 숫자, 하이픈만 사용 가능합니다.</p>
     <h3>DHCP vs 고정 IP</h3>
@@ -90,7 +98,7 @@ nmcli --fields AUTOCONNECT-PRIORITY,NAME connection
 # 우선순위 설정
 sudo nmcli connection modify "Network Name" connection.autoconnect-priority 10</code></pre>
 
-    <h2>무선 연결</h2>
+    <h2 id="sec-4">무선 연결</h2>
     <h3>WLAN 국가 설정</h3>
     <p>"듀얼밴드 무선을 갖춘 Raspberry Pi 기기는, 안전을 위해 WLAN 국가(Country)를 설정하기 전까지는 네트워킹이 자동으로 비활성화됩니다." 올바른 주파수 대역 선택을 위해 반드시 필요합니다.</p>
     <h3>네트워크 찾기</h3>
@@ -98,7 +106,7 @@ sudo nmcli connection modify "Network Name" connection.autoconnect-priority 10</
     <h3>네트워크 연결</h3>
     <p>WEP, WPA, WPA2, WPA3를 지원합니다. 숨겨진 네트워크는 "숨겨진 무선 네트워크에 연결" 메뉴에서 수동으로 입력합니다.</p>
 
-    <h2>그 외 설정 항목</h2>
+    <h2 id="sec-5">그 외 설정 항목</h2>
     <p>이 가이드는 이 외에도 시스템 지역화, 사용자 접근 관리, 원격 접속 설정, 하드웨어 통신 인터페이스(I2C/SPI/UART), 성능 튜닝, LED 동작 커스터마이즈, 부팅 동작 설정까지 다루며, 전부 위 3가지 방법 중 하나로 접근할 수 있습니다.</p>
 </div>
 </div>

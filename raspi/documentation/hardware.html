@@ -42,7 +42,17 @@
             <li><a href="remote-access.html">원격 접속</a></li>
             <li><a href="camera-software.html">카메라 소프트웨어</a></li>
             <li><a href="ai-software.html">AI 소프트웨어</a></li>
-            <li><a href="hardware.html" class="current">Raspberry Pi 컴퓨터 하드웨어</a></li>
+            <li><a href="hardware.html" class="current">Raspberry Pi 컴퓨터 하드웨어</a>
+                <ul class="doc-subnav">
+                    <li><a href="#sec-1">소개</a></li>
+                    <li><a href="#sec-2">대표 싱글보드 컴퓨터 시리즈</a></li>
+                    <li><a href="#sec-3">키보드 컴퓨터 시리즈</a></li>
+                    <li><a href="#sec-4">Zero 시리즈</a></li>
+                    <li><a href="#sec-5">Compute Module 시리즈</a></li>
+                    <li><a href="#sec-6">Pico 마이크로컨트롤러 보드</a></li>
+                    <li><a href="#sec-7">규제 준수</a></li>
+                </ul>
+            </li>
             <li><a href="keyboard-computers.html">키보드 컴퓨터</a></li>
             <li><a href="compute-module.html">Compute Module 하드웨어</a></li>
             <li><a href="processors.html">프로세서</a></li>
@@ -52,10 +62,10 @@
     </aside>
 
     <div class="doc-page">
-    <h2>소개</h2>
+    <h2 id="sec-1">소개</h2>
     <p>Raspberry Pi는 신용카드 크기의 싱글보드 컴퓨터(SBC), 키보드 케이스에 통합된 키보드 컴퓨터, 초소형 Zero 모델, 임베디드용 Compute Module, 리눅스를 구동하지 않는 Pico 마이크로컨트롤러 보드까지 5개 주요 카테고리의 제품을 만듭니다.</p>
 
-    <h2>대표 싱글보드 컴퓨터 시리즈</h2>
+    <h2 id="sec-2">대표 싱글보드 컴퓨터 시리즈</h2>
     <table>
         <tr><th>모델</th><th>프로세서</th><th>RAM</th><th>GPIO</th><th>주요 연결성</th></tr>
         <tr><td>Pi Model B</td><td>BCM2835</td><td>256/512MB</td><td>26핀</td><td>HDMI, USB 2.0×2, 이더넷, SD카드</td></tr>
@@ -67,16 +77,16 @@
         <tr><td>Pi 5</td><td>BCM2712</td><td>1~16GB</td><td>40핀</td><td>micro-HDMI×2, USB, 기가비트 이더넷(PoE+), Wi-Fi 5, PCIe 커넥터, microSD</td></tr>
     </table>
 
-    <h2>키보드 컴퓨터 시리즈</h2>
+    <h2 id="sec-3">키보드 컴퓨터 시리즈</h2>
     <p>Pi 400, 500, 500+는 SBC 하드웨어를 키보드 폼팩터에 통합한 제품으로, BCM2711(Pi 400) 또는 BCM2712(Pi 500/500+) 프로세서에 4GB~16GB RAM, 40핀 GPIO 헤더를 갖춥니다.</p>
 
-    <h2>Zero 시리즈</h2>
+    <h2 id="sec-4">Zero 시리즈</h2>
     <p>Zero 보드는 BCM2835(초기/W 모델) 또는 RP3A0(Zero 2 W) 프로세서, 512MB RAM, 40핀 GPIO 헤더(대부분 미실장), mini HDMI, microSD 슬롯을 갖춥니다. 무선 버전(W 접미사)은 Wi-Fi와 블루투스를 포함합니다.</p>
 
-    <h2>Compute Module 시리즈</h2>
+    <h2 id="sec-5">Compute Module 시리즈</h2>
     <p>Compute Module은 대표 SBC와 동일한 하드웨어를 커넥터 없는 더 작은 폼팩터로 제공합니다. 현재 모델은 CM3+, CM4S, CM5이며 SODIMM 또는 듀얼 100핀 커넥터를 사용하고, CM4/CM5 일부 버전은 무선 연결을 선택할 수 있습니다.</p>
 
-    <h2>Pico 마이크로컨트롤러 보드</h2>
+    <h2 id="sec-6">Pico 마이크로컨트롤러 보드</h2>
     <table>
         <tr><th>모델</th><th>프로세서</th><th>RAM</th><th>저장공간</th><th>GPIO</th></tr>
         <tr><td>Pico</td><td>RP2040</td><td>264KB</td><td>2MB</td><td>20핀 헤더×2(미실장)</td></tr>
@@ -85,7 +95,7 @@
         <tr><td>Pico 2 W</td><td>RP2350</td><td>520KB</td><td>4MB</td><td>20핀 헤더×2, Wi-Fi/BT</td></tr>
     </table>
 
-    <h2>규제 준수</h2>
+    <h2 id="sec-7">규제 준수</h2>
     <p>"Raspberry Pi 기기에 쓰이는 PCB는 UL94-V0 규격을 준수합니다." 모든 제품은 광범위한 규제 준수 테스트를 거치며, 관련 문서는 제품 정보 포털(Product Information Portal)에서 확인할 수 있습니다.</p>
 </div>
 </div>

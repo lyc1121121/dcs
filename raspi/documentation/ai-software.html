@@ -41,7 +41,18 @@
             <li><a href="linux-kernel.html">리눅스 커널</a></li>
             <li><a href="remote-access.html">원격 접속</a></li>
             <li><a href="camera-software.html">카메라 소프트웨어</a></li>
-            <li><a href="ai-software.html" class="current">AI 소프트웨어</a></li>
+            <li><a href="ai-software.html" class="current">AI 소프트웨어</a>
+                <ul class="doc-subnav">
+                    <li><a href="#sec-1">개요</a></li>
+                    <li><a href="#sec-2">하드웨어 옵션</a></li>
+                    <li><a href="#sec-3">하드웨어 준비물</a></li>
+                    <li><a href="#sec-4">소프트웨어 설정 단계</a></li>
+                    <li><a href="#sec-5">비전 AI 모델</a></li>
+                    <li><a href="#sec-6">LLM (AI HAT+ 2 전용)</a></li>
+                    <li><a href="#sec-7">선택 사항: 웹 인터페이스(Open WebUI)</a></li>
+                    <li><a href="#sec-8">참고 자료</a></li>
+                </ul>
+            </li>
             <li><a href="hardware.html">Raspberry Pi 컴퓨터 하드웨어</a></li>
             <li><a href="keyboard-computers.html">키보드 컴퓨터</a></li>
             <li><a href="compute-module.html">Compute Module 하드웨어</a></li>
@@ -52,10 +63,10 @@
     </aside>
 
     <div class="doc-page">
-    <h2>개요</h2>
+    <h2 id="sec-1">개요</h2>
     <p>Raspberry Pi는 Hailo NPU(신경망 처리 장치)를 통해 AI 가속을 지원합니다. 이 전용 칩은 CPU보다 훨씬 효율적으로 AI 추론을 처리해, 실시간 비전 작업과 언어 모델 구동을 가능하게 합니다.</p>
 
-    <h2>하드웨어 옵션</h2>
+    <h2 id="sec-2">하드웨어 옵션</h2>
     <p>Raspberry Pi 5에 연결할 수 있는 AI 가속기 3종:</p>
     <ol>
         <li><b>AI Kit</b> — Hailo-8L NPU가 사전 장착된 M.2 HAT+ (현재 단종)</li>
@@ -63,14 +74,14 @@
         <li><b>AI HAT+ 2</b> — 온보드 Hailo-10H NPU(비전 AI와 LLM 모두 지원)</li>
     </ol>
 
-    <h2>하드웨어 준비물</h2>
+    <h2 id="sec-3">하드웨어 준비물</h2>
     <ul>
         <li>64비트 Raspberry Pi OS(Trixie)를 구동하는 Raspberry Pi 5</li>
         <li>위 Hailo AI 가속기 중 하나</li>
         <li>비전 AI용: Raspberry Pi Camera Module 3 등 지원 카메라</li>
     </ul>
 
-    <h2>소프트웨어 설정 단계</h2>
+    <h2 id="sec-4">소프트웨어 설정 단계</h2>
     <h3>1. PCIe Gen 3.0 활성화 (AI Kit 전용)</h3>
     <pre><code>sudo raspi-config</code></pre>
     <p><b>Advanced Options &gt; PCIe Speed</b>에서 Gen 3.0 모드를 켭니다. 또는 <code>/boot/firmware/config.txt</code>에 아래를 추가합니다.</p>
@@ -95,7 +106,7 @@ sudo apt install hailo-h10-all</code></pre>
 hailortcli fw-control identify</code></pre>
     <p>정상적으로 설치되면 펌웨어 버전과 장치 정보가 출력됩니다.</p>
 
-    <h2>비전 AI 모델</h2>
+    <h2 id="sec-5">비전 AI 모델</h2>
     <pre><code>sudo apt update && sudo apt install rpicam-apps
 rpicam-hello</code></pre>
 
@@ -112,7 +123,7 @@ rpicam-hello</code></pre>
     <h3>자세 추정(Pose Estimation)</h3>
     <pre><code>rpicam-hello -t 0 --post-process-file /usr/share/rpi-camera-assets/hailo_yolov8_pose.json</code></pre>
 
-    <h2>LLM (AI HAT+ 2 전용)</h2>
+    <h2 id="sec-6">LLM (AI HAT+ 2 전용)</h2>
     <h3>Hailo Ollama 서버 설치</h3>
     <pre><code>sudo dpkg -i hailo_gen_ai_model_zoo_5.1.1_arm64.deb</code></pre>
     <h3>서버 시작</h3>
@@ -128,7 +139,7 @@ rpicam-hello</code></pre>
   -H 'Content-Type: application/json' \
   -d '{"model": "qwen2:1.5b", "messages": [{"role": "user", "content": "질문 내용"}]}'</code></pre>
 
-    <h2>선택 사항: 웹 인터페이스(Open WebUI)</h2>
+    <h2 id="sec-7">선택 사항: 웹 인터페이스(Open WebUI)</h2>
     <p>Docker를 설치한 뒤 Open WebUI 컨테이너를 배포합니다.</p>
     <pre><code>docker run -d -e OLLAMA_BASE_URL=http://127.0.0.1:8000 \
   -v open-webui:/app/backend/data --name open-webui \
@@ -136,7 +147,7 @@ rpicam-hello</code></pre>
   ghcr.io/open-webui/open-webui:main</code></pre>
     <p>접속 주소: <code>http://127.0.0.1:8080</code></p>
 
-    <h2>참고 자료</h2>
+    <h2 id="sec-8">참고 자료</h2>
     <ul>
         <li>Hailo 예제: <a href="https://github.com/hailo-ai/hailo-rpi5-examples">hailo-rpi5-examples</a></li>
         <li>모델 zoo: <a href="https://hailo.ai/products/hailo-software/model-explorer-vision/">Hailo Model Explorer</a></li>

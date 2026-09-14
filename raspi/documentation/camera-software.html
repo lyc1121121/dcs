@@ -40,7 +40,16 @@
             <li><a href="config-txt.html">config.txt</a></li>
             <li><a href="linux-kernel.html">리눅스 커널</a></li>
             <li><a href="remote-access.html">원격 접속</a></li>
-            <li><a href="camera-software.html" class="current">카메라 소프트웨어</a></li>
+            <li><a href="camera-software.html" class="current">카메라 소프트웨어</a>
+                <ul class="doc-subnav">
+                    <li><a href="#sec-1">개요</a></li>
+                    <li><a href="#sec-2">libcamera 기반</a></li>
+                    <li><a href="#sec-3">rpicam-apps 도구 모음</a></li>
+                    <li><a href="#sec-4">기본 사용 예시</a></li>
+                    <li><a href="#sec-5">주요 설정</a></li>
+                    <li><a href="#sec-6">다중 카메라 지원</a></li>
+                </ul>
+            </li>
             <li><a href="ai-software.html">AI 소프트웨어</a></li>
             <li><a href="hardware.html">Raspberry Pi 컴퓨터 하드웨어</a></li>
             <li><a href="keyboard-computers.html">키보드 컴퓨터</a></li>
@@ -52,14 +61,14 @@
     </aside>
 
     <div class="doc-page">
-    <h2>개요</h2>
+    <h2 id="sec-1">개요</h2>
     <p>Raspberry Pi는 Camera Module 2(8MP), Camera Module 3(12MP), High Quality Camera(12MP), Global Shutter Camera(1.6MP), AI Camera(12MP) 등 공식 카메라 모듈을 제공합니다. 예전에 쓰이던 <code>raspivid</code>, <code>raspistill</code> 같은 레거시 도구는 이제 지원 종료되었습니다.</p>
 
-    <h2>libcamera 기반</h2>
+    <h2 id="sec-2">libcamera 기반</h2>
     <p><code>libcamera</code>는 "Arm 프로세서 위 리눅스 운영체제에서 카메라 시스템을 직접 지원하기 위한 오픈소스 소프트웨어 라이브러리"입니다. 카메라 설정과 프레임 요청을 위한 C++ API를 제공하며, 인코딩이나 디스플레이 출력 자체는 담당하지 않습니다. Raspberry Pi 구현체는 자동 노출·화이트밸런스·렌즈 셰이딩 보정을 위한 자체 파이프라인 핸들러와 이미지 처리 알고리즘을 포함합니다.</p>
     <p>지원 센서: 공식 카메라(OV5647, IMX219, IMX708, IMX477, IMX500, IMX296) 및 서드파티 센서(IMX290, IMX327, OV9281 등).</p>
 
-    <h2>rpicam-apps 도구 모음</h2>
+    <h2 id="sec-3">rpicam-apps 도구 모음</h2>
     <p>Raspberry Pi OS에는 기본 앱 5종이 포함됩니다.</p>
     <ul>
         <li><b>rpicam-hello</b> — 정해진 시간 동안 실시간 미리보기 표시</li>
@@ -69,7 +78,7 @@
         <li><b>rpicam-raw</b> — 센서에서 가공되지 않은 Bayer 프레임 직접 캡처</li>
     </ul>
 
-    <h2>기본 사용 예시</h2>
+    <h2 id="sec-4">기본 사용 예시</h2>
     <pre><code># 미리보기 스트림
 rpicam-hello --timeout 0
 
@@ -82,10 +91,10 @@ rpicam-vid -t 10s -o test.h264
 # Raw 센서 캡처
 rpicam-raw -t 2000 -o test.raw</code></pre>
 
-    <h2>주요 설정</h2>
+    <h2 id="sec-5">주요 설정</h2>
     <p><code>/boot/firmware/config.txt</code>에서 <code>camera_auto_detect=0</code>으로 자동 감지를 끈 뒤, 적절한 오버레이(예: V2 카메라는 <code>dtoverlay=imx219</code>)를 추가합니다. 튜닝 파일이 센서별 알고리즘을 제어하며, 필요 시 <code>--tuning-file</code> 옵션으로 재정의할 수 있습니다.</p>
 
-    <h2>다중 카메라 지원</h2>
+    <h2 id="sec-6">다중 카메라 지원</h2>
     <p><code>--list-cameras</code>로 사용 가능한 카메라 목록을 확인하고, <code>--camera</code> 옵션에 인덱스 번호를 지정해 카메라를 선택합니다. Raspberry Pi 5와 Compute Module에서는 두 카메라를 동시에 사용할 수 있고, 그 외 기기는 Video Mux 보드가 필요합니다(한 번에 한 카메라만 접근 가능).</p>
 </div>
 </div>

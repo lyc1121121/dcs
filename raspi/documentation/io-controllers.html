@@ -46,19 +46,27 @@
             <li><a href="keyboard-computers.html">키보드 컴퓨터</a></li>
             <li><a href="compute-module.html">Compute Module 하드웨어</a></li>
             <li><a href="processors.html">프로세서</a></li>
-            <li><a href="io-controllers.html" class="current">I/O 컨트롤러</a></li>
+            <li><a href="io-controllers.html" class="current">I/O 컨트롤러</a>
+                <ul class="doc-subnav">
+                    <li><a href="#sec-1">RP1이란?</a></li>
+                    <li><a href="#sec-2">물리적 사양</a></li>
+                    <li><a href="#sec-3">제공하는 주변장치 인터페이스</a></li>
+                    <li><a href="#sec-4">내부 구성요소</a></li>
+                    <li><a href="#sec-5">멀티미디어 기능</a></li>
+                </ul>
+            </li>
             <li><a href="software-sources.html">소프트웨어 소스</a></li>
         </ul>
     </aside>
 
     <div class="doc-page">
-    <h2>RP1이란?</h2>
+    <h2 id="sec-1">RP1이란?</h2>
     <p>RP1은 Raspberry Pi가 자체 설계한 입출력 관리 칩입니다. Raspberry Pi 5와 Compute Module 5에 내장되어, 그렇지 않으면 메인 프로세서에 부담이 될 주변장치 관리를 담당합니다. 문서는 "RP1은 독립된 칩이 아니라, Raspberry Pi 5와 Compute Module 5에 내장된 I/O 컨트롤러입니다"라고 설명합니다.</p>
 
-    <h2>물리적 사양</h2>
+    <h2 id="sec-2">물리적 사양</h2>
     <p>이 칩은 약 12×12mm 크기의 BGA 패키지이며 핀 간격은 0.65mm입니다. 메인 CPU(BCM2712)와는 "PCIe 2.0 x4 링크"로 통신하며, 대부분의 외부 I/O를 처리합니다.</p>
 
-    <h2>제공하는 주변장치 인터페이스</h2>
+    <h2 id="sec-3">제공하는 주변장치 인터페이스</h2>
     <ul>
         <li>4레인 PCIe 2.0 엔드포인트</li>
         <li>기가비트 이더넷 MAC</li>
@@ -68,10 +76,10 @@
         <li>저속 주변장치: SPI, UART, I2C, PWM, GPIO, I2S</li>
     </ul>
 
-    <h2>내부 구성요소</h2>
+    <h2 id="sec-4">내부 구성요소</h2>
     <p>이 칩에는 Cortex M3 프로세서 2개, 8채널 DMA 컨트롤러, 다수의 PLL, 온도 센서가 포함된 12비트 ADC, 64KB 공유 SRAM, 타이밍 생성기가 통합되어 있습니다.</p>
 
-    <h2>멀티미디어 기능</h2>
+    <h2 id="sec-5">멀티미디어 기능</h2>
     <p>RP1은 비디오 DAC(PAL/NTSC/VGA), DPI 비디오 생성, CSI-2 카메라 인터페이스, DSI 디스플레이 지원, 델타-시그마 PWM 오디오 출력, PDM 마이크 기능까지 지원합니다.</p>
 </div>
 </div>
