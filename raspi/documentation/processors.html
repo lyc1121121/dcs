@@ -83,7 +83,13 @@
                 <button type="button" class="tri" data-slug="processors" aria-expanded="true">▼</button><a href="processors.html" class="current">프로세서</a>
                 <ul class="doc-subnav" data-populated="1">
                         <li><a href="#sec-1">SoC 비교표</a></li>
-                        <li><a href="#sec-2">주요 특징 정리</a></li>
+                        <li><a href="#sec-2">BCM2835</a></li>
+                        <li><a href="#sec-3">BCM2836</a></li>
+                        <li><a href="#sec-4">BCM2837</a></li>
+                        <li><a href="#sec-5">BCM2837B0</a></li>
+                        <li><a href="#sec-6">BCM2711</a></li>
+                        <li><a href="#sec-7">BCM2712</a></li>
+                        <li><a href="#sec-8">RP3A0</a></li>
                 </ul>
             </li>
             <li>
@@ -110,12 +116,26 @@
         <tr><td>RP3A0</td><td>Pi Zero 2 W</td><td>쿼드코어</td><td>Cortex-A53(64bit)</td><td>1.0GHz</td><td>SiP(System-in-Package), 512MB DRAM 내장</td></tr>
     </table>
 
-    <h2 id="sec-2">주요 특징 정리</h2>
-    <p><b>BCM2835</b> — 초기 Pi 모델에 쓰인 원조 싱글코어 프로세서. "주변장치 사양 문서에 여러 오류가 있다"는 점이 알려져 있으며, 관련 정오표(errata)가 공개되어 있습니다.</p>
-    <p><b>BCM2836/2837/2837B0</b> — 점진적으로 개선된 쿼드코어 라인업으로, BCM2837B0에서 열 확산(히트스프레딩) 기술을 통한 열 관리가 도입되었습니다.</p>
-    <p><b>BCM2711</b> — GPU 성능 향상, PCIe 연결성, 네이티브 이더넷 통합을 갖춘 "상당한 업그레이드"로, Pi 3B+ 대비 약 50%의 성능 향상을 제공합니다.</p>
-    <p><b>BCM2712</b> — 2.4GHz Cortex-A76 코어로 "2~3배 성능 향상"을 이뤄냈으며, 향상된 VideoCore VII GPU와 4Kp60 영상을 지원하는 전용 HEVC 하드웨어 디코더를 갖췄습니다.</p>
-    <p><b>취약점 관련</b> — BCM2712의 Cortex-A76에는 알려진 보안 취약점(Spectre 계열)이 있으며, 마이크로코드가 아닌 커널 레벨 보호를 통해 Raspberry Pi OS에서 완화 처리됩니다.</p>
+    <h2 id="sec-2">BCM2835</h2>
+    <p>Pi 1 A/A+/B/B+, Zero, Zero W, Compute Module 1에 탑재된 칩으로, "싱글코어 ARM1176JZF-S 프로세서"를 내장합니다. 주변장치 사양 문서에 여러 오류가 있는 것으로 알려져 있어, 별도로 관리되는 정오표(errata)가 공개되어 있습니다. 이 외에 GPU 문서, 오픈소스 드라이버, ARM1176JZF-S 프로세서 상세 자료도 참고할 수 있습니다.</p>
+
+    <h2 id="sec-3">BCM2836</h2>
+    <p>초기 Raspberry Pi 2 Model B에 탑재됐습니다. BCM2835와 아키텍처는 거의 동일하고 프로세서만 업그레이드되어, 싱글코어 대신 "쿼드코어 Cortex-A7 클러스터"를 사용합니다. ARM-local 주변장치 문서와 Cortex-A7 MPCore 프로세서 매뉴얼을 참고할 수 있습니다. 이 SoC는 단종되었고, 이후 Pi 2 개정판은 다른 칩을 사용합니다.</p>
+
+    <h2 id="sec-4">BCM2837</h2>
+    <p>초기 Raspberry Pi 3 Model B, 일부 Pi 2 개정판, Compute Module 3에 탑재됐습니다. BCM2836과 아키텍처는 같고 프로세서가 "쿼드코어 Arm Cortex-A53(Armv8) 클러스터"로 바뀌었습니다. Arm 코어가 1.2GHz로 동작해 Pi 2 대비 약 50% 빨라졌고, VideoCore IV가 400MHz로 동작합니다. 이 SoC도 단종되었습니다.</p>
+
+    <h2 id="sec-5">BCM2837B0</h2>
+    <p>후기 Pi 2, Pi 3, 3A+, 3B+, Compute Module 3+에 탑재됐습니다. BCM2837과 아키텍처는 동일하지만 더 높은 클럭을 지원해 Arm 코어가 "최대 1.4GHz"까지 올라가며, 초기 Pi 3 대비 약 17% 성능이 향상됐습니다. 더 높은 클럭과 향상된 온도 모니터링을 위한 "히트 스프레더가 통합"된 것이 특징입니다.</p>
+
+    <h2 id="sec-6">BCM2711</h2>
+    <p>Raspberry Pi 4 Model B, Compute Module 4, Pi 400에 탑재됐습니다. 쿼드코어 "Arm A72" 프로세서가 1.5GHz로 동작해 Pi 3B+ 대비 약 50% 빠른 "상당한 업그레이드"입니다. "새로운 VideoCore VI 3D 유닛"이 500MHz로 동작하며, PCIe 연결을 통한 USB 3.0과 네이티브 이더넷 등 I/O가 강화됐습니다. 최대 8GB 메모리를 지원하고 열 관리 기술도 개선됐습니다.</p>
+
+    <h2 id="sec-7">BCM2712</h2>
+    <p>Raspberry Pi 5, 500, 500+, Compute Module 5에 탑재됐습니다. "최대 2.4GHz로 동작하는 쿼드코어 Arm Cortex-A76 CPU 클러스터"를 내장하고, "12코어 VideoCore VII GPU"로 "듀얼 4Kp60 디스플레이"를 지원합니다. CPU/IO 집약적 작업 기준 Pi 4 대비 2~3배 성능 향상을 제공합니다. Cortex-A76에는 알려진 취약점(Spectre 계열)이 있으나, Raspberry Pi OS의 커널 레벨 보호로 전부 완화되어 있습니다.</p>
+
+    <h2 id="sec-8">RP3A0</h2>
+    <p>Raspberry Pi Zero 2 W에만 쓰이는 "시스템인패키지(SiP)"로, BCM2837 계열의 Broadcom BCM2710A1 실리콘에 512MB DRAM을 결합한 형태입니다. "쿼드코어 64비트 Arm Cortex-A53 CPU"가 1GHz로 동작하며, 냉각을 더하면 1.2GHz까지 올라갈 수 있습니다. 주변장치 사양은 BCM2836의 ARM-local 주변장치 문서와 Cortex-A53 기술 매뉴얼을 참고합니다.</p>
 </div>
 </div>
 
@@ -136,7 +156,8 @@
     </div>
     <div class="disclaimer">
         이 페이지는 raspberrypi.com/documentation/computers/processors.html 을 한글로 번역한 비공식
-        미러입니다(315단계). 칩셋명/아키텍처명/수치는 원문 그대로 영문·숫자 유지했습니다.
+        미러입니다(315, 325단계). 원문처럼 칩별로 개별 섹션을 나눠 번역했습니다. 칩셋명/아키텍처명/수치는
+        원문 그대로 영문·숫자 유지했습니다.
         상표의 권리는 Raspberry Pi Ltd.에 있습니다.
     </div>
 </footer>

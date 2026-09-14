@@ -106,28 +106,35 @@
     <h2 id="sec-2">Raspberry Pi OS에서 소프트웨어 소스 찾기</h2>
     <p>apt 설정 파일을 수정해 소스 패키지를 받아올 수 있습니다.</p>
     <ol>
-        <li><code>/etc/apt/sources.list.d/debian.sources</code>(64비트) 또는 <code>/etc/apt/sources.list.d/raspbian.sources</code>(32비트)를 편집</li>
+        <li><code>/etc/apt/sources.list.d/debian.sources</code>(64비트), <code>/etc/apt/sources.list.d/raspbian.sources</code>(32비트) 또는 <code>/etc/apt/sources.list.d/raspi.sources</code>를 편집</li>
         <li>"Types: deb"를 "Types: deb deb-src"로 변경</li>
         <li><code>sudo apt update</code> 실행</li>
         <li><code>apt source [package-name]</code>으로 소스 받기</li>
     </ol>
-    <p>빌드하려면 <code>devscripts</code> 패키지와 일반적인 Debian 빌드 절차가 필요합니다.</p>
+    <p>Raspberry Pi OS 패키지는 Raspberry Pi 패치가 적용된 업스트림 소프트웨어인 경우가 많으며, 이런 패키지 버전에는 <code>+rpt</code> 태그가 붙습니다. 빌드하려면 <code>devscripts</code> 패키지와 <code>debuild</code> 등 일반적인 Debian 빌드 절차가 필요합니다.</p>
 
     <h2 id="sec-3">GitHub 조직</h2>
-    <p>Raspberry Pi는 3개의 주요 GitHub 조직을 운영합니다.</p>
+    <p>Raspberry Pi는 소프트웨어 배포를 위해 3개의 주요 GitHub 조직을 운영합니다.</p>
     <ul>
         <li><a href="https://github.com/raspberrypi">github.com/raspberrypi</a></li>
         <li><a href="https://github.com/raspberrypi-ui">github.com/raspberrypi-ui</a></li>
         <li><a href="https://github.com/RPi-Distro">github.com/RPi-Distro</a></li>
     </ul>
-    <p>이 외에도 책·매거진 관련 콘텐츠 조직이 별도로 있습니다.</p>
+    <p>이 외에 출판물 관련 콘텐츠를 위한 조직도 별도로 운영합니다.</p>
+    <ul>
+        <li><a href="https://github.com/raspberrypipress">github.com/raspberrypipress</a></li>
+        <li><a href="https://github.com/themagpimag">github.com/themagpimag</a></li>
+    </ul>
 
     <h2 id="sec-4">주요 저장소</h2>
-    <p><b>핵심 소스</b> — Raspberry Pi 1~5용 리눅스 커널, 펌웨어(변경이력 포함 클로즈드소스), EEPROM 부트로더 스크립트/바이너리</p>
-    <p><b>라이브러리 &amp; 애플리케이션</b> — GPIO 유틸리티/pinctrl 도구, 카메라 제어용 libcamera/rpicam-apps, picamera2 파이썬 라이브러리, drmu 멀티미디어 라이브러리</p>
-    <p><b>데스크탑 환경</b> — 데스크탑 메타패키지, 태스크바, 파일 관리자, Control Centre 및 설정 플러그인, 진단도구, Bookshelf, SD Card Copier 앱</p>
-    <p><b>개발 도구</b> — Raspberry Pi Imager, rpi-image-gen 빌드 시스템, usbboot 프로비저닝 도구, 보안 부팅 프로비저너</p>
-    <p><b>Pico 개발</b> — Visual Studio Code 확장, Pico SDK 및 예제, Debug Probe 펌웨어, OpenOCD 다운스트림 소스</p>
+    <p><b>핵심 소스</b> — Raspberry Pi 1~5용 리눅스 커널, 펌웨어(변경이력 포함 클로즈드소스), EEPROM 부트로더 설치 스크립트</p>
+    <p><b>라이브러리 &amp; 애플리케이션</b> — GPIO 유틸리티, libcamera 구현체, 이미지 처리용 rpicam-apps, picamera2 파이썬 라이브러리, 멀티미디어 제어 라이브러리</p>
+    <p><b>데스크탑</b> — 데스크탑 메타패키지, 태스크바(Wayland/X 기반), 태스크바 플러그인(배터리/블루투스/시계/CPU/온도/파일꺼내기/GPU/메뉴/네트워크/전원/업데이트/볼륨), 파일 관리자, Control Centre 및 설정(화면/외관/입력장치/디스플레이/프린터) 플러그인</p>
+    <p><b>애플리케이션</b> — 진단 도구, Bookshelf 전자책 리더, SD Card Copier, 추천 소프트웨어 설치 도구</p>
+    <p><b>디버그</b> — 부팅 분석 서비스 도구</p>
+    <p><b>개발 도구</b> — Raspberry Pi Imager, 이미지 생성 시스템(rpi-image-gen), USB 부팅 유틸리티, 보안 부팅 프로비저너</p>
+    <p><b>피드백</b> — 현재 릴리스에 대한 버그 신고 저장소</p>
+    <p><b>Pico 개발</b> — VS Code 확장, SDK 설정 도구 및 소스, Debug Probe 펌웨어, OpenOCD 구현체, 예제 코드, BOOTSEL 모드 기기용 상호작용 도구</p>
 </div>
 </div>
 
@@ -148,7 +155,7 @@
     </div>
     <div class="disclaimer">
         이 페이지는 raspberrypi.com/documentation/computers/software-sources.html 을 한글로 번역한 비공식
-        미러입니다(315단계). 패키지명/저장소명/명령어는 원문 그대로 영문 유지했습니다.
+        미러입니다(315, 325단계). 패키지명/저장소명/명령어는 원문 그대로 영문 유지했습니다.
         상표의 권리는 Raspberry Pi Ltd.에 있습니다.
     </div>
 </footer>
