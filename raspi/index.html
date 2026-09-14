@@ -4,105 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>라베파 (Raspberry Pi 한글 미러)</title>
-<style>
-    :root {
-        --rpi-red: #C51A4A;
-        --ink: #1a1a1a;
-        --muted: #5f6368;
-        --bg: #ffffff;
-        --panel: #f5f5f5;
-    }
-    * { box-sizing: border-box; }
-    body {
-        margin: 0; font-family: -apple-system, "Segoe UI", "Noto Sans KR", Arial, sans-serif;
-        color: var(--ink); background: var(--bg); line-height: 1.6;
-    }
-    header {
-        position: sticky; top: 0; background: #fff; z-index: 10; border-bottom: 1px solid #eee;
-    }
-    .header-top {
-        display: flex; align-items: center; justify-content: space-between; gap: 16px;
-        padding: 16px 32px;
-    }
-    header .logo { font-weight: 800; font-size: 20px; color: var(--rpi-red); text-decoration: none; }
-    header .notice { font-size: 12px; color: var(--muted); }
-    nav.main-nav {
-        display: flex; flex-wrap: wrap; gap: 24px; padding: 0 32px 14px; border-top: 1px solid #f2f2f2;
-    }
-    nav.main-nav a {
-        color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 600; padding-top: 12px;
-    }
-    nav.main-nav a:hover { color: var(--rpi-red); }
-    .btn {
-        display: inline-block; padding: 10px 20px; border-radius: 24px; text-decoration: none;
-        font-weight: 700; font-size: 14px;
-    }
-    .btn-primary { background: var(--rpi-red); color: #fff; }
-    .btn-outline { border: 2px solid var(--rpi-red); color: var(--rpi-red); }
-
-    .hero {
-        display: flex; flex-wrap: wrap; align-items: center; gap: 32px;
-        padding: 64px 32px; max-width: 1200px; margin: 0 auto;
-    }
-    .hero-text { flex: 1 1 380px; }
-    .hero-text h1 { font-size: 44px; line-height: 1.2; margin: 0 0 20px; }
-    .hero-text p { font-size: 17px; color: var(--muted); margin-bottom: 28px; }
-    .hero-image { flex: 1 1 380px; text-align: center; }
-    .hero-image img { max-width: 100%; border-radius: 12px; }
-
-    section.product {
-        padding: 56px 32px; max-width: 1200px; margin: 0 auto;
-        display: flex; flex-wrap: wrap; align-items: center; gap: 32px;
-    }
-    section.product.alt { background: var(--panel); max-width: none; }
-    section.product.alt > .inner { display: flex; flex-wrap: wrap; align-items: center; gap: 32px; max-width: 1200px; margin: 0 auto; width: 100%; }
-    .product-text { flex: 1 1 380px; }
-    .product-text h2 { font-size: 30px; margin: 0 0 8px; }
-    .product-text .price { color: var(--muted); margin-bottom: 20px; }
-    .product-image { flex: 1 1 380px; text-align: center; }
-    .product-image img { max-width: 100%; border-radius: 12px; }
-
-    .news { padding: 64px 32px; max-width: 1200px; margin: 0 auto; }
-    .news h2 { font-size: 30px; margin-bottom: 4px; }
-    .news .sub { color: var(--muted); margin-bottom: 32px; }
-    .news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
-    .news-card { border: 1px solid #eee; border-radius: 12px; padding: 20px; }
-    .news-card h3 { font-size: 17px; margin: 0 0 10px; }
-    .news-card p { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
-    .news-card a.readmore { color: var(--rpi-red); font-weight: 700; text-decoration: none; font-size: 14px; }
-    .news-footer { margin-top: 32px; text-align: center; }
-
-    footer { background: #1a1a1a; color: #ccc; padding: 48px 32px; }
-    .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto; }
-    .footer-grid h4 { color: #fff; margin: 0 0 8px; font-size: 16px; }
-    .footer-grid p { font-size: 13px; color: #999; }
-    .footer-grid a { color: #ccc; }
-    .disclaimer {
-        max-width: 1200px; margin: 24px auto 0; padding-top: 16px; border-top: 1px solid #333;
-        font-size: 12px; color: #777;
-    }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header>
     <div class="header-top">
         <a class="logo" href="/">라베파 (Raspberry Pi)</a>
-        <div class="notice">비공식 한글 미리보기 · 311/312단계 검토용</div>
-        <a class="btn btn-primary" href="https://www.raspberrypi.com/products/">제품 둘러보기</a>
+        <div class="notice">비공식 한글 미리보기 · 313단계</div>
+        <a class="btn btn-primary" href="products.html">제품 둘러보기</a>
     </div>
-    <!-- 2026-09-14 추가: 실제 사이트의 상단 메뉴는 자바스크립트로 렌더링되는 부분이라
-         페이지를 가져올 때(WebFetch/curl 모두) 원본에 포함되어 있지 않았음. 일반적으로
-         알려진 라즈베리파이 사이트 메뉴 구성으로 대체 - 정확한 문구/순서는 실제 사이트와
-         다를 수 있음(스크린샷 주시면 정확히 맞춰 수정 가능). -->
     <nav class="main-nav">
-        <a href="https://www.raspberrypi.com/products/">제품</a>
-        <a href="https://www.raspberrypi.com/software/">소프트웨어</a>
-        <a href="https://www.raspberrypi.com/documentation/">문서</a>
-        <a href="https://www.raspberrypi.com/software/operating-systems/">다운로드</a>
-        <a href="https://www.raspberrypi.com/news/">뉴스</a>
+        <a href="products.html">제품</a>
+        <a href="software.html">소프트웨어</a>
+        <a href="documentation.html">문서</a>
+        <a href="downloads.html">다운로드</a>
+        <a href="news.html">뉴스</a>
         <a href="https://www.raspberrypi.org/">커뮤니티</a>
-        <a href="https://www.raspberrypi.com/about/">회사 소개</a>
+        <a href="about.html">회사 소개</a>
     </nav>
 </header>
 
@@ -110,7 +29,7 @@
     <div class="hero-text">
         <h1>당신에게 딱 맞는 컴퓨터가 있습니다</h1>
         <p>어떤 용도든, 어떤 규모든 — Raspberry Pi는 기업과 가정을 위한 비용 효율적이고 고성능인 컴퓨팅을 제공합니다. 영국에서 설계 및 제조되었습니다.</p>
-        <a class="btn btn-primary" href="https://www.raspberrypi.com/products/">제품 둘러보기</a>
+        <a class="btn btn-primary" href="products.html">제품 둘러보기</a>
     </div>
     <div class="hero-image">
         <img src="https://assets.raspberrypi.com/static/d8c8df845f270ad324962846437aa55c/23823/hero.png" alt="Raspberry Pi 제품 라인업">
@@ -162,7 +81,7 @@
         </div>
     </div>
     <div class="news-footer">
-        <a class="btn btn-outline" href="https://www.raspberrypi.com/news/">모든 게시글 보기</a>
+        <a class="btn btn-outline" href="news.html">뉴스 더 보기 →</a>
     </div>
 </section>
 
@@ -182,10 +101,11 @@
         </div>
     </div>
     <div class="disclaimer">
-        이 페이지는 raspberrypi.com 홈페이지를 개인/내부 참고용으로 한글로 번역해 재구성한 비공식 미러입니다(312단계).
+        이 페이지는 raspberrypi.com 홈페이지를 개인/내부 참고용으로 한글로 번역해 재구성한 비공식 미러입니다(310~313단계).
         이미지는 raspberrypi.com 원본 URL을 그대로 불러옵니다(hotlink). 실시간 동기화는 하지 않으며, 특정 시점의 스냅샷입니다.
         상단 메뉴는 실제 사이트가 자바스크립트로 렌더링해서 원본을 가져올 수 없어, 일반적으로 알려진 구성으로
-        대체했습니다(정확한 문구/순서는 실제 사이트와 다를 수 있음).
+        대체했습니다(정확한 문구/순서는 실제 사이트와 다를 수 있음). 개별 제품/뉴스 항목은 실제 raspberrypi.com
+        원문 페이지로 연결됩니다(번역 대상 아님).
         상표/이미지의 권리는 Raspberry Pi Ltd.에 있습니다.
     </div>
 </footer>
