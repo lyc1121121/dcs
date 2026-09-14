@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>하드웨어 API - 라베파 (Raspberry Pi 한글 미러)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <a class="logo" href="../../">라베파 (Raspberry Pi)</a>
+        <div class="notice">비공식 한글 미리보기 · 326단계</div>
+        <a class="btn btn-primary" href="../../products.html">제품 둘러보기</a>
+    </div>
+    <nav class="main-nav">
+        <a href="../../products.html">제품</a>
+        <a href="../../software.html">소프트웨어</a>
+        <a href="../../documentation.html" class="current">문서</a>
+        <a href="../../downloads.html">다운로드</a>
+        <a href="../../news.html">뉴스</a>
+        <a href="https://www.raspberrypi.org/">커뮤니티</a>
+        <a href="../../about.html">회사 소개</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="breadcrumb"><a href="index.html">Pico C SDK</a> / 하드웨어 API</div>
+    <h1>하드웨어 API (hardware_*)</h1>
+</div>
+
+<div class="doc-layout">
+    <aside class="doc-sidebar">
+        <h4>문서 카테고리</h4>
+        <div class="doc-sidebar-group">Pico C SDK</div>
+        <ul>
+            <li><a href="index.html">소개</a></li>
+            <li><a href="hardware.html" class="current">하드웨어 API</a>
+                <ul class="doc-subnav" data-populated="1">
+                    <li><a href="#sec-1">hardware_gpio</a></li>
+                    <li><a href="#sec-2">hardware_i2c</a></li>
+                    <li><a href="#sec-3">hardware_spi</a></li>
+                    <li><a href="#sec-4">hardware_pwm</a></li>
+                    <li><a href="#sec-5">hardware_adc</a></li>
+                    <li><a href="#sec-6">hardware_timer</a></li>
+                    <li><a href="#sec-7">hardware_uart</a></li>
+                </ul>
+            </li>
+            <li><a href="high-level.html">고수준 API</a></li>
+            <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/third_party.html">서드파티 라이브러리</a></li>
+            <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/networking.html">네트워킹 라이브러리</a></li>
+            <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/runtime.html">런타임 인프라</a></li>
+            <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/misc.html">외부 API 헤더</a></li>
+        </ul>
+        <a class="more-link" href="../../documentation.html">← Computers 문서 목록으로</a>
+    </aside>
+
+    <div class="doc-page">
+    <p>하드웨어 API는 RP2040/RP2350 칩의 레지스터에 직접 대응하는 저수준 API로, 총 35개 모듈로 구성됩니다. 그중 실무에서 가장 자주 쓰이는 7개를 번역했습니다.</p>
+
+    <h2 id="sec-1">hardware_gpio</h2>
+    <p>RP 시리즈 마이크로컨트롤러의 디지털 신호 제어를 위한 범용 입출력(GPIO) 핀을 관리합니다.</p>
+    <pre><code>void gpio_init(uint gpio);                 // GPIO 핀 초기화
+void gpio_set_dir(uint gpio, bool out);     // 입력/출력 방향 설정
+void gpio_put(uint gpio, bool value);       // GPIO 핀에 디지털 값 쓰기
+bool gpio_get(uint gpio);                   // GPIO 핀의 현재 상태 읽기
+void gpio_set_function(uint gpio, enum gpio_function fn); // 대체 기능 설정
+void gpio_pull_up(uint gpio);               // 내부 풀업 저항 활성화
+void gpio_pull_down(uint gpio);             // 내부 풀다운 저항 활성화
+void gpio_set_irq_enabled(uint gpio, uint32_t event_mask, bool enabled); // GPIO 인터럽트 설정
+void gpio_set_irq_callback(gpio_irq_callback_t callback); // 인터럽트 콜백 등록</code></pre>
+
+    <h2 id="sec-2">hardware_i2c</h2>
+    <p>주변장치와의 동기식 직렬 데이터 교환을 위한 I2C(Inter-Integrated Circuit) 통신 인터페이스를 제공합니다.</p>
+    <pre><code>void i2c_init(i2c_inst_t *i2c, uint baudrate);   // 지정한 속도로 I2C 컨트롤러 초기화
+int i2c_write_blocking(i2c_inst_t *i2c, uint8_t addr, const uint8_t *src, size_t len, bool nostop); // 슬레이브에 데이터 전송
+int i2c_read_blocking(i2c_inst_t *i2c, uint8_t addr, uint8_t *dst, size_t len, bool nostop); // 슬레이브로부터 데이터 수신
+void i2c_set_baudrate(i2c_inst_t *i2c, uint baudrate); // 통신 속도 재설정
+void i2c_set_slave_mode(i2c_inst_t *i2c, bool slave, uint8_t addr); // 마스터/슬레이브 모드 설정
+bool i2c_get_write_available(i2c_inst_t *i2c);   // 송신 FIFO 여유 공간 확인</code></pre>
+
+    <h2 id="sec-3">hardware_spi</h2>
+    <p>외부 장치와의 고속 동기식 직렬 통신을 위한 SPI(Serial Peripheral Interface)를 구현합니다.</p>
+    <pre><code>void spi_init(spi_inst_t *spi, uint baudrate);   // 지정한 클럭으로 SPI 컨트롤러 초기화
+uint spi_write_blocking(spi_inst_t *spi, const uint8_t *src, size_t len); // 응답을 읽지 않고 데이터 전송
+uint spi_read_blocking(spi_inst_t *spi, uint8_t repeat_tx_data, uint8_t *dst, size_t len); // 데이터 수신(더미 바이트 전송)
+uint spi_write_read_blocking(spi_inst_t *spi, const uint8_t *src, uint8_t *dst, size_t len); // 동시 송수신
+void spi_set_baudrate(spi_inst_t *spi, uint baudrate); // 초기화 이후 클럭 속도 변경
+void spi_set_format(spi_inst_t *spi, uint data_bits, spi_cpol_t cpol, spi_cpha_t cpha, spi_order_t order); // 데이터 포맷/극성/위상/비트순서 설정</code></pre>
+
+    <h2 id="sec-4">hardware_pwm</h2>
+    <p>디지털 신호로 아날로그와 유사한 출력을 정밀하게 제어하는 PWM(Pulse Width Modulation) 신호를 생성합니다.</p>
+    <pre><code>void pwm_init(uint slice_num, pwm_config *c, bool clk_en); // 설정값으로 PWM 슬라이스 초기화
+void pwm_set_wrap(uint slice_num, uint16_t wrap);   // PWM 출력 주기(wrap 값) 설정
+void pwm_set_chan_level(uint slice_num, uint chan, uint16_t level); // 채널별 듀티 사이클 설정
+uint pwm_get_counter(uint slice_num);               // PWM 슬라이스의 현재 카운터 값 읽기
+void pwm_set_enabled(uint slice_num, bool enabled); // 슬라이스의 PWM 생성 활성/비활성화
+pwm_config pwm_get_default_config(void);            // 기본 PWM 설정 구조체 가져오기</code></pre>
+
+    <h2 id="sec-5">hardware_adc</h2>
+    <p>12비트 SAR(Successive Approximation Register) ADC로 아날로그 전압을 디지털 값으로 변환합니다.</p>
+    <pre><code>void adc_init(void);                    // ADC 하드웨어 컨트롤러 초기화
+void adc_gpio_init(uint gpio);          // GPIO 핀을 아날로그 입력용으로 준비
+void adc_select_input(uint input);      // 샘플링할 ADC 입력 채널 선택
+uint16_t adc_read(void);                // 단일 변환 수행 후 12비트 결과 반환
+void adc_set_temp_sensor_enabled(bool enable); // 내장 온도 센서 켜기/끄기
+void adc_run(bool run);                 // 연속(free-running) 변환 모드 활성화</code></pre>
+
+    <h2 id="sec-6">hardware_timer</h2>
+    <p>정밀한 타이밍과 인터럽트 스케줄링을 위한 하드웨어 타이머 저수준 접근을 제공합니다.</p>
+    <pre><code>uint64_t timer_hw_read(void);            // 현재 64비트 타이머 카운터 값 읽기
+void timer_hw_set_alarm(uint alarm_num, uint64_t target, timer_callback_t callback); // 지정 시각에 인터럽트 예약
+void timer_hw_clear_alarm(uint alarm_num); // 예약된 타이머 인터럽트 취소
+uint64_t timer_hw_get_alarm(uint alarm_num); // 현재 알람 목표값 조회
+void timer_hw_pause(void);               // 타이머 카운팅 정지
+void timer_hw_resume(void);              // 일시정지 상태에서 카운팅 재개</code></pre>
+
+    <h2 id="sec-7">hardware_uart</h2>
+    <p>UART(Universal Asynchronous Receiver/Transmitter)를 통한 비동기 직렬 통신을 관리합니다.</p>
+    <pre><code>void uart_init(uart_inst_t *uart, uint baudrate); // 지정한 속도로 UART 초기화
+void uart_putc(uart_inst_t *uart, char c);        // UART로 문자 1개 전송
+int uart_getc(uart_inst_t *uart);                 // 문자 1개 수신(non-blocking)
+void uart_puts(uart_inst_t *uart, const char *s); // null-종료 문자열 전송
+void uart_set_baudrate(uart_inst_t *uart, uint baudrate); // 재초기화 없이 보드레이트 변경
+bool uart_is_readable(uart_inst_t *uart);         // 수신 버퍼에 데이터가 있는지 확인</code></pre>
+
+    <h2 id="sec-8">그 외 하드웨어 API 모듈 (28개)</h2>
+    <p>hardware_base, hardware_boot_lock, hardware_claim, hardware_clocks, hardware_divider, hardware_dma, hardware_exception, hardware_flash, hardware_interp, hardware_irq, hardware_pio, hardware_pll, hardware_resets, hardware_rosc, hardware_rtc, hardware_sync, hardware_vreg, hardware_watchdog, hardware_xosc 등 — RP2350 전용 모듈(hardware_dcp, hardware_hazard3, hardware_powman, hardware_psram, hardware_rcp, hardware_riscv, hardware_riscv_platform_timer, hardware_sha256)도 포함됩니다.</p>
+    <a class="more-link" href="https://www.raspberrypi.com/documentation/pico-sdk/hardware.html">전체 35개 모듈 원문 보기 (raspberrypi.com) →</a>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-grid">
+        <div>
+            <h4><a href="https://www.raspberrypi.com/raspberry-pi-store/">Raspberry Pi 스토어</a></h4>
+            <p>Raspberry Pi에 관한 모든 것을 만날 수 있는 케임브리지의 원스톱 매장.</p>
+        </div>
+        <div>
+            <h4><a href="https://events.raspberrypi.com">Raspberry Pi 이벤트</a></h4>
+            <p>Raspberry Pi를 직접 만나거나, 가까운 커뮤니티 이벤트를 찾아보세요.</p>
+        </div>
+        <div>
+            <h4><a href="https://www.raspberrypi.org">Raspberry Pi 재단</a></h4>
+            <p>전 세계 사람들의 손에 컴퓨팅과 디지털 메이킹의 힘을 쥐어주고 있습니다.</p>
+        </div>
+    </div>
+    <div class="disclaimer">
+        이 페이지는 raspberrypi.com/documentation/pico-sdk/hardware.html 을 한글로 번역한 비공식
+        미러입니다(326단계). 전체 35개 모듈 중 자주 쓰이는 7개만 번역했고, 나머지는 원문 링크로 연결됩니다.
+        함수명/시그니처/코드는 원문 그대로 영문 유지했습니다. 상표의 권리는 Raspberry Pi Ltd.에 있습니다.
+    </div>
+</footer>
+
+</body>
+</html>

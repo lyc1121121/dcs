@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pico C SDK - 라베파 (Raspberry Pi 한글 미러)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <a class="logo" href="../../">라베파 (Raspberry Pi)</a>
+        <div class="notice">비공식 한글 미리보기 · 326단계</div>
+        <a class="btn btn-primary" href="../../products.html">제품 둘러보기</a>
+    </div>
+    <nav class="main-nav">
+        <a href="../../products.html">제품</a>
+        <a href="../../software.html">소프트웨어</a>
+        <a href="../../documentation.html" class="current">문서</a>
+        <a href="../../downloads.html">다운로드</a>
+        <a href="../../news.html">뉴스</a>
+        <a href="https://www.raspberrypi.org/">커뮤니티</a>
+        <a href="../../about.html">회사 소개</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="breadcrumb"><a href="../../documentation.html">문서</a> / Pico C SDK</div>
+    <h1>Pico C SDK</h1>
+</div>
+
+<div class="doc-layout">
+    <aside class="doc-sidebar">
+        <h4>문서 카테고리</h4>
+        <div class="doc-sidebar-group">Pico C SDK</div>
+        <ul>
+            <li><a href="index.html" class="current">소개</a></li>
+            <li><a href="hardware.html">하드웨어 API</a></li>
+            <li><a href="high-level.html">고수준 API</a></li>
+            <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/third_party.html">서드파티 라이브러리</a></li>
+            <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/networking.html">네트워킹 라이브러리</a></li>
+            <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/runtime.html">런타임 인프라</a></li>
+            <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/misc.html">외부 API 헤더</a></li>
+        </ul>
+        <a class="more-link" href="../../documentation.html">← Computers 문서 목록으로</a>
+    </aside>
+
+    <div class="doc-page">
+    <h2 id="sec-1">Pico C SDK란?</h2>
+    <p>Pico C SDK(Software Development Kit)는 RP2040/RP2350 기반 마이크로컨트롤러(Raspberry Pi Pico 시리즈)를 C/C++로 프로그래밍하기 위한 공식 라이브러리 모음입니다. 하드웨어 레지스터를 직접 다루는 저수준 <b>하드웨어 API</b>와, 그 위에 편의 기능을 얹은 <b>고수준 API</b>, 그리고 USB/블루투스/Wi-Fi 등을 위한 서드파티·네트워킹 라이브러리로 구성됩니다.</p>
+
+    <h2 id="sec-2">API 카테고리</h2>
+    <ul class="doc-list">
+        <li><a href="hardware.html">하드웨어 API (hardware_*)</a><p>GPIO, I2C, SPI, PWM, ADC, 타이머, UART, DMA 등 칩 레지스터에 직접 대응하는 저수준 API. 35개 모듈로 구성.</p></li>
+        <li><a href="high-level.html">고수준 API (pico_*)</a><p>표준 라이브러리 모음(pico_stdlib), 멀티코어(pico_multicore), 시간(pico_time), 동기화(pico_sync) 등 실무에서 자주 쓰는 편의 API.</p></li>
+        <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/third_party.html">서드파티 라이브러리</a><p>tinyusb(USB), mbedtls(암호화) 등 외부 오픈소스 라이브러리 통합.</p></li>
+        <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/networking.html">네트워킹 라이브러리</a><p>btstack(블루투스), lwip(TCP/IP), cyw43(Pico W의 Wi-Fi 드라이버) 등.</p></li>
+        <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/runtime.html">런타임 인프라</a><p>부트스테이지, 표준입출력, 메모리 할당 등 실행 환경을 구성하는 저수준 인프라.</p></li>
+        <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/misc.html">외부 API 헤더</a><p>부트 관련 헤더 파일 등 기타 참고 자료.</p></li>
+    </ul>
+
+    <h2 id="sec-3">기본 예제</h2>
+    <p>LED 깜빡이기(Blink) 같은 가장 기본적인 예제는 <code>pico_stdlib</code>(고수준 API)와 <code>hardware_gpio</code>(하드웨어 API)를 함께 사용합니다.</p>
+    <pre><code>#include "pico/stdlib.h"
+
+int main() {
+    const uint LED_PIN = 25;
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
+    while (true) {
+        gpio_put(LED_PIN, 1);
+        sleep_ms(250);
+        gpio_put(LED_PIN, 0);
+        sleep_ms(250);
+    }
+}</code></pre>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-grid">
+        <div>
+            <h4><a href="https://www.raspberrypi.com/raspberry-pi-store/">Raspberry Pi 스토어</a></h4>
+            <p>Raspberry Pi에 관한 모든 것을 만날 수 있는 케임브리지의 원스톱 매장.</p>
+        </div>
+        <div>
+            <h4><a href="https://events.raspberrypi.com">Raspberry Pi 이벤트</a></h4>
+            <p>Raspberry Pi를 직접 만나거나, 가까운 커뮤니티 이벤트를 찾아보세요.</p>
+        </div>
+        <div>
+            <h4><a href="https://www.raspberrypi.org">Raspberry Pi 재단</a></h4>
+            <p>전 세계 사람들의 손에 컴퓨팅과 디지털 메이킹의 힘을 쥐어주고 있습니다.</p>
+        </div>
+    </div>
+    <div class="disclaimer">
+        이 페이지는 raspberrypi.com/documentation/pico-sdk/ 를 한글로 번역해 재구성한 비공식 미러입니다(326단계).
+        Pico C SDK는 API 모듈이 80개 가까이 되어, 하드웨어/고수준 API에서 자주 쓰는 핵심 모듈 위주로 번역했고
+        나머지(서드파티/네트워킹/런타임/기타)는 원문 링크로 연결됩니다. 함수 시그니처/코드는 원문 그대로 영문
+        유지했습니다. 상표의 권리는 Raspberry Pi Ltd.에 있습니다.
+    </div>
+</footer>
+
+</body>
+</html>

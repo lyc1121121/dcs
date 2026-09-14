@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>고수준 API - 라베파 (Raspberry Pi 한글 미러)</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <a class="logo" href="../../">라베파 (Raspberry Pi)</a>
+        <div class="notice">비공식 한글 미리보기 · 326단계</div>
+        <a class="btn btn-primary" href="../../products.html">제품 둘러보기</a>
+    </div>
+    <nav class="main-nav">
+        <a href="../../products.html">제품</a>
+        <a href="../../software.html">소프트웨어</a>
+        <a href="../../documentation.html" class="current">문서</a>
+        <a href="../../downloads.html">다운로드</a>
+        <a href="../../news.html">뉴스</a>
+        <a href="https://www.raspberrypi.org/">커뮤니티</a>
+        <a href="../../about.html">회사 소개</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="breadcrumb"><a href="index.html">Pico C SDK</a> / 고수준 API</div>
+    <h1>고수준 API (pico_*)</h1>
+</div>
+
+<div class="doc-layout">
+    <aside class="doc-sidebar">
+        <h4>문서 카테고리</h4>
+        <div class="doc-sidebar-group">Pico C SDK</div>
+        <ul>
+            <li><a href="index.html">소개</a></li>
+            <li><a href="hardware.html">하드웨어 API</a></li>
+            <li><a href="high-level.html" class="current">고수준 API</a>
+                <ul class="doc-subnav" data-populated="1">
+                    <li><a href="#sec-1">pico_stdlib</a></li>
+                    <li><a href="#sec-2">pico_multicore</a></li>
+                    <li><a href="#sec-3">pico_time</a></li>
+                    <li><a href="#sec-4">pico_sync</a></li>
+                </ul>
+            </li>
+            <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/third_party.html">서드파티 라이브러리</a></li>
+            <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/networking.html">네트워킹 라이브러리</a></li>
+            <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/runtime.html">런타임 인프라</a></li>
+            <li><a href="https://www.raspberrypi.com/documentation/pico-sdk/misc.html">외부 API 헤더</a></li>
+        </ul>
+        <a class="more-link" href="../../documentation.html">← Computers 문서 목록으로</a>
+    </aside>
+
+    <div class="doc-page">
+    <p>고수준 API는 하드웨어 API 위에 편의 기능을 얹은 모듈들로, 실무에서 가장 자주 쓰이는 4개를 번역했습니다.</p>
+
+    <h2 id="sec-1">pico_stdlib</h2>
+    <p>대부분의 실행 파일에서 공통으로 쓰이는 핵심 SDK 라이브러리들을 한데 모아 기본 기능과 유틸리티 메서드를 제공합니다.</p>
+    <pre><code>void stdio_init_all(void);          // 표준 입출력 초기화
+void sleep_ms(uint ms);             // 밀리초 단위 지연
+uint64_t time_us_64(void);          // 현재 시각을 마이크로초로 반환
+void gpio_init(uint gpio);          // GPIO 핀 초기화
+void gpio_set_dir(uint gpio, bool out); // 입력/출력 방향 설정
+bool gpio_get(uint gpio);           // GPIO 핀 상태 읽기
+void gpio_put(uint gpio, bool value); // GPIO 핀에 값 쓰기</code></pre>
+
+    <h2 id="sec-2">pico_multicore</h2>
+    <p>보조 프로세서 코어(코어 1)에서 코드를 실행하고, FIFO·도어벨·락아웃을 통해 코어 간 통신을 관리합니다.</p>
+    <pre><code>void multicore_launch_core1(void (*entry)(void)); // 코어 1에서 함수 실행
+void multicore_fifo_push_blocking(uint32_t data); // 코어 간 FIFO에 값 push
+uint32_t multicore_fifo_pop_blocking(void);       // FIFO에서 값 pop(blocking)
+bool multicore_fifo_rvalid(void);                 // FIFO에 읽을 데이터가 있는지 확인
+void multicore_reset_core1(void);                 // 코어 1 리셋</code></pre>
+
+    <h2 id="sec-3">pico_time</h2>
+    <p>타임스탬프, 슬립(대기), 시간 기반 콜백 스케줄링 기능을 제공합니다.</p>
+    <pre><code>absolute_time_t get_absolute_time(void);          // 현재 절대 시각 가져오기
+void sleep_until(absolute_time_t target);         // 지정 시각까지 대기
+absolute_time_t make_timeout_time_ms(uint32_t ms);// 현재 시각 + N밀리초 계산
+repeating_timer_t *add_repeating_timer_ms(int32_t ms, callback_t); // 반복 콜백 예약
+bool cancel_repeating_timer(repeating_timer_t *timer); // 반복 타이머 취소</code></pre>
+
+    <h2 id="sec-4">pico_sync</h2>
+    <p>여러 코어와 인터럽트 컨텍스트에서 공유 자원 접근을 조율하는 동기화 기본요소를 제공합니다.</p>
+    <pre><code>void mutex_init(mutex_t *mtx);                    // 뮤텍스 초기화
+void mutex_enter_blocking(mutex_t *mtx);          // 뮤텍스 획득(blocking)
+void mutex_exit(mutex_t *mtx);                    // 뮤텍스 해제
+void sem_init(semaphore_t *sem, uint16_t initial_permit_count, uint16_t max_permits); // 세마포어 초기화
+void sem_acquire_blocking(semaphore_t *sem);      // 세마포어 획득
+void sem_release(semaphore_t *sem);               // 세마포어 반환</code></pre>
+
+    <h2 id="sec-5">그 외 고수준 API 모듈</h2>
+    <p>pico_aon_timer, pico_async_context(및 freertos/poll/threadsafe_background 구현), pico_bootsel_via_double_reset, pico_fix, pico_flash, pico_i2c_slave, pico_low_power, pico_rand, pico_sha256(RP2350), pico_status_led, pico_unique_id, pico_usb_reset, pico_util(datetime/fixed_bitset/pheap/queue) 등이 있습니다.</p>
+    <a class="more-link" href="https://www.raspberrypi.com/documentation/pico-sdk/high_level.html">전체 모듈 원문 보기 (raspberrypi.com) →</a>
+    </div>
+</div>
+
+<footer>
+    <div class="footer-grid">
+        <div>
+            <h4><a href="https://www.raspberrypi.com/raspberry-pi-store/">Raspberry Pi 스토어</a></h4>
+            <p>Raspberry Pi에 관한 모든 것을 만날 수 있는 케임브리지의 원스톱 매장.</p>
+        </div>
+        <div>
+            <h4><a href="https://events.raspberrypi.com">Raspberry Pi 이벤트</a></h4>
+            <p>Raspberry Pi를 직접 만나거나, 가까운 커뮤니티 이벤트를 찾아보세요.</p>
+        </div>
+        <div>
+            <h4><a href="https://www.raspberrypi.org">Raspberry Pi 재단</a></h4>
+            <p>전 세계 사람들의 손에 컴퓨팅과 디지털 메이킹의 힘을 쥐어주고 있습니다.</p>
+        </div>
+    </div>
+    <div class="disclaimer">
+        이 페이지는 raspberrypi.com/documentation/pico-sdk/high_level.html 을 한글로 번역한 비공식
+        미러입니다(326단계). 자주 쓰이는 4개 모듈만 번역했고, 나머지는 원문 링크로 연결됩니다.
+        함수명/시그니처/코드는 원문 그대로 영문 유지했습니다. 상표의 권리는 Raspberry Pi Ltd.에 있습니다.
+    </div>
+</footer>
+
+</body>
+</html>
