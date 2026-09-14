@@ -55,11 +55,12 @@
                 <button type="button" class="tri" data-slug="linux-kernel" aria-expanded="true">▼</button><a href="linux-kernel.html" class="current">리눅스 커널</a>
                 <ul class="doc-subnav" data-populated="1">
                         <li><a href="#sec-1">소개</a></li>
-                        <li><a href="#sec-2">커널 빌드하기 - 개요</a></li>
-                        <li><a href="#sec-3">커널 설정 구성</a></li>
-                        <li><a href="#sec-4">커널 패치하기</a></li>
-                        <li><a href="#sec-5">커널 헤더</a></li>
-                        <li><a href="#sec-6">기여하기</a></li>
+                    <li><a href="#sec-2">업데이트</a></li>
+                        <li><a href="#sec-3">커널 빌드하기 - 개요</a></li>
+                        <li><a href="#sec-4">커널 설정 구성</a></li>
+                        <li><a href="#sec-5">커널 패치하기</a></li>
+                        <li><a href="#sec-6">커널 헤더</a></li>
+                        <li><a href="#sec-7">기여하기</a></li>
                 </ul>
             </li>
             <li>
@@ -105,7 +106,10 @@
     <h2 id="sec-1">소개</h2>
     <p>"Raspberry Pi 커널은 GitHub에서 관리되며, 업스트림 리눅스 커널보다 업데이트가 다소 늦습니다." Raspberry Pi는 지속적인 업데이트 대신 장기지원(LTS) 릴리스를 통합하며, 메인 저장소에 병합하기 전에 테스트를 거칩니다.</p>
 
-    <h2 id="sec-2">커널 빌드하기 - 개요</h2>
+    <h2 id="sec-2">업데이트</h2>
+    <p>Raspberry Pi OS의 일반적인 업데이트 절차(<code>sudo apt update &amp;&amp; sudo apt full-upgrade</code>)가 커널도 최신 안정 버전으로 자동 업데이트합니다. 아직 정식 배포되지 않은 최신 테스트 커널을 써보고 싶다면 수동으로 업데이트할 수 있습니다(자세한 내용은 <a href="os.html">Raspberry Pi OS</a> 문서의 rpi-update 부분 참고).</p>
+
+    <h2 id="sec-3">커널 빌드하기 - 개요</h2>
     <p>문서는 두 가지 방식을 안내합니다: 네이티브 빌드(Pi 자체의 컴파일러 사용)와 크로스 컴파일(다른 장비에서 Pi용으로 빌드).</p>
 
     <h3>핵심 작업 순서</h3>
@@ -131,17 +135,17 @@ sudo cp arch/arm64/boot/Image.gz /boot/firmware/$KERNEL.img
 sudo cp arch/arm64/boot/dts/broadcom/*.dtb /boot/firmware/
 sudo reboot</code></pre>
 
-    <h2 id="sec-3">커널 설정 구성</h2>
+    <h2 id="sec-4">커널 설정 구성</h2>
     <p>빌드 전에 원하는 기능을 켜고 끌 수 있는 대화형 설정 화면인 <code>make menuconfig</code>를 사용합니다.</p>
 
-    <h2 id="sec-4">커널 패치하기</h2>
+    <h2 id="sec-5">커널 패치하기</h2>
     <p>직접 patch 유틸리티를 쓰거나, mailbox 형식 패치는 Git으로 적용합니다.</p>
 
-    <h2 id="sec-5">커널 헤더</h2>
+    <h2 id="sec-6">커널 헤더</h2>
     <p>"커널 모듈을 컴파일하려면 리눅스 커널 헤더가 필요합니다."</p>
     <pre><code>sudo apt install linux-headers-rpi-v8</code></pre>
 
-    <h2 id="sec-6">기여하기</h2>
+    <h2 id="sec-7">기여하기</h2>
     <p>Raspberry Pi 전용 변경사항은 Raspberry Pi 커널 저장소에 pull request로 제출하고, 일반적인 리눅스 커널 개선사항은 먼저 업스트림에 기여하는 것을 권장합니다.</p>
 </div>
 </div>

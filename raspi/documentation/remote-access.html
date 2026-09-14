@@ -62,6 +62,12 @@
                         <li><a href="#sec-2">VNC</a></li>
                         <li><a href="#sec-3">Raspberry Pi Connect</a></li>
                         <li><a href="#sec-4">Raspberry Pi의 IP 주소 찾기</a></li>
+                        <li><a href="#sec-5">SCP로 파일 공유하기</a></li>
+                        <li><a href="#sec-6">rsync로 폴더 동기화하기</a></li>
+                        <li><a href="#sec-7">네트워크 파일시스템(NFS)</a></li>
+                        <li><a href="#sec-8">Samba(SMB/CIFS)</a></li>
+                        <li><a href="#sec-9">Apache 웹서버 설치</a></li>
+                        <li><a href="#sec-10">네트워크 부팅</a></li>
                 </ul>
             </li>
             <li>
@@ -162,6 +168,51 @@ nmcli device show   # IP4.ADDRESS[1] 필드 확인
 # nmap 스캔
 sudo nmap -sn 192.168.1.0/24</code></pre>
     <p><b>공유기</b>: 공유기 관리 페이지에 로그인해 연결된 기기 목록을 확인</p>
+
+    <h2 id="sec-5">SCP로 파일 공유하기</h2>
+    <p>SCP(Secure Copy Protocol, <code>scp</code>)는 SSH를 통해 파일을 전송합니다. Raspberry Pi와 다른 컴퓨터 사이에 파일을 복사할 때 사용합니다.</p>
+    <pre><code># 내 컴퓨터 -> Raspberry Pi
+scp myfile.txt &lt;username&gt;@&lt;pi_ip_address&gt;:
+
+# Raspberry Pi -> 내 컴퓨터
+scp &lt;username&gt;@&lt;pi_ip_address&gt;:myfile.txt .
+
+# 폴더 전체 복사(재귀)
+scp -r project/ &lt;username&gt;@&lt;pi_ip_address&gt;:</code></pre>
+
+    <h2 id="sec-6">rsync로 폴더 동기화하기</h2>
+    <p>rsync는 컴퓨터 간 폴더를 자동으로 동기화합니다. "여러 번 실행해도 rsync가 이미 받은 파일을 기억해서 건너뜁니다" - 즉 변경된 부분만 다시 전송합니다.</p>
+    <pre><code>rsync -avz -e ssh &lt;pi_username&gt;@&lt;pi_ip_address&gt;:&lt;pi_folder_name&gt;/ &lt;pc_folder_name&gt;/</code></pre>
+
+    <h2 id="sec-7">네트워크 파일시스템(NFS)</h2>
+    <p>NFS는 네트워크로 연결된 컴퓨터끼리 디렉터리를 공유합니다. "홈 디렉터리처럼 영구적으로 네트워크 마운트해두는 용도나, 자주 접근하는 공유 자원에 더 적합"합니다.</p>
+    <p><b>서버 설정</b></p>
+    <pre><code>sudo apt install nfs-kernel-server
+sudo mkdir -p /export/users
+sudo mount --bind /home/users /export/users</code></pre>
+    <p><code>/etc/fstab</code>에 추가:</p>
+    <pre><code>/home/users    /export/users   none    bind  0  0</code></pre>
+    <p><code>/etc/exports</code>에 추가:</p>
+    <pre><code>/export       192.168.1.0/24(rw,fsid=0,insecure,no_subtree_check,async)
+/export/users 192.168.1.0/24(rw,nohide,insecure,no_subtree_check,async)</code></pre>
+    <p><b>클라이언트에서 마운트</b></p>
+    <pre><code>sudo apt install nfs-common
+mount -t nfs -o proto=tcp,port=2049 &lt;nfs-server-IP&gt;:/ /mnt</code></pre>
+    <p><code>/etc/fstab</code>에 추가:</p>
+    <pre><code>&lt;nfs-server-IP&gt;:/   /mnt   nfs    auto  0  0</code></pre>
+
+    <h2 id="sec-8">Samba(SMB/CIFS)</h2>
+    <p>Samba는 Windows 등 SMB/CIFS 프로토콜을 쓰는 기기와 파일을 공유할 수 있게 해줍니다. Raspberry Pi를 Windows 탐색기에서 바로 보이는 파일 서버로 만들 때 주로 사용합니다.</p>
+    <pre><code>sudo apt install samba samba-common-bin</code></pre>
+    <p>자세한 공유 폴더 설정은 <code>/etc/samba/smb.conf</code> 편집이 필요합니다(원문 페이지 해당 절이 너무 길어 이번엔 개요만 옮김 - 상세 설정 필요하시면 말씀해주세요).</p>
+
+    <h2 id="sec-9">Apache 웹서버 설치</h2>
+    <p>Raspberry Pi를 간단한 웹서버로 쓰고 싶을 때 Apache를 설치합니다.</p>
+    <pre><code>sudo apt install apache2 -y</code></pre>
+    <p>설치 후 브라우저에서 Raspberry Pi의 IP 주소로 접속하면 Apache 기본 페이지가 보이고, 웹 파일은 <code>/var/www/html</code>에 둡니다(원문 페이지 해당 절이 너무 길어 이번엔 개요만 옮김).</p>
+
+    <h2 id="sec-10">네트워크 부팅</h2>
+    <p>SD카드 없이 네트워크(PXE)를 통해 운영체제를 부팅하는 방법입니다. 부팅 EEPROM에서 네트워크 부팅을 활성화한 뒤, TFTP/NFS 서버를 구성해 부트 이미지를 제공하는 방식입니다(IPv6 네트워크 부팅도 별도로 지원). 원문 페이지 해당 절이 매우 길어 이번엔 개요만 옮겼습니다 - 상세 절차가 필요하시면 말씀해주세요.</p>
 </div>
 </div>
 
@@ -182,7 +233,8 @@ sudo nmap -sn 192.168.1.0/24</code></pre>
     </div>
     <div class="disclaimer">
         이 페이지는 raspberrypi.com/documentation/computers/remote-access.html 을 한글로 번역한 비공식
-        미러입니다(315단계). 명령어/함수명/소스코드는 원문 그대로 영문 유지했습니다.
+        미러입니다(315, 323단계). 명령어/함수명/소스코드는 원문 그대로 영문 유지했습니다. Samba/Apache/네트워크
+        부팅 절은 원문이 길어 개요만 옮겼습니다.
         상표의 권리는 Raspberry Pi Ltd.에 있습니다.
     </div>
 </footer>

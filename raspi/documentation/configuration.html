@@ -50,7 +50,14 @@
                         <li><a href="#sec-2">오디오/영상 출력</a></li>
                         <li><a href="#sec-3">네트워킹</a></li>
                         <li><a href="#sec-4">무선 연결</a></li>
-                        <li><a href="#sec-5">그 외 설정 항목</a></li>
+                        <li><a href="#sec-5">시스템 및 지역화</a></li>
+                        <li><a href="#sec-6">사용자 접근 관리</a></li>
+                        <li><a href="#sec-7">하드웨어 통신</a></li>
+                        <li><a href="#sec-8">성능</a></li>
+                        <li><a href="#sec-9">LED 동작</a></li>
+                        <li><a href="#sec-10">부팅 동작</a></li>
+                        <li><a href="#sec-11">펌웨어</a></li>
+                        <li><a href="#sec-12">외부 저장장치</a></li>
                 </ul>
             </li>
             <li>
@@ -147,8 +154,40 @@ sudo nmcli connection modify "Network Name" connection.autoconnect-priority 10</
     <h3>네트워크 연결</h3>
     <p>WEP, WPA, WPA2, WPA3를 지원합니다. 숨겨진 네트워크는 "숨겨진 무선 네트워크에 연결" 메뉴에서 수동으로 입력합니다.</p>
 
-    <h2 id="sec-5">그 외 설정 항목</h2>
-    <p>이 가이드는 이 외에도 시스템 지역화, 사용자 접근 관리, 원격 접속 설정, 하드웨어 통신 인터페이스(I2C/SPI/UART), 성능 튜닝, LED 동작 커스터마이즈, 부팅 동작 설정까지 다루며, 전부 위 3가지 방법 중 하나로 접근할 수 있습니다.</p>
+    <h2 id="sec-5">시스템 및 지역화</h2>
+    <p>시간대, 로케일, 키보드 배열 등을 데스크탑 GUI 또는 <code>raspi-config</code>로 설정합니다. 날짜/시간 표기와 언어 관련 동작을 결정합니다.</p>
+    <pre><code>sudo raspi-config</code></pre>
+    <p><code>5 Localisation Options</code> 메뉴에서 시간대/로케일/키보드를 설정합니다.</p>
+
+    <h2 id="sec-6">사용자 접근 관리</h2>
+    <p>사용자 계정 생성, 비밀번호 변경, sudo 권한을 다룹니다. 최초 설정 시 구성되지만 이후에도 시스템 도구로 변경할 수 있습니다.</p>
+    <pre><code>sudo raspi-config</code></pre>
+    <p><code>1 System Options &gt; S3 Password</code>에서 비밀번호를 변경합니다.</p>
+
+    <h2 id="sec-7">하드웨어 통신</h2>
+    <p>주변장치와 통신하기 위한 I2C, SPI, 시리얼 인터페이스를 설정합니다. 센서, 디스플레이 등 하드웨어와 통신할 때 필요합니다.</p>
+    <pre><code>sudo raspi-config</code></pre>
+    <p><code>3 Interface Options</code>에서 I2C/SPI/시리얼을 켜고 끌 수 있습니다.</p>
+
+    <h2 id="sec-8">성능</h2>
+    <p>CPU 클럭 스케일링, 메모리 할당 등 성능 튜닝 옵션입니다. 처리 성능과 발열 관리 사이의 균형을 조절합니다.</p>
+    <pre><code>sudo raspi-config</code></pre>
+    <p><code>6 Advanced Options</code>에서 관련 설정에 접근할 수 있습니다.</p>
+
+    <h2 id="sec-9">LED 동작</h2>
+    <p>전원 LED/활동 LED가 언제 어떻게 켜질지 설정합니다(예: 헤드리스로 운용할 때 LED를 꺼서 절전하는 용도로도 사용).</p>
+
+    <h2 id="sec-10">부팅 동작</h2>
+    <p>자동 로그인 여부와 부팅 시 스플래시 화면 표시 여부를 관리합니다. 헤드리스 부팅 구성 옵션도 포함됩니다.</p>
+
+    <h2 id="sec-11">펌웨어</h2>
+    <p>부트로더와 EEPROM 업데이트를 통해 시스템 안정성을 유지하고 새 기능 지원을 추가합니다.</p>
+    <pre><code>sudo apt update
+sudo rpi-eeprom-update -a
+sudo reboot</code></pre>
+
+    <h2 id="sec-12">외부 저장장치</h2>
+    <p>기본 SD카드 대신 USB 드라이브, NVMe SSD, 네트워크 저장장치로 부팅할 수 있도록 설정합니다(모델별 지원 범위가 다르니 <a href="hardware.html">하드웨어</a> 문서 참고).</p>
 </div>
 </div>
 
@@ -169,8 +208,8 @@ sudo nmcli connection modify "Network Name" connection.autoconnect-priority 10</
     </div>
     <div class="disclaimer">
         이 페이지는 raspberrypi.com/documentation/computers/configuration.html 을 한글로 번역한 비공식
-        미러입니다(315단계). 이미지파일/함수명/명령어/소스코드는 원문 그대로 영문 유지했습니다. 분량이 매우 길어
-        핵심 내용 위주로 정리했으며, 정확한 최신 원문은 실제 raspberrypi.com 문서를 참고하세요.
+        미러입니다(315, 323단계). 이미지파일/함수명/명령어/소스코드는 원문 그대로 영문 유지했습니다. 분량이 매우
+        길어 핵심 내용 위주로 정리했으며, 정확한 최신 원문은 실제 raspberrypi.com 문서를 참고하세요.
         상표의 권리는 Raspberry Pi Ltd.에 있습니다.
     </div>
 </footer>
