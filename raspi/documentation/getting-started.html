@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>시작하기 - 라베파 (Raspberry Pi 한글 미러)</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <a class="logo" href="../">라베파 (Raspberry Pi)</a>
+        <div class="notice">비공식 한글 미리보기 · 314단계</div>
+        <a class="btn btn-primary" href="../products.html">제품 둘러보기</a>
+    </div>
+    <nav class="main-nav">
+        <a href="../products.html">제품</a>
+        <a href="../software.html">소프트웨어</a>
+        <a href="../documentation.html" class="current">문서</a>
+        <a href="../downloads.html">다운로드</a>
+        <a href="../news.html">뉴스</a>
+        <a href="https://www.raspberrypi.org/">커뮤니티</a>
+        <a href="../about.html">회사 소개</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="breadcrumb"><a href="../documentation.html">문서</a> / 시작하기</div>
+    <h1>시작하기</h1>
+</div>
+
+<div class="doc-page">
+    <h2>개요</h2>
+    <p>Raspberry Pi는 "데스크탑 컴퓨터"로도, "헤드리스(원격) 컴퓨터"로도 쓸 수 있는 소형 컴퓨터입니다. 싱글보드 컴퓨터, Zero 시리즈, 키보드 컴퓨터, Compute Module, Pico 마이크로컨트롤러 등 여러 라인업으로 제공됩니다.</p>
+
+    <h2>하드웨어 준비물</h2>
+    <h3>부팅 미디어</h3>
+    <p>Raspberry Pi는 운영체제 이미지를 담은 비휘발성 저장장치가 필요합니다. 가장 흔한 것은 microSD 카드이며, 최신 모델은 USB 대용량 저장장치, 네트워크 부팅(PXE), PCIe 경유 NVMe도 지원합니다.</p>
+    <p><b>권장 최소 저장 용량</b> — Raspberry Pi OS(데스크탑): 32GB / Full: 32GB / Lite(헤드리스): 8GB</p>
+    <p><b>최대 지원 용량</b>: 2TB 미만(MBR 한계). Raspberry Pi Zero, 초기형 Raspberry Pi, BCM2836 탑재 초기 Pi 2는 부팅 파티션이 256GB로 제한됩니다.</p>
+
+    <h3>주변기기</h3>
+    <p><b>입력장치</b>: USB 포트로 유/무선 키보드·마우스 연결(Raspberry Pi Zero는 micro USB OTG 어댑터 필요). USB 블루투스 동글이나 내장 블루투스 페어링도 지원됩니다.</p>
+    <p><b>출력장치(디스플레이)</b></p>
+    <table>
+        <tr><th>모델</th><th>디스플레이 출력</th><th>필요 케이블</th></tr>
+        <tr><td>Pi 5, 400, 500, 500+</td><td>micro-HDMI ×2</td><td>micro-HDMI → HDMI 케이블</td></tr>
+        <tr><td>Pi 4B</td><td>micro-HDMI ×2 + 3.5mm TRRS</td><td>micro-HDMI → HDMI 케이블</td></tr>
+        <tr><td>Pi 3 (전체)</td><td>HDMI + 3.5mm TRRS</td><td>표준 HDMI 케이블</td></tr>
+        <tr><td>Pi Zero (전체)</td><td>mini HDMI</td><td>mini-HDMI → HDMI 케이블</td></tr>
+    </table>
+    <p>오디오 출력은 모델에 따라 HDMI, USB, 블루투스, 3.5mm 잭 중에서 선택할 수 있습니다.</p>
+
+    <h3>전원 공급 장치</h3>
+    <table>
+        <tr><th>모델</th><th>전압/전류</th><th>공식 어댑터</th></tr>
+        <tr><td>Pi 500+</td><td>5V @ 5A</td><td>27W USB-C</td></tr>
+        <tr><td>Pi 5 &amp; 500</td><td>5V @ 5A</td><td>27W USB-C</td></tr>
+        <tr><td>Pi 4B &amp; 400</td><td>5V @ 3A</td><td>15W USB-C</td></tr>
+        <tr><td>Pi 3 (전체)</td><td>5V @ 2.5A</td><td>12.5W Micro USB</td></tr>
+        <tr><td>Pi 2</td><td>5V @ 2.5A</td><td>12.5W Micro USB</td></tr>
+        <tr><td>Pi 1 (전체)</td><td>5V @ 2.5A</td><td>12.5W Micro USB</td></tr>
+        <tr><td>Pi Zero (전체)</td><td>5V @ 2.5A</td><td>12.5W Micro USB</td></tr>
+    </table>
+
+    <h2>네트워킹</h2>
+    <table>
+        <tr><th>모델</th><th>무선</th><th>이더넷</th></tr>
+        <tr><td>Pi 3B+ 이상</td><td>듀얼밴드 Wi-Fi(2.4/5GHz)</td><td>있음(4B+는 기가비트)</td></tr>
+        <tr><td>Pi 3B</td><td>2.4GHz만</td><td>있음</td></tr>
+        <tr><td>Pi 3A+</td><td>듀얼밴드 Wi-Fi</td><td>없음</td></tr>
+        <tr><td>모든 키보드 컴퓨터</td><td>듀얼밴드 Wi-Fi</td><td>기가비트 이더넷</td></tr>
+        <tr><td>Pi Zero W/2W</td><td>2.4GHz만</td><td>없음</td></tr>
+    </table>
+
+    <h2>Raspberry Pi 설정하기</h2>
+    <h3>데스크탑으로 설정</h3>
+    <p><b>1단계</b> — Raspberry Pi Imager로 OS 설치, 호스트명·지역화·사용자 계정·Wi-Fi·원격접속까지 함께 설정하며 부팅 미디어를 준비합니다.</p>
+    <p><b>2단계</b> — 키보드·마우스·디스플레이 등 주변기기를 연결합니다.</p>
+    <p><b>3단계</b> — 부팅 미디어를 꽂은 뒤 USB-C(구형은 micro USB)로 전원을 연결합니다.</p>
+    <p><b>4단계</b> — (선택) Wi-Fi 또는 이더넷 케이블로 네트워크에 연결합니다.</p>
+
+    <h3>헤드리스(원격) 설정</h3>
+    <p>최초 부팅 시 네트워크 연결과 SSH 또는 Raspberry Pi Connect를 통한 원격 접속이 필요합니다.</p>
+    <p><b>1단계</b> — Imager로 부팅 미디어 준비 시: Raspberry Pi OS Lite 권장, 네트워크 설정, 원격 접속 설정, 사용자 계정을 함께 구성.</p>
+    <p><b>2단계</b> — 전원 연결</p>
+    <p><b>3단계</b> — Wi-Fi 또는 이더넷으로 네트워크 연결</p>
+    <p><b>4단계</b> — SSH 또는 Raspberry Pi Connect로 원격 접속</p>
+    <p><b>수동 SSH 설정 대안</b>: 부팅 파티션에 <code>ssh</code> 파일과, <code>&lt;username&gt;:&lt;encrypted-password&gt;</code> 형식의 <code>userconf.txt</code> 파일을 만듭니다. 암호화된 비밀번호는 아래 명령으로 생성합니다.</p>
+    <pre><code>openssl passwd -6</code></pre>
+
+    <h2>부팅 미디어에 OS 설치하기</h2>
+    <h3>Imager로 설치</h3>
+    <p><b>1단계: Imager 설치 및 실행</b> — Raspberry Pi 웹사이트에서 Windows/Mac/Linux용을 받거나, Raspberry Pi OS에서는 아래 명령으로 설치합니다.</p>
+    <pre><code>sudo apt install rpi-imager</code></pre>
+    <p><b>2단계: 기본 항목 설정</b> — 기기 모델 선택 → 운영체제 선택 → 저장장치 선택 → 다음 단계로 진행.</p>
+</div>
+
+<footer>
+    <div class="footer-grid">
+        <div>
+            <h4><a href="https://www.raspberrypi.com/raspberry-pi-store/">Raspberry Pi 스토어</a></h4>
+            <p>Raspberry Pi에 관한 모든 것을 만날 수 있는 케임브리지의 원스톱 매장.</p>
+        </div>
+        <div>
+            <h4><a href="https://events.raspberrypi.com">Raspberry Pi 이벤트</a></h4>
+            <p>Raspberry Pi를 직접 만나거나, 가까운 커뮤니티 이벤트를 찾아보세요.</p>
+        </div>
+        <div>
+            <h4><a href="https://www.raspberrypi.org">Raspberry Pi 재단</a></h4>
+            <p>전 세계 사람들의 손에 컴퓨팅과 디지털 메이킹의 힘을 쥐어주고 있습니다.</p>
+        </div>
+    </div>
+    <div class="disclaimer">
+        이 페이지는 raspberrypi.com/documentation/computers/getting-started.html 을 한글로 번역한 비공식
+        미러입니다(314단계). 이미지파일/함수명/명령어/소스코드는 원문 그대로 영문 유지했습니다. 분량이 매우 길어
+        핵심 내용 위주로 정리했으며, 정확한 최신 원문은 실제 raspberrypi.com 문서를 참고하세요.
+        상표의 권리는 Raspberry Pi Ltd.에 있습니다.
+    </div>
+</footer>
+
+</body>
+</html>

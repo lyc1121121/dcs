@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>프로세서 - 라베파 (Raspberry Pi 한글 미러)</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <a class="logo" href="../">라베파 (Raspberry Pi)</a>
+        <div class="notice">비공식 한글 미리보기 · 314단계</div>
+        <a class="btn btn-primary" href="../products.html">제품 둘러보기</a>
+    </div>
+    <nav class="main-nav">
+        <a href="../products.html">제품</a>
+        <a href="../software.html">소프트웨어</a>
+        <a href="../documentation.html" class="current">문서</a>
+        <a href="../downloads.html">다운로드</a>
+        <a href="../news.html">뉴스</a>
+        <a href="https://www.raspberrypi.org/">커뮤니티</a>
+        <a href="../about.html">회사 소개</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="breadcrumb"><a href="../documentation.html">문서</a> / 프로세서</div>
+    <h1>프로세서</h1>
+</div>
+
+<div class="doc-page">
+    <h2>SoC 비교표</h2>
+    <table>
+        <tr><th>프로세서</th><th>탑재 모델</th><th>CPU 코어</th><th>아키텍처</th><th>클럭</th><th>주요 특징</th></tr>
+        <tr><td>BCM2835</td><td>Pi 1 A/A+/B/B+, Zero, Zero W, CM1</td><td>싱글코어</td><td>ARM1176JZF-S</td><td>표준</td><td>최초 칩, 기본 I/O</td></tr>
+        <tr><td>BCM2836</td><td>초기 Pi 2 Model B</td><td>쿼드코어</td><td>Cortex-A7</td><td>표준</td><td>쿼드코어 도입, 단종</td></tr>
+        <tr><td>BCM2837</td><td>초기 Pi 3 Model B, Pi 2 개정판, CM3</td><td>쿼드코어</td><td>Cortex-A53(64bit)</td><td>1.2GHz</td><td>Pi 2 대비 약 50% 향상, 단종</td></tr>
+        <tr><td>BCM2837B0</td><td>Pi 2/3 후기 모델, 3A+/3B+, CM3+</td><td>쿼드코어</td><td>Cortex-A53(64bit)</td><td>1.4GHz</td><td>히트스프레더 탑재, 초기 Pi 3보다 17% 향상</td></tr>
+        <tr><td>BCM2711</td><td>Pi 4 Model B, CM4, Pi 400</td><td>쿼드코어</td><td>Cortex-A72(64bit)</td><td>1.5GHz</td><td>PCIe 링크, 8GB 메모리 지원, VideoCore VI</td></tr>
+        <tr><td>BCM2712</td><td>Pi 5, 500, 500+, CM5</td><td>쿼드코어</td><td>Cortex-A76(64bit)</td><td>2.4GHz</td><td>VideoCore VII, 듀얼 4Kp60 디스플레이, ISP</td></tr>
+        <tr><td>RP3A0</td><td>Pi Zero 2 W</td><td>쿼드코어</td><td>Cortex-A53(64bit)</td><td>1.0GHz</td><td>SiP(System-in-Package), 512MB DRAM 내장</td></tr>
+    </table>
+
+    <h2>주요 특징 정리</h2>
+    <p><b>BCM2835</b> — 초기 Pi 모델에 쓰인 원조 싱글코어 프로세서. "주변장치 사양 문서에 여러 오류가 있다"는 점이 알려져 있으며, 관련 정오표(errata)가 공개되어 있습니다.</p>
+    <p><b>BCM2836/2837/2837B0</b> — 점진적으로 개선된 쿼드코어 라인업으로, BCM2837B0에서 열 확산(히트스프레딩) 기술을 통한 열 관리가 도입되었습니다.</p>
+    <p><b>BCM2711</b> — GPU 성능 향상, PCIe 연결성, 네이티브 이더넷 통합을 갖춘 "상당한 업그레이드"로, Pi 3B+ 대비 약 50%의 성능 향상을 제공합니다.</p>
+    <p><b>BCM2712</b> — 2.4GHz Cortex-A76 코어로 "2~3배 성능 향상"을 이뤄냈으며, 향상된 VideoCore VII GPU와 4Kp60 영상을 지원하는 전용 HEVC 하드웨어 디코더를 갖췄습니다.</p>
+    <p><b>취약점 관련</b> — BCM2712의 Cortex-A76에는 알려진 보안 취약점(Spectre 계열)이 있으며, 마이크로코드가 아닌 커널 레벨 보호를 통해 Raspberry Pi OS에서 완화 처리됩니다.</p>
+</div>
+
+<footer>
+    <div class="footer-grid">
+        <div>
+            <h4><a href="https://www.raspberrypi.com/raspberry-pi-store/">Raspberry Pi 스토어</a></h4>
+            <p>Raspberry Pi에 관한 모든 것을 만날 수 있는 케임브리지의 원스톱 매장.</p>
+        </div>
+        <div>
+            <h4><a href="https://events.raspberrypi.com">Raspberry Pi 이벤트</a></h4>
+            <p>Raspberry Pi를 직접 만나거나, 가까운 커뮤니티 이벤트를 찾아보세요.</p>
+        </div>
+        <div>
+            <h4><a href="https://www.raspberrypi.org">Raspberry Pi 재단</a></h4>
+            <p>전 세계 사람들의 손에 컴퓨팅과 디지털 메이킹의 힘을 쥐어주고 있습니다.</p>
+        </div>
+    </div>
+    <div class="disclaimer">
+        이 페이지는 raspberrypi.com/documentation/computers/processors.html 을 한글로 번역한 비공식
+        미러입니다(314단계). 칩셋명/아키텍처명/수치는 원문 그대로 영문·숫자 유지했습니다.
+        상표의 권리는 Raspberry Pi Ltd.에 있습니다.
+    </div>
+</footer>
+
+</body>
+</html>

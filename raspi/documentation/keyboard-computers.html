@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>키보드 컴퓨터 - 라베파 (Raspberry Pi 한글 미러)</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <a class="logo" href="../">라베파 (Raspberry Pi)</a>
+        <div class="notice">비공식 한글 미리보기 · 314단계</div>
+        <a class="btn btn-primary" href="../products.html">제품 둘러보기</a>
+    </div>
+    <nav class="main-nav">
+        <a href="../products.html">제품</a>
+        <a href="../software.html">소프트웨어</a>
+        <a href="../documentation.html" class="current">문서</a>
+        <a href="../downloads.html">다운로드</a>
+        <a href="../news.html">뉴스</a>
+        <a href="https://www.raspberrypi.org/">커뮤니티</a>
+        <a href="../about.html">회사 소개</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="breadcrumb"><a href="../documentation.html">문서</a> / 키보드 컴퓨터</div>
+    <h1>키보드 컴퓨터: Raspberry Pi 400/500/500+</h1>
+</div>
+
+<div class="doc-page">
+    <h2>개요</h2>
+    <p>Raspberry Pi는 완전한 컴퓨터를 키보드 폼팩터에 통합한 3가지 모델을 제공합니다.</p>
+    <ul>
+        <li><b>Raspberry Pi 400</b>(2020) — Raspberry Pi 4 기반, 4GB RAM</li>
+        <li><b>Raspberry Pi 500</b>(2024) — Raspberry Pi 5 기반, 8GB RAM</li>
+        <li><b>Raspberry Pi 500+</b>(2025) — Raspberry Pi 5 기반, 16GB RAM</li>
+    </ul>
+
+    <h2>주요 사양 비교</h2>
+    <table>
+        <tr><th>항목</th><th>Pi 400</th><th>Pi 500</th><th>Pi 500+</th></tr>
+        <tr><td>프로세서</td><td>Cortex-A72 @ 1.8GHz</td><td>Cortex-A76 @ 2.4GHz</td><td>Cortex-A76 @ 2.4GHz</td></tr>
+        <tr><td>RAM</td><td>4GB</td><td>8GB</td><td>16GB</td></tr>
+        <tr><td>GPU</td><td>VideoCore VI(500MHz)</td><td>VideoCore VII(910MHz)</td><td>VideoCore VII(910MHz)</td></tr>
+        <tr><td>저장장치</td><td>microSD</td><td>microSD</td><td>microSD + 256GB M.2 SSD</td></tr>
+        <tr><td>키</td><td>78/79/83 멤브레인</td><td>78/79/83 멤브레인</td><td>84/85/88 기계식</td></tr>
+        <tr><td>전원버튼</td><td>Fn+F10 조합</td><td>전용 버튼</td><td>전용 버튼</td></tr>
+        <tr><td>HDMI 영상</td><td>4K@60Hz 또는 듀얼 4K@30Hz</td><td>4K@60Hz + HDR</td><td>4K@60Hz + HDR</td></tr>
+        <tr><td>크기</td><td>286×122×23mm</td><td>286×122×23mm</td><td>312×123×35mm</td></tr>
+        <tr><td>전원</td><td>5V/3A(15W) USB-C</td><td>5V/5A(25W) USB-C</td><td>5V/5A(25W) USB-C</td></tr>
+    </table>
+
+    <h2>Pi 500+만의 특징</h2>
+    <p><b>기계식 키보드</b> — "Raspberry Pi 500+의 각 키캡 아래에는 저마다의 기계식 스위치가 있습니다", Cherry MX 스템과 호환되는 Gateron KS-33 스위치를 사용합니다.</p>
+    <ul>
+        <li>DSA 또는 Cherry 프로파일의 교체용 키캡 권장</li>
+        <li>7가지 프리셋을 지원하는 RGB 백라이트(Off, Solid White, Solid Color, Gradient, Pinwheel, Heatmap, Reactive)</li>
+        <li>Vial QMK 펌웨어를 통한 LED 설정</li>
+        <li>즉석에서 키 재배치 가능</li>
+        <li>교체 가능한 M.2 SSD(2230/2242/2260/2280 폼팩터 지원)</li>
+    </ul>
+    <p><b>백라이트 단축키</b> — 프리셋 순환: Fn+F4(정방향)/Fn+Shift+F4(역방향), 색상 변경: Fn+F3(16색), 밝기 조절: Fn+F5(감소)/Fn+F6(증가)</p>
+
+    <h2>시작하기</h2>
+    <ol>
+        <li>부팅 미디어 준비(microSD 또는 Pi 500+는 미리 설치된 SSD 사용)</li>
+        <li>마우스, micro-HDMI 디스플레이 등 주변기기 연결</li>
+        <li>전원 연결(키보드가 자동으로 켜짐)</li>
+        <li>Wi-Fi 또는 이더넷으로 네트워크 연결 설정</li>
+    </ol>
+
+    <h2>고급 설정</h2>
+    <p><code>rpi-keyboard-config</code> 도구로 다음을 할 수 있습니다: 속도/채도/색상 파라미터로 커스텀 조명 효과 생성, 프리셋별 시작 애니메이션 설정, 키보드 전체 키 재배치, 개별 LED 백라이트 제어. 펌웨어 소스코드는 GitHub의 "Vial QMK 저장소"에서 확인할 수 있습니다.</p>
+</div>
+
+<footer>
+    <div class="footer-grid">
+        <div>
+            <h4><a href="https://www.raspberrypi.com/raspberry-pi-store/">Raspberry Pi 스토어</a></h4>
+            <p>Raspberry Pi에 관한 모든 것을 만날 수 있는 케임브리지의 원스톱 매장.</p>
+        </div>
+        <div>
+            <h4><a href="https://events.raspberrypi.com">Raspberry Pi 이벤트</a></h4>
+            <p>Raspberry Pi를 직접 만나거나, 가까운 커뮤니티 이벤트를 찾아보세요.</p>
+        </div>
+        <div>
+            <h4><a href="https://www.raspberrypi.org">Raspberry Pi 재단</a></h4>
+            <p>전 세계 사람들의 손에 컴퓨팅과 디지털 메이킹의 힘을 쥐어주고 있습니다.</p>
+        </div>
+    </div>
+    <div class="disclaimer">
+        이 페이지는 raspberrypi.com/documentation/computers/keyboard-computers.html 을 한글로 번역한 비공식
+        미러입니다(314단계). 모델명/단축키/함수명은 원문 그대로 영문 유지했습니다.
+        상표의 권리는 Raspberry Pi Ltd.에 있습니다.
+    </div>
+</footer>
+
+</body>
+</html>

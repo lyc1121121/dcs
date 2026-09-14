@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>리눅스 커널 - 라베파 (Raspberry Pi 한글 미러)</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <a class="logo" href="../">라베파 (Raspberry Pi)</a>
+        <div class="notice">비공식 한글 미리보기 · 314단계</div>
+        <a class="btn btn-primary" href="../products.html">제품 둘러보기</a>
+    </div>
+    <nav class="main-nav">
+        <a href="../products.html">제품</a>
+        <a href="../software.html">소프트웨어</a>
+        <a href="../documentation.html" class="current">문서</a>
+        <a href="../downloads.html">다운로드</a>
+        <a href="../news.html">뉴스</a>
+        <a href="https://www.raspberrypi.org/">커뮤니티</a>
+        <a href="../about.html">회사 소개</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="breadcrumb"><a href="../documentation.html">문서</a> / 리눅스 커널</div>
+    <h1>리눅스 커널</h1>
+</div>
+
+<div class="doc-page">
+    <h2>소개</h2>
+    <p>"Raspberry Pi 커널은 GitHub에서 관리되며, 업스트림 리눅스 커널보다 업데이트가 다소 늦습니다." Raspberry Pi는 지속적인 업데이트 대신 장기지원(LTS) 릴리스를 통합하며, 메인 저장소에 병합하기 전에 테스트를 거칩니다.</p>
+
+    <h2>커널 빌드하기 - 개요</h2>
+    <p>문서는 두 가지 방식을 안내합니다: 네이티브 빌드(Pi 자체의 컴파일러 사용)와 크로스 컴파일(다른 장비에서 Pi용으로 빌드).</p>
+
+    <h3>핵심 작업 순서</h3>
+    <p><b>1. 커널 소스 다운로드</b></p>
+    <pre><code>sudo apt install git
+git clone --depth=1 https://github.com/raspberrypi/linux</code></pre>
+
+    <p><b>2. 빌드 의존성 설치</b></p>
+    <pre><code>sudo apt install bc bison flex libssl-dev make</code></pre>
+
+    <p><b>3. 커널 설정</b> — 사용 중인 아키텍처와 모델에 맞는 설정을 선택합니다(예: 64비트 Pi 4/5는 <code>bcm2711_defconfig</code>).</p>
+
+    <p><b>4. 빌드</b></p>
+    <pre><code># 64비트
+make -j6 Image.gz modules dtbs
+
+# 32비트
+make -j6 zImage modules dtbs</code></pre>
+
+    <p><b>5. 모듈/커널 설치</b></p>
+    <pre><code>sudo make -j6 modules_install
+sudo cp arch/arm64/boot/Image.gz /boot/firmware/$KERNEL.img
+sudo cp arch/arm64/boot/dts/broadcom/*.dtb /boot/firmware/
+sudo reboot</code></pre>
+
+    <h2>커널 설정 구성</h2>
+    <p>빌드 전에 원하는 기능을 켜고 끌 수 있는 대화형 설정 화면인 <code>make menuconfig</code>를 사용합니다.</p>
+
+    <h2>커널 패치하기</h2>
+    <p>직접 patch 유틸리티를 쓰거나, mailbox 형식 패치는 Git으로 적용합니다.</p>
+
+    <h2>커널 헤더</h2>
+    <p>"커널 모듈을 컴파일하려면 리눅스 커널 헤더가 필요합니다."</p>
+    <pre><code>sudo apt install linux-headers-rpi-v8</code></pre>
+
+    <h2>기여하기</h2>
+    <p>Raspberry Pi 전용 변경사항은 Raspberry Pi 커널 저장소에 pull request로 제출하고, 일반적인 리눅스 커널 개선사항은 먼저 업스트림에 기여하는 것을 권장합니다.</p>
+</div>
+
+<footer>
+    <div class="footer-grid">
+        <div>
+            <h4><a href="https://www.raspberrypi.com/raspberry-pi-store/">Raspberry Pi 스토어</a></h4>
+            <p>Raspberry Pi에 관한 모든 것을 만날 수 있는 케임브리지의 원스톱 매장.</p>
+        </div>
+        <div>
+            <h4><a href="https://events.raspberrypi.com">Raspberry Pi 이벤트</a></h4>
+            <p>Raspberry Pi를 직접 만나거나, 가까운 커뮤니티 이벤트를 찾아보세요.</p>
+        </div>
+        <div>
+            <h4><a href="https://www.raspberrypi.org">Raspberry Pi 재단</a></h4>
+            <p>전 세계 사람들의 손에 컴퓨팅과 디지털 메이킹의 힘을 쥐어주고 있습니다.</p>
+        </div>
+    </div>
+    <div class="disclaimer">
+        이 페이지는 raspberrypi.com/documentation/computers/linux_kernel.html 을 한글로 번역한 비공식
+        미러입니다(314단계). 명령어/함수명/소스코드는 원문 그대로 영문 유지했습니다.
+        상표의 권리는 Raspberry Pi Ltd.에 있습니다.
+    </div>
+</footer>
+
+</body>
+</html>

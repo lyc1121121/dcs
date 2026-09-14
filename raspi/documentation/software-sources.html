@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>소프트웨어 소스 - 라베파 (Raspberry Pi 한글 미러)</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <a class="logo" href="../">라베파 (Raspberry Pi)</a>
+        <div class="notice">비공식 한글 미리보기 · 314단계</div>
+        <a class="btn btn-primary" href="../products.html">제품 둘러보기</a>
+    </div>
+    <nav class="main-nav">
+        <a href="../products.html">제품</a>
+        <a href="../software.html">소프트웨어</a>
+        <a href="../documentation.html" class="current">문서</a>
+        <a href="../downloads.html">다운로드</a>
+        <a href="../news.html">뉴스</a>
+        <a href="https://www.raspberrypi.org/">커뮤니티</a>
+        <a href="../about.html">회사 소개</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="breadcrumb"><a href="../documentation.html">문서</a> / 소프트웨어 소스</div>
+    <h1>소프트웨어 소스</h1>
+</div>
+
+<div class="doc-page">
+    <h2>개요</h2>
+    <p>Raspberry Pi는 제품용 오픈소스 코드를 공개하며, "3D·HEVC 디코드 같은 멀티미디어 가속, 카메라 이미징 파이프라인, AI 가속, 듀얼 HDMI, 오디오를 최적화하는 드라이버" 등 사용자 경험을 개선하는 소프트웨어에 중점을 둡니다.</p>
+
+    <h2>Raspberry Pi OS에서 소프트웨어 소스 찾기</h2>
+    <p>apt 설정 파일을 수정해 소스 패키지를 받아올 수 있습니다.</p>
+    <ol>
+        <li><code>/etc/apt/sources.list.d/debian.sources</code>(64비트) 또는 <code>/etc/apt/sources.list.d/raspbian.sources</code>(32비트)를 편집</li>
+        <li>"Types: deb"를 "Types: deb deb-src"로 변경</li>
+        <li><code>sudo apt update</code> 실행</li>
+        <li><code>apt source [package-name]</code>으로 소스 받기</li>
+    </ol>
+    <p>빌드하려면 <code>devscripts</code> 패키지와 일반적인 Debian 빌드 절차가 필요합니다.</p>
+
+    <h2>GitHub 조직</h2>
+    <p>Raspberry Pi는 3개의 주요 GitHub 조직을 운영합니다.</p>
+    <ul>
+        <li><a href="https://github.com/raspberrypi">github.com/raspberrypi</a></li>
+        <li><a href="https://github.com/raspberrypi-ui">github.com/raspberrypi-ui</a></li>
+        <li><a href="https://github.com/RPi-Distro">github.com/RPi-Distro</a></li>
+    </ul>
+    <p>이 외에도 책·매거진 관련 콘텐츠 조직이 별도로 있습니다.</p>
+
+    <h2>주요 저장소</h2>
+    <p><b>핵심 소스</b> — Raspberry Pi 1~5용 리눅스 커널, 펌웨어(변경이력 포함 클로즈드소스), EEPROM 부트로더 스크립트/바이너리</p>
+    <p><b>라이브러리 &amp; 애플리케이션</b> — GPIO 유틸리티/pinctrl 도구, 카메라 제어용 libcamera/rpicam-apps, picamera2 파이썬 라이브러리, drmu 멀티미디어 라이브러리</p>
+    <p><b>데스크탑 환경</b> — 데스크탑 메타패키지, 태스크바, 파일 관리자, Control Centre 및 설정 플러그인, 진단도구, Bookshelf, SD Card Copier 앱</p>
+    <p><b>개발 도구</b> — Raspberry Pi Imager, rpi-image-gen 빌드 시스템, usbboot 프로비저닝 도구, 보안 부팅 프로비저너</p>
+    <p><b>Pico 개발</b> — Visual Studio Code 확장, Pico SDK 및 예제, Debug Probe 펌웨어, OpenOCD 다운스트림 소스</p>
+</div>
+
+<footer>
+    <div class="footer-grid">
+        <div>
+            <h4><a href="https://www.raspberrypi.com/raspberry-pi-store/">Raspberry Pi 스토어</a></h4>
+            <p>Raspberry Pi에 관한 모든 것을 만날 수 있는 케임브리지의 원스톱 매장.</p>
+        </div>
+        <div>
+            <h4><a href="https://events.raspberrypi.com">Raspberry Pi 이벤트</a></h4>
+            <p>Raspberry Pi를 직접 만나거나, 가까운 커뮤니티 이벤트를 찾아보세요.</p>
+        </div>
+        <div>
+            <h4><a href="https://www.raspberrypi.org">Raspberry Pi 재단</a></h4>
+            <p>전 세계 사람들의 손에 컴퓨팅과 디지털 메이킹의 힘을 쥐어주고 있습니다.</p>
+        </div>
+    </div>
+    <div class="disclaimer">
+        이 페이지는 raspberrypi.com/documentation/computers/software-sources.html 을 한글로 번역한 비공식
+        미러입니다(314단계). 패키지명/저장소명/명령어는 원문 그대로 영문 유지했습니다.
+        상표의 권리는 Raspberry Pi Ltd.에 있습니다.
+    </div>
+</footer>
+
+</body>
+</html>

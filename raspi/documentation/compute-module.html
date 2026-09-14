@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compute Module 하드웨어 - 라베파 (Raspberry Pi 한글 미러)</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <a class="logo" href="../">라베파 (Raspberry Pi)</a>
+        <div class="notice">비공식 한글 미리보기 · 314단계</div>
+        <a class="btn btn-primary" href="../products.html">제품 둘러보기</a>
+    </div>
+    <nav class="main-nav">
+        <a href="../products.html">제품</a>
+        <a href="../software.html">소프트웨어</a>
+        <a href="../documentation.html" class="current">문서</a>
+        <a href="../downloads.html">다운로드</a>
+        <a href="../news.html">뉴스</a>
+        <a href="https://www.raspberrypi.org/">커뮤니티</a>
+        <a href="../about.html">회사 소개</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="breadcrumb"><a href="../documentation.html">문서</a> / Compute Module 하드웨어</div>
+    <h1>Compute Module 하드웨어</h1>
+</div>
+
+<div class="doc-page">
+    <h2>Compute Module이란?</h2>
+    <p>Raspberry Pi Compute Module은 "임베디드/산업용 애플리케이션을 위해 설계된, 표준 Raspberry Pi 싱글보드 컴퓨터(SBC)의 소형 버전"입니다. 일반 Raspberry Pi 보드와 달리 HDMI, USB, 이더넷 같은 표준 커넥터가 없어, 커스텀 시스템에 통합하기에 적합합니다.</p>
+    <p>이 모듈들은 "시스템온모듈(SoM) 형태"로, "디지털 사이니지, 씬 클라이언트, 공정 자동화 같은 산업·상업용 애플리케이션"을 대상으로 합니다.</p>
+
+    <h2>IO 보드와의 관계</h2>
+    <p>Compute Module이 동작하려면 Compute Module IO 보드(CMIO)라는 캐리어 보드가 필요합니다. IO 보드는 전원 공급, GPIO 핀을 표준 헤더로 노출, 카메라/디스플레이 인터페이스 제공, HDMI·USB·네트워킹 표준 커넥터 제공 등 필수 연결성을 담당합니다.</p>
+    <p>문서에 따르면 IO 보드는 "독립 제품으로 사용해 빠른 프로토타이핑과 임베디드 시스템 개발에 활용하거나, 자체 캐리어(IO) 보드를 설계할 때 참고용 레퍼런스 디자인으로 사용"할 수 있습니다.</p>
+
+    <h2>현재 모델</h2>
+    <table>
+        <tr><th>모델</th><th>프로세서</th><th>RAM 옵션</th><th>저장공간</th><th>폼팩터</th></tr>
+        <tr><td>CM5(2024)</td><td>BCM2712</td><td>2~16GB</td><td>0~64GB eMMC</td><td>듀얼 100핀 커넥터</td></tr>
+        <tr><td>CM4S(2022)</td><td>BCM2711</td><td>1~8GB</td><td>0~64GB eMMC</td><td>DDR2 SODIMM</td></tr>
+        <tr><td>CM4(2020)</td><td>BCM2711</td><td>1~8GB</td><td>0~64GB eMMC</td><td>듀얼 100핀 커넥터</td></tr>
+        <tr><td>CM3+(2019)</td><td>BCM2837B0</td><td>1GB</td><td>0~64GB eMMC</td><td>DDR2 SODIMM</td></tr>
+    </table>
+    <p>최신 모델인 CM5는 Raspberry Pi 5의 구성요소와 온보드 플래시 저장공간 옵션을 결합해, 새로운 산업용 설계의 현재 표준으로 자리잡고 있습니다.</p>
+</div>
+
+<footer>
+    <div class="footer-grid">
+        <div>
+            <h4><a href="https://www.raspberrypi.com/raspberry-pi-store/">Raspberry Pi 스토어</a></h4>
+            <p>Raspberry Pi에 관한 모든 것을 만날 수 있는 케임브리지의 원스톱 매장.</p>
+        </div>
+        <div>
+            <h4><a href="https://events.raspberrypi.com">Raspberry Pi 이벤트</a></h4>
+            <p>Raspberry Pi를 직접 만나거나, 가까운 커뮤니티 이벤트를 찾아보세요.</p>
+        </div>
+        <div>
+            <h4><a href="https://www.raspberrypi.org">Raspberry Pi 재단</a></h4>
+            <p>전 세계 사람들의 손에 컴퓨팅과 디지털 메이킹의 힘을 쥐어주고 있습니다.</p>
+        </div>
+    </div>
+    <div class="disclaimer">
+        이 페이지는 raspberrypi.com/documentation/computers/compute-module.html 을 한글로 번역한 비공식
+        미러입니다(314단계). 모델명/칩셋명은 원문 그대로 영문 유지했습니다.
+        상표의 권리는 Raspberry Pi Ltd.에 있습니다.
+    </div>
+</footer>
+
+</body>
+</html>

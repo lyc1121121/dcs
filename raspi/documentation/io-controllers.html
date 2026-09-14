@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>I/O 컨트롤러 - 라베파 (Raspberry Pi 한글 미러)</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <a class="logo" href="../">라베파 (Raspberry Pi)</a>
+        <div class="notice">비공식 한글 미리보기 · 314단계</div>
+        <a class="btn btn-primary" href="../products.html">제품 둘러보기</a>
+    </div>
+    <nav class="main-nav">
+        <a href="../products.html">제품</a>
+        <a href="../software.html">소프트웨어</a>
+        <a href="../documentation.html" class="current">문서</a>
+        <a href="../downloads.html">다운로드</a>
+        <a href="../news.html">뉴스</a>
+        <a href="https://www.raspberrypi.org/">커뮤니티</a>
+        <a href="../about.html">회사 소개</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="breadcrumb"><a href="../documentation.html">문서</a> / I/O 컨트롤러</div>
+    <h1>I/O 컨트롤러: RP1</h1>
+</div>
+
+<div class="doc-page">
+    <h2>RP1이란?</h2>
+    <p>RP1은 Raspberry Pi가 자체 설계한 입출력 관리 칩입니다. Raspberry Pi 5와 Compute Module 5에 내장되어, 그렇지 않으면 메인 프로세서에 부담이 될 주변장치 관리를 담당합니다. 문서는 "RP1은 독립된 칩이 아니라, Raspberry Pi 5와 Compute Module 5에 내장된 I/O 컨트롤러입니다"라고 설명합니다.</p>
+
+    <h2>물리적 사양</h2>
+    <p>이 칩은 약 12×12mm 크기의 BGA 패키지이며 핀 간격은 0.65mm입니다. 메인 CPU(BCM2712)와는 "PCIe 2.0 x4 링크"로 통신하며, 대부분의 외부 I/O를 처리합니다.</p>
+
+    <h2>제공하는 주변장치 인터페이스</h2>
+    <ul>
+        <li>4레인 PCIe 2.0 엔드포인트</li>
+        <li>기가비트 이더넷 MAC</li>
+        <li>USB 호스트 컨트롤러 2개(각각 USB 3.0 포트 1개 + USB 2.0 포트 1개 제공)</li>
+        <li>SDIO/eMMC 인터페이스 2개</li>
+        <li>4레인 MIPI 트랜시버 2개(DSI, CSI-2)</li>
+        <li>저속 주변장치: SPI, UART, I2C, PWM, GPIO, I2S</li>
+    </ul>
+
+    <h2>내부 구성요소</h2>
+    <p>이 칩에는 Cortex M3 프로세서 2개, 8채널 DMA 컨트롤러, 다수의 PLL, 온도 센서가 포함된 12비트 ADC, 64KB 공유 SRAM, 타이밍 생성기가 통합되어 있습니다.</p>
+
+    <h2>멀티미디어 기능</h2>
+    <p>RP1은 비디오 DAC(PAL/NTSC/VGA), DPI 비디오 생성, CSI-2 카메라 인터페이스, DSI 디스플레이 지원, 델타-시그마 PWM 오디오 출력, PDM 마이크 기능까지 지원합니다.</p>
+</div>
+
+<footer>
+    <div class="footer-grid">
+        <div>
+            <h4><a href="https://www.raspberrypi.com/raspberry-pi-store/">Raspberry Pi 스토어</a></h4>
+            <p>Raspberry Pi에 관한 모든 것을 만날 수 있는 케임브리지의 원스톱 매장.</p>
+        </div>
+        <div>
+            <h4><a href="https://events.raspberrypi.com">Raspberry Pi 이벤트</a></h4>
+            <p>Raspberry Pi를 직접 만나거나, 가까운 커뮤니티 이벤트를 찾아보세요.</p>
+        </div>
+        <div>
+            <h4><a href="https://www.raspberrypi.org">Raspberry Pi 재단</a></h4>
+            <p>전 세계 사람들의 손에 컴퓨팅과 디지털 메이킹의 힘을 쥐어주고 있습니다.</p>
+        </div>
+    </div>
+    <div class="disclaimer">
+        이 페이지는 raspberrypi.com/documentation/computers/io-controllers.html 을 한글로 번역한 비공식
+        미러입니다(314단계). 칩셋명/인터페이스명/수치는 원문 그대로 영문·숫자 유지했습니다.
+        상표의 권리는 Raspberry Pi Ltd.에 있습니다.
+    </div>
+</footer>
+
+</body>
+</html>

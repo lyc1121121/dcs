@@ -95,6 +95,23 @@ section.product.alt > .inner { display: flex; flex-wrap: wrap; align-items: cent
 .about-body p { font-size: 16px; margin-bottom: 18px; }
 .about-body img { max-width: 240px; margin-bottom: 24px; }
 
+/* 314단계 추가: 문서(documentation) 상세페이지 본문 - 코드/표/breadcrumb */
+.doc-page { padding: 0 32px 56px; max-width: 900px; margin: 0 auto; }
+.doc-page h2 { font-size: 22px; margin: 36px 0 12px; }
+.doc-page h3 { font-size: 17px; margin: 24px 0 8px; }
+.doc-page p { font-size: 15px; margin: 0 0 14px; }
+.doc-page pre {
+    background: #1f2937; color: #e5e7eb; padding: 14px 16px; border-radius: 8px;
+    overflow-x: auto; font-size: 13px; margin: 0 0 16px;
+}
+.doc-page code { font-family: "D2Coding", "Consolas", monospace; }
+.doc-page p code, .doc-page li code { background: #f0f2f5; padding: 2px 5px; border-radius: 4px; font-size: 13px; }
+.doc-page table { border-collapse: collapse; width: 100%; margin: 0 0 20px; font-size: 13px; }
+.doc-page th, .doc-page td { border: 1px solid #e0e0e0; padding: 8px 10px; text-align: left; }
+.doc-page th { background: #fafafa; }
+.breadcrumb { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.breadcrumb a { color: var(--muted); }
+
 footer { background: #1a1a1a; color: #ccc; padding: 48px 32px; }
 .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto; }
 .footer-grid h4 { color: #fff; margin: 0 0 8px; font-size: 16px; }

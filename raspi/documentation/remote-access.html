@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>원격 접속 - 라베파 (Raspberry Pi 한글 미러)</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <a class="logo" href="../">라베파 (Raspberry Pi)</a>
+        <div class="notice">비공식 한글 미리보기 · 314단계</div>
+        <a class="btn btn-primary" href="../products.html">제품 둘러보기</a>
+    </div>
+    <nav class="main-nav">
+        <a href="../products.html">제품</a>
+        <a href="../software.html">소프트웨어</a>
+        <a href="../documentation.html" class="current">문서</a>
+        <a href="../downloads.html">다운로드</a>
+        <a href="../news.html">뉴스</a>
+        <a href="https://www.raspberrypi.org/">커뮤니티</a>
+        <a href="../about.html">회사 소개</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="breadcrumb"><a href="../documentation.html">문서</a> / 원격 접속</div>
+    <h1>원격 접속</h1>
+</div>
+
+<div class="doc-page">
+    <h2>SSH</h2>
+    <h3>SSH 서버 활성화</h3>
+    <ul>
+        <li>데스크탑: 환경설정 &gt; Control Centre &gt; Interfaces 탭 &gt; SSH 활성화</li>
+        <li>OS 설치 중: Imager의 Remote Access 탭에서 SSH 토글</li>
+        <li>커맨드라인: <code>sudo raspi-config</code> &gt; Interfacing Options &gt; SSH &gt; Yes</li>
+        <li>수동: <code>sudo touch /boot/firmware/ssh</code> 후 재부팅</li>
+    </ul>
+    <h3>SSH 서버 접속</h3>
+    <pre><code>ssh &lt;username&gt;@&lt;ip address&gt;</code></pre>
+    <p>최초 접속 시 보안 경고를 수락한 뒤 비밀번호를 입력합니다.</p>
+    <h3>키를 이용한 비밀번호 없는 SSH</h3>
+    <pre><code># 키페어 생성
+ssh-keygen
+
+# 공개키를 Raspberry Pi로 복사
+ssh-copy-id &lt;username&gt;@&lt;ip address&gt;
+
+# 또는 수동으로 권한 설정 후 복사
+mkdir .ssh
+chmod 700 .ssh
+scp .ssh/id_rsa.pub &lt;username&gt;@&lt;ip address&gt;:.ssh/authorized_keys
+chmod 644 .ssh/authorized_keys</code></pre>
+    <h3>X11 포워딩(그래픽 앱을 SSH로)</h3>
+    <pre><code>ssh -Y &lt;username&gt;@&lt;ip address&gt;</code></pre>
+    <h3>SSH 접근 제한</h3>
+    <p><code>/etc/ssh/sshd_config</code>를 편집해 아래를 추가합니다.</p>
+    <pre><code>AllowUsers alice bob</code></pre>
+    <pre><code>sudo systemctl restart ssh</code></pre>
+
+    <h2>VNC</h2>
+    <h3>VNC 서버 활성화</h3>
+    <ul>
+        <li>그래픽으로: 환경설정 &gt; Control Centre &gt; Interfaces 탭 &gt; VNC 토글</li>
+        <li>커맨드라인: <code>sudo raspi-config</code> &gt; Interface Options &gt; VNC &gt; Yes</li>
+    </ul>
+    <h3>VNC로 접속하기</h3>
+    <ol>
+        <li>TigerVNC를 GitHub 릴리스 페이지에서 다운로드</li>
+        <li>TigerVNC 실행 후 Raspberry Pi의 IP 주소 입력</li>
+        <li>Options &gt; Input 탭 &gt; "Show dot when no cursor" 체크</li>
+        <li>Connect 클릭, 인증서 경고가 나오면 수락</li>
+        <li>Raspberry Pi 계정 정보 입력</li>
+    </ol>
+
+    <h2>Raspberry Pi Connect</h2>
+    <p>"IP 주소를 직접 찾거나 방화벽을 설정할 필요 없이" 다른 기기의 브라우저에서 Raspberry Pi Connect로 원격 접속할 수 있습니다. Wayland 시스템에서는 화면 공유를, 모든 모델에서는 원격 셸 접속을 제공합니다. 자세한 설정은 공식 Connect 문서를 참고하세요.</p>
+
+    <h2>Raspberry Pi의 IP 주소 찾기</h2>
+    <p><b>데스크탑</b>: 시스템 트레이의 네트워크 아이콘에 마우스 올리기</p>
+    <pre><code># 커맨드라인
+hostname -I
+
+# mDNS(지원되는 경우)
+ping raspberrypi.local
+
+# Network Manager
+nmcli device show   # IP4.ADDRESS[1] 필드 확인
+
+# nmap 스캔
+sudo nmap -sn 192.168.1.0/24</code></pre>
+    <p><b>공유기</b>: 공유기 관리 페이지에 로그인해 연결된 기기 목록을 확인</p>
+</div>
+
+<footer>
+    <div class="footer-grid">
+        <div>
+            <h4><a href="https://www.raspberrypi.com/raspberry-pi-store/">Raspberry Pi 스토어</a></h4>
+            <p>Raspberry Pi에 관한 모든 것을 만날 수 있는 케임브리지의 원스톱 매장.</p>
+        </div>
+        <div>
+            <h4><a href="https://events.raspberrypi.com">Raspberry Pi 이벤트</a></h4>
+            <p>Raspberry Pi를 직접 만나거나, 가까운 커뮤니티 이벤트를 찾아보세요.</p>
+        </div>
+        <div>
+            <h4><a href="https://www.raspberrypi.org">Raspberry Pi 재단</a></h4>
+            <p>전 세계 사람들의 손에 컴퓨팅과 디지털 메이킹의 힘을 쥐어주고 있습니다.</p>
+        </div>
+    </div>
+    <div class="disclaimer">
+        이 페이지는 raspberrypi.com/documentation/computers/remote-access.html 을 한글로 번역한 비공식
+        미러입니다(314단계). 명령어/함수명/소스코드는 원문 그대로 영문 유지했습니다.
+        상표의 권리는 Raspberry Pi Ltd.에 있습니다.
+    </div>
+</footer>
+
+</body>
+</html>

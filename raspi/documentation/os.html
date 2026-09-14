@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raspberry Pi OS - 라베파 (Raspberry Pi 한글 미러)</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <a class="logo" href="../">라베파 (Raspberry Pi)</a>
+        <div class="notice">비공식 한글 미리보기 · 314단계</div>
+        <a class="btn btn-primary" href="../products.html">제품 둘러보기</a>
+    </div>
+    <nav class="main-nav">
+        <a href="../products.html">제품</a>
+        <a href="../software.html">소프트웨어</a>
+        <a href="../documentation.html" class="current">문서</a>
+        <a href="../downloads.html">다운로드</a>
+        <a href="../news.html">뉴스</a>
+        <a href="https://www.raspberrypi.org/">커뮤니티</a>
+        <a href="../about.html">회사 소개</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="breadcrumb"><a href="../documentation.html">문서</a> / Raspberry Pi OS</div>
+    <h1>Raspberry Pi OS</h1>
+</div>
+
+<div class="doc-page">
+    <h2>개요</h2>
+    <p>Raspberry Pi OS는 Debian 리눅스 기반의 공식 무료 운영체제입니다. 69,000개가 넘는 Debian 패키지를 지원하며, Debian의 릴리스 주기를 따라 약 2년마다 주요 버전이 나옵니다. 현재 버전은 Debian Trixie 기반이고, 이전 버전은 Debian Bookworm 기반입니다.</p>
+
+    <h2>설치 방법 &amp; 에디션</h2>
+    <p>Raspberry Pi Imager(Windows/Mac/Linux) 또는 디스크 이미지를 직접 받아 설치합니다. 세 가지 에디션이 있습니다.</p>
+    <ul>
+        <li><b>Desktop</b>(권장) — Chromium, Firefox, VLC, Thonny가 포함된 그래픽 환경</li>
+        <li><b>Full</b> — Desktop에 LibreOffice, KiCad, Scratch 등 추가 앱 포함</li>
+        <li><b>Lite</b> — 헤드리스 서버나 구형 모델을 위한 커맨드라인 전용</li>
+    </ul>
+    <p>64비트/32비트 버전이 모두 존재하며, Raspberry Pi 3 이상은 성능과 메모리 처리 면에서 64비트가 더 적합합니다.</p>
+
+    <h2>소프트웨어/펌웨어 업데이트</h2>
+    <h3>표준 업데이트(APT 방식)</h3>
+    <p>일상적인 업데이트에 권장됩니다.</p>
+    <pre><code>sudo apt update
+sudo apt full-upgrade</code></pre>
+
+    <h3>선행배포 펌웨어(rpi-update)</h3>
+    <p>개발자 전용 — 실험적인 커널/모듈/펌웨어를 내려받습니다. "동작을 보장하지 않으며 불안정성을 유발할 수 있습니다."</p>
+    <pre><code>sudo rpi-update
+sudo reboot</code></pre>
+
+    <h3>안정 버전으로 되돌리기</h3>
+    <pre><code>sudo apt update
+sudo apt install --reinstall raspi-firmware
+sudo reboot</code></pre>
+
+    <h2>패키지 관리</h2>
+    <p>검색: <code>apt-cache search &lt;keyword&gt;</code> · 상세보기: <code>apt-cache show &lt;package-name&gt;</code> · 설치: <code>sudo apt install &lt;package-name&gt;</code></p>
+    <p>제거: <code>sudo apt remove &lt;package-name&gt;</code> (설정파일까지 지우려면 <code>sudo apt purge</code>) · 디스크 확인: <code>df -h</code> · 캐시 정리: <code>sudo apt clean</code></p>
+
+    <h2>주요 버전 업그레이드</h2>
+    <p>Bookworm→Trixie처럼 주요 버전을 넘어갈 땐 제자리 업그레이드 대신 "새 저장장치에 Raspberry Pi Imager로 클린 설치할 것을 강력히 권장"합니다.</p>
+
+    <h2>오디오/비디오 재생</h2>
+    <p>VLC가 기본 설치되어 있습니다. 파일관리자에서 더블클릭하거나 커맨드라인으로 재생할 수 있습니다.</p>
+    <pre><code>vlc video.mp4
+vlc --play-and-exit --fullscreen video.mp4
+cvlc --play-and-exit audio.mp3   # 헤드리스 모드</code></pre>
+    <p>오디오 장치 지정(ALSA): <code>cvlc --play-and-exit -A alsa --alsa-audio-device sysdefault:CARD=Headphones audio.mp3</code></p>
+    <p>비디오 장치 지정(DRM): <code>cvlc --play-and-exit --drm-vout-display HDMI-A-1 video.mp4</code></p>
+
+    <h2>커맨드라인 유틸리티</h2>
+    <h3>kmsprint</h3>
+    <p>연결된 모니터가 지원하는 디스플레이 모드를 나열합니다.</p>
+    <pre><code>kmsprint -m
+kmsprint --device=/dev/dri/card1   # Raspberry Pi 5 이상</code></pre>
+    <h3>vcgencmd</h3>
+    <p>GPU 정보 확인 도구</p>
+    <table>
+        <tr><th>명령</th><th>용도</th></tr>
+        <tr><td><code>vcgencmd version</code></td><td>펌웨어 버전</td></tr>
+        <tr><td><code>vcgencmd measure_temp</code></td><td>SoC 온도</td></tr>
+        <tr><td><code>vcgencmd measure_clock arm</code></td><td>ARM 코어 클럭</td></tr>
+        <tr><td><code>vcgencmd measure_volts core</code></td><td>코어 전압</td></tr>
+        <tr><td><code>vcgencmd get_throttled</code></td><td>스로틀링 상태</td></tr>
+        <tr><td><code>vcgencmd get_config total_mem</code></td><td>총 RAM</td></tr>
+    </table>
+    <h3>vclog</h3>
+    <p>GPU 로그를 표시합니다(root 권한 필요).</p>
+    <pre><code>sudo vclog --msg
+sudo vclog --assert</code></pre>
+
+    <h2>접근성 기능</h2>
+    <ul>
+        <li><b>Orca 스크린 리더</b> — 추천 소프트웨어에서 설치, 또는 <b>Ctrl+Alt+Space</b></li>
+        <li><b>화면 확대경</b> — <b>Ctrl+Alt+M</b>으로 토글</li>
+        <li><b>UI 확대</b> — 환경설정 &gt; Control Centre &gt; Defaults 탭</li>
+    </ul>
+    <p>새로 설치한 경우 최초 부팅 30초 후 음성 안내가 자동 재생됩니다.</p>
+
+    <h2>파이썬 개발</h2>
+    <h3>apt로 시스템 패키지 설치</h3>
+    <pre><code>sudo apt install python3-&lt;package&gt;
+# 예: sudo apt install python3-build-hat</code></pre>
+    <h3>pip와 가상환경</h3>
+    <p>Raspberry Pi OS Bookworm부터는 "시스템 Python에 라이브러리를 직접 설치할 수 없습니다." 반드시 가상환경을 사용하세요.</p>
+    <pre><code># 프로젝트별 가상환경
+python -m venv env
+source env/bin/activate
+(env) pip install &lt;package&gt;
+(env) deactivate
+
+# 사용자 레벨 가상환경
+python -m venv ~/.env
+source ~/.env/bin/activate</code></pre>
+    <p>팁 - 가상환경에서 시스템 패키지도 쓰려면: <code>python -m venv env --system-site-packages</code></p>
+    <p>기본 탑재된 파이썬 IDE인 Thonny에서는 우측 하단 메뉴로 인터프리터(가상환경)를 선택/구성할 수 있습니다.</p>
+
+    <h2>Python으로 GPIO 제어</h2>
+    <p>GPIO Zero 라이브러리를 사용합니다.</p>
+    <pre><code>from gpiozero import LED
+led = LED(17)
+led.on()
+led.off()</code></pre>
+    <p>전체 문서: <a href="https://gpiozero.readthedocs.io/">gpiozero.readthedocs.io</a></p>
+</div>
+
+<footer>
+    <div class="footer-grid">
+        <div>
+            <h4><a href="https://www.raspberrypi.com/raspberry-pi-store/">Raspberry Pi 스토어</a></h4>
+            <p>Raspberry Pi에 관한 모든 것을 만날 수 있는 케임브리지의 원스톱 매장.</p>
+        </div>
+        <div>
+            <h4><a href="https://events.raspberrypi.com">Raspberry Pi 이벤트</a></h4>
+            <p>Raspberry Pi를 직접 만나거나, 가까운 커뮤니티 이벤트를 찾아보세요.</p>
+        </div>
+        <div>
+            <h4><a href="https://www.raspberrypi.org">Raspberry Pi 재단</a></h4>
+            <p>전 세계 사람들의 손에 컴퓨팅과 디지털 메이킹의 힘을 쥐어주고 있습니다.</p>
+        </div>
+    </div>
+    <div class="disclaimer">
+        이 페이지는 raspberrypi.com/documentation/computers/os.html 을 한글로 번역한 비공식 미러입니다(314단계).
+        이미지파일/함수명/명령어/소스코드는 원문 그대로 영문 유지했습니다. 분량이 매우 길어 핵심 내용 위주로
+        정리했으며, 정확한 최신 원문은 실제 raspberrypi.com 문서를 참고하세요.
+        상표의 권리는 Raspberry Pi Ltd.에 있습니다.
+    </div>
+</footer>
+
+</body>
+</html>

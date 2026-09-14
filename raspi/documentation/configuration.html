@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>환경 설정 - 라베파 (Raspberry Pi 한글 미러)</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <a class="logo" href="../">라베파 (Raspberry Pi)</a>
+        <div class="notice">비공식 한글 미리보기 · 314단계</div>
+        <a class="btn btn-primary" href="../products.html">제품 둘러보기</a>
+    </div>
+    <nav class="main-nav">
+        <a href="../products.html">제품</a>
+        <a href="../software.html">소프트웨어</a>
+        <a href="../documentation.html" class="current">문서</a>
+        <a href="../downloads.html">다운로드</a>
+        <a href="../news.html">뉴스</a>
+        <a href="https://www.raspberrypi.org/">커뮤니티</a>
+        <a href="../about.html">회사 소개</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="breadcrumb"><a href="../documentation.html">문서</a> / 환경 설정</div>
+    <h1>환경 설정</h1>
+</div>
+
+<div class="doc-page">
+    <h2>설정 방법 3가지</h2>
+    <ol>
+        <li><b>데스크탑 GUI</b> — 디스플레이가 있는 사용자를 위한 Control Centre 시각적 인터페이스</li>
+        <li><b>raspi-config(터미널 메뉴)</b> — 세밀한 제어가 가능한 텍스트 기반 대화형 메뉴</li>
+        <li><b>직접 CLI 편집</b> — 설정 파일을 수동으로 편집하거나 커맨드라인 사용</li>
+    </ol>
+
+    <h2>오디오/영상 출력</h2>
+    <h3>오디오 설정</h3>
+    <p>HDMI, 3.5mm 헤드폰 잭, USB 오디오 장치 중에서 선택할 수 있습니다. 기본은 첫 번째 HDMI 장치이며, 필요 시 헤드폰 잭이나 USB로 자동 전환됩니다.</p>
+    <pre><code>wpctl status
+wpctl set-default &lt;ID&gt;</code></pre>
+    <h3>디스플레이 설정</h3>
+    <ul>
+        <li><b>Pi Zero/Zero 2W</b>: mini HDMI 1개, 최대 1920×1080</li>
+        <li><b>Pi 4B/400/CM4</b>: micro HDMI 2개, 4K@30Hz 듀얼 또는 4K@60Hz 단일</li>
+        <li><b>Pi 5/500/500+/CM5</b>: micro HDMI 2개, 4K@60Hz 듀얼</li>
+    </ul>
+    <p>콘솔 모드 디스플레이는 <code>/boot/firmware/cmdline.txt</code>의 커널 파라미터로 설정합니다.</p>
+    <pre><code>video=&lt;display&gt;:&lt;width&gt;x&lt;height&gt;M@&lt;refresh_rate&gt;
+# 예: video=HDMI-A-1:1920x1080M@60</code></pre>
+
+    <h3>화면 꺼짐(Screen Blanking)</h3>
+    <p>기본 10분 동안 조작이 없으면 꺼지도록 설정 가능합니다. cmdline.txt에 <code>consoleblank=600</code>처럼 초 단위로 지정합니다.</p>
+
+    <h2>네트워킹</h2>
+    <h3>호스트명 설정</h3>
+    <p>호스트명을 설정하면 mDNS로 <code>pi@my-pi.local</code>처럼 접속할 수 있습니다. 영문 소문자, 숫자, 하이픈만 사용 가능합니다.</p>
+    <h3>DHCP vs 고정 IP</h3>
+    <p>기기에 고정 IP를 직접 설정하기보다, 잘못된 설정이나 접속 장애를 피하기 위해 <b>공유기에서 DHCP 예약</b>을 하는 방식을 권장합니다.</p>
+    <h3>네트워크 우선순위</h3>
+    <p>우선순위 숫자가 높을수록 먼저 연결됩니다. 0은 중립, 음수는 가장 낮은 우선순위입니다.</p>
+    <pre><code># 우선순위 확인
+nmcli --fields AUTOCONNECT-PRIORITY,NAME connection
+
+# 우선순위 설정
+sudo nmcli connection modify "Network Name" connection.autoconnect-priority 10</code></pre>
+
+    <h2>무선 연결</h2>
+    <h3>WLAN 국가 설정</h3>
+    <p>"듀얼밴드 무선을 갖춘 Raspberry Pi 기기는, 안전을 위해 WLAN 국가(Country)를 설정하기 전까지는 네트워킹이 자동으로 비활성화됩니다." 올바른 주파수 대역 선택을 위해 반드시 필요합니다.</p>
+    <h3>네트워크 찾기</h3>
+    <pre><code>nmcli dev wifi list</code></pre>
+    <h3>네트워크 연결</h3>
+    <p>WEP, WPA, WPA2, WPA3를 지원합니다. 숨겨진 네트워크는 "숨겨진 무선 네트워크에 연결" 메뉴에서 수동으로 입력합니다.</p>
+
+    <h2>그 외 설정 항목</h2>
+    <p>이 가이드는 이 외에도 시스템 지역화, 사용자 접근 관리, 원격 접속 설정, 하드웨어 통신 인터페이스(I2C/SPI/UART), 성능 튜닝, LED 동작 커스터마이즈, 부팅 동작 설정까지 다루며, 전부 위 3가지 방법 중 하나로 접근할 수 있습니다.</p>
+</div>
+
+<footer>
+    <div class="footer-grid">
+        <div>
+            <h4><a href="https://www.raspberrypi.com/raspberry-pi-store/">Raspberry Pi 스토어</a></h4>
+            <p>Raspberry Pi에 관한 모든 것을 만날 수 있는 케임브리지의 원스톱 매장.</p>
+        </div>
+        <div>
+            <h4><a href="https://events.raspberrypi.com">Raspberry Pi 이벤트</a></h4>
+            <p>Raspberry Pi를 직접 만나거나, 가까운 커뮤니티 이벤트를 찾아보세요.</p>
+        </div>
+        <div>
+            <h4><a href="https://www.raspberrypi.org">Raspberry Pi 재단</a></h4>
+            <p>전 세계 사람들의 손에 컴퓨팅과 디지털 메이킹의 힘을 쥐어주고 있습니다.</p>
+        </div>
+    </div>
+    <div class="disclaimer">
+        이 페이지는 raspberrypi.com/documentation/computers/configuration.html 을 한글로 번역한 비공식
+        미러입니다(314단계). 이미지파일/함수명/명령어/소스코드는 원문 그대로 영문 유지했습니다. 분량이 매우 길어
+        핵심 내용 위주로 정리했으며, 정확한 최신 원문은 실제 raspberrypi.com 문서를 참고하세요.
+        상표의 권리는 Raspberry Pi Ltd.에 있습니다.
+    </div>
+</footer>
+
+</body>
+</html>
