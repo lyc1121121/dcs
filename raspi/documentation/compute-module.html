@@ -81,6 +81,8 @@
                         <li><a href="#sec-1">Compute Module이란?</a></li>
                         <li><a href="#sec-2">IO 보드와의 관계</a></li>
                         <li><a href="#sec-3">현재 모델</a></li>
+                        <li><a href="#sec-4">eMMC에 이미지 플래시하기</a></li>
+                        <li><a href="#sec-5">EEPROM 부트로더 설정</a></li>
                 </ul>
             </li>
             <li>
@@ -122,6 +124,20 @@
         <tr><td>CM3+(2019)</td><td>BCM2837B0</td><td>1GB</td><td>0~64GB eMMC</td><td>DDR2 SODIMM</td></tr>
     </table>
     <p>최신 모델인 CM5는 Raspberry Pi 5의 구성요소와 온보드 플래시 저장공간 옵션을 결합해, 새로운 산업용 설계의 현재 표준으로 자리잡고 있습니다.</p>
+
+    <h2 id="sec-4">eMMC에 이미지 플래시하기</h2>
+    <p>호스트 컴퓨터에서 USB를 통해 Compute Module의 eMMC 저장장치에 OS 이미지를 기록하는 방식입니다. 해당 IO 보드, USB 케이블, <code>rpiboot</code>나 Raspberry Pi Imager 같은 소프트웨어가 필요합니다.</p>
+    <p><b>IO 보드 준비</b> — Compute Module을 해당 IO 보드에 연결합니다. CM5IO의 경우 <code>nRPI_BOOT</code> 점퍼를 J2에 꽂고, USB-C 슬레이브 포트를 호스트 컴퓨터에 연결합니다.</p>
+    <p><b>이미지 플래시</b> — 호스트에서 <code>rpiboot</code>를 실행해 Compute Module이 대용량 저장장치로 인식되면 아래 명령으로 기록합니다.</p>
+    <pre><code>sudo dd if=raw_os_image.img of=/dev/sdX bs=4MiB</code></pre>
+    <p><b>eMMC로 부팅</b> — IO 보드의 점퍼에서 <code>nRPI_BOOT</code>를 J2에서 분리(eMMC 부팅 비활성화 해제)한 뒤 전원을 다시 연결하면 방금 플래시한 이미지로 부팅됩니다.</p>
+
+    <h2 id="sec-5">EEPROM 부트로더 설정</h2>
+    <p>CM4 이후 Compute Module은 부팅 파티션에 저장된 펌웨어 대신 EEPROM 부트로더를 사용합니다. 특정 부트로더 릴리스를 선택하고, 부팅 장치 순서를 설정하고, 쓰기 방지를 활성화하는 것이 권장 사항입니다.</p>
+    <p><b>부트로더 플래시</b> — eMMC 플래시와 동일하게 하드웨어를 준비하되 <code>EEPROM_nWP</code>가 로우로 당겨져 있지 않은지 확인한 뒤 실행합니다.</p>
+    <pre><code>./rpiboot -d recovery</code></pre>
+    <p><b>설정 변경</b> — <code>boot.conf</code> 파일을 편집해 <code>BOOT_ORDER</code>를 설정합니다(예: 네트워크 부팅은 <code>0xf2</code>, SD/eMMC는 <code>0xf1</code>, NVMe는 <code>0xf6</code>). <code>update-pieeprom.sh</code>를 실행한 뒤 아래 명령으로 플래시합니다.</p>
+    <pre><code>../rpiboot -d .</code></pre>
 </div>
 </div>
 
