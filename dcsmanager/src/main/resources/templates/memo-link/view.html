@@ -63,6 +63,20 @@
         .note-color-popup.open { display: flex; }
         .note-pasted-image { max-width: 100%; border-radius: 4px; margin: 4px 0; display: block; }
         #jobradarNotesList { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+        /* 316단계 추가: 메모 검색창/페이지당 개수 선택/페이지 번호 - 메모가 많아지면서
+           한 페이지에 전부 렌더링하는 게 느려서 서버 페이지네이션+검색으로 개선 */
+        .note-list-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 16px; }
+        .note-search-input {
+            flex: 1 1 220px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px;
+        }
+        .note-list-toolbar select { padding: 4px 6px; border: 1px solid #ccc; border-radius: 4px; }
+        .note-pagination { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 16px; }
+        .note-pagination button {
+            min-width: 32px; padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; background: #fff;
+            cursor: pointer; font-size: 13px;
+        }
+        .note-pagination button.active { background: #2f6fed; color: #fff; border-color: #2f6fed; font-weight: 700; }
+        .note-pagination button:disabled { opacity: .4; cursor: default; }
         .note-item { border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px 14px; background: #fafafa; }
         .note-meta { font-size: 12px; color: #888; margin-bottom: 6px; }
         .note-content { white-space: pre-wrap; word-break: break-word; font-size: 14px; line-height: 1.5; margin-bottom: 8px; }
@@ -123,7 +137,17 @@
                 <span id="notesStatus" class="hint"></span>
             </div>
 
+            <div class="note-list-toolbar">
+                <input type="text" class="note-search-input" id="jobradarNotesSearch" placeholder="🔍 메모 검색..."
+                       oninput="onNoteSearchInput('jobradar')">
+                <label class="hint">페이지당 <select id="jobradarNotesPageSize" onchange="onNotePageSizeChange('jobradar')">
+                    <option value="5">5</option><option value="10" selected>10</option><option value="15">15</option>
+                    <option value="20">20</option><option value="30">30</option><option value="40">40</option>
+                    <option value="50">50</option><option value="100">100</option>
+                </select>개</label>
+            </div>
             <div id="jobradarNotesList"><div class="memo-link-empty">불러오는 중...</div></div>
+            <div id="jobradarNotesPagination" class="note-pagination"></div>
         </div>
 
         <div id="panelTechNotes" class="memo-link-panel">
@@ -148,7 +172,17 @@
                 <span id="techNotesStatus" class="hint"></span>
             </div>
 
+            <div class="note-list-toolbar">
+                <input type="text" class="note-search-input" id="techNotesSearch" placeholder="🔍 메모 검색..."
+                       oninput="onNoteSearchInput('tech')">
+                <label class="hint">페이지당 <select id="techNotesPageSize" onchange="onNotePageSizeChange('tech')">
+                    <option value="5">5</option><option value="10" selected>10</option><option value="15">15</option>
+                    <option value="20">20</option><option value="30">30</option><option value="40">40</option>
+                    <option value="50">50</option><option value="100">100</option>
+                </select>개</label>
+            </div>
             <div id="techNotesList"><div class="memo-link-empty">불러오는 중...</div></div>
+            <div id="techNotesPagination" class="note-pagination"></div>
         </div>
 
         <div id="panelBackupNotes" class="memo-link-panel">
@@ -173,7 +207,17 @@
                 <span id="backupNotesStatus" class="hint"></span>
             </div>
 
+            <div class="note-list-toolbar">
+                <input type="text" class="note-search-input" id="backupNotesSearch" placeholder="🔍 메모 검색..."
+                       oninput="onNoteSearchInput('backup')">
+                <label class="hint">페이지당 <select id="backupNotesPageSize" onchange="onNotePageSizeChange('backup')">
+                    <option value="5">5</option><option value="10" selected>10</option><option value="15">15</option>
+                    <option value="20">20</option><option value="30">30</option><option value="40">40</option>
+                    <option value="50">50</option><option value="100">100</option>
+                </select>개</label>
+            </div>
             <div id="backupNotesList"><div class="memo-link-empty">불러오는 중...</div></div>
+            <div id="backupNotesPagination" class="note-pagination"></div>
         </div>
 
         <div id="panelPrivateNotes" class="memo-link-panel">
@@ -237,11 +281,13 @@
     // 167단계: 기술메모 탭이 추가되면서, 원래 JobRadar 메모 전용이던 CRUD 함수들을
     // kind('jobradar'|'tech') 파라미터로 일반화했다. 기술메모에만 카카오톡 전송 버튼이
     // 붙는다(파일탐색기의 카카오톡 전송과 같은 취지 - 이번엔 파일이 아니라 메모 텍스트).
+    // 316단계 추가: page/size/query/totalPages - 서버 페이지네이션+검색 상태
     var NOTE_KINDS = {
-        jobradar: { apiUrl: '/memo-link/jobradar-notes', listId: 'jobradarNotesList', newEditorId: 'noteNewContent', statusId: 'notesStatus', cache: [], editingId: null, kakao: false, autoSaveId: null, editAutoSaveTimer: null },
-        tech: { apiUrl: '/memo-link/tech-notes', listId: 'techNotesList', newEditorId: 'techNoteNewContent', statusId: 'techNotesStatus', cache: [], editingId: null, kakao: true, autoSaveId: null, editAutoSaveTimer: null },
-        backup: { apiUrl: '/memo-link/backup-notes', listId: 'backupNotesList', newEditorId: 'backupNoteNewContent', statusId: 'backupNotesStatus', cache: [], editingId: null, kakao: true, autoSaveId: null, editAutoSaveTimer: null }
+        jobradar: { apiUrl: '/memo-link/jobradar-notes', listId: 'jobradarNotesList', newEditorId: 'noteNewContent', statusId: 'notesStatus', cache: [], editingId: null, kakao: false, autoSaveId: null, editAutoSaveTimer: null, page: 0, size: 10, query: '', totalPages: 1 },
+        tech: { apiUrl: '/memo-link/tech-notes', listId: 'techNotesList', newEditorId: 'techNoteNewContent', statusId: 'techNotesStatus', cache: [], editingId: null, kakao: true, autoSaveId: null, editAutoSaveTimer: null, page: 0, size: 10, query: '', totalPages: 1 },
+        backup: { apiUrl: '/memo-link/backup-notes', listId: 'backupNotesList', newEditorId: 'backupNoteNewContent', statusId: 'backupNotesStatus', cache: [], editingId: null, kakao: true, autoSaveId: null, editAutoSaveTimer: null, page: 0, size: 10, query: '', totalPages: 1 }
     };
+    var notePagePrefix = { jobradar: 'jobradarNotes', tech: 'techNotes', backup: 'backupNotes' };
     var noteSavedRange = null;
 
     function noteEditorIdFor(kind, id) {
@@ -482,17 +528,22 @@
         var state = NOTE_KINDS[kind];
         var list = document.getElementById(state.listId);
         if (!state.cache.length) {
-            list.innerHTML = '<div class="memo-link-empty">등록된 메모가 없습니다.</div>';
+            list.innerHTML = '<div class="memo-link-empty">' +
+                (state.query ? '검색 결과가 없습니다.' : '등록된 메모가 없습니다.') + '</div>';
             return;
         }
         list.innerHTML = state.cache.map(function (n) { return noteItemHtml(kind, n); }).join('');
     }
 
+    // 316단계 추가: page/size/q를 서버에 그대로 전달해서, 서버가 페이지네이션과
+    // 검색을 처리한 결과(해당 페이지 분량 + totalPages)만 받아온다.
     function loadNotes(kind) {
         var state = NOTE_KINDS[kind];
         var status = document.getElementById(state.statusId);
         status.textContent = '불러오는 중...';
-        fetch(state.apiUrl)
+        var url = state.apiUrl + '?page=' + state.page + '&size=' + state.size
+            + (state.query ? '&q=' + encodeURIComponent(state.query) : '');
+        fetch(url)
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (data.error) {
@@ -501,12 +552,68 @@
                     return;
                 }
                 state.cache = data.notes || [];
+                state.totalPages = data.totalPages || 1;
                 renderNotes(kind);
-                status.textContent = '';
+                renderNotePagination(kind);
+                status.textContent = state.query
+                    ? ('"' + state.query + '" 검색 결과 ' + (data.totalElements || 0) + '건')
+                    : '';
             })
             .catch(function () {
                 status.textContent = '불러오기 실패';
             });
+    }
+
+    // 316단계 추가: 하단 페이지 번호 버튼(1,2,3...) - 너무 많으면(10페이지 초과)
+    // 현재 페이지 주변만 보여주고 처음/끝/이전/다음 버튼으로 이동하게 함.
+    function renderNotePagination(kind) {
+        var state = NOTE_KINDS[kind];
+        var container = document.getElementById(notePagePrefix[kind] + 'Pagination');
+        if (!container) { return; }
+        if (state.totalPages <= 1) { container.innerHTML = ''; return; }
+
+        var current = state.page; // 0-based
+        var total = state.totalPages;
+        var html = '';
+        html += '<button type="button" ' + (current === 0 ? 'disabled' : '') +
+            ' onclick="goToNotePage(\'' + kind + '\', ' + (current - 1) + ')">이전</button>';
+
+        var start = Math.max(0, current - 3);
+        var end = Math.min(total - 1, current + 3);
+        for (var i = start; i <= end; i++) {
+            html += '<button type="button" class="' + (i === current ? 'active' : '') +
+                '" onclick="goToNotePage(\'' + kind + '\', ' + i + ')">' + (i + 1) + '</button>';
+        }
+
+        html += '<button type="button" ' + (current >= total - 1 ? 'disabled' : '') +
+            ' onclick="goToNotePage(\'' + kind + '\', ' + (current + 1) + ')">다음</button>';
+        container.innerHTML = html;
+    }
+
+    function goToNotePage(kind, page) {
+        var state = NOTE_KINDS[kind];
+        if (page < 0 || page > state.totalPages - 1) { return; }
+        state.page = page;
+        loadNotes(kind);
+    }
+
+    var noteSearchDebounce = {};
+
+    function onNoteSearchInput(kind) {
+        var input = document.getElementById(notePagePrefix[kind] + 'Search');
+        clearTimeout(noteSearchDebounce[kind]);
+        noteSearchDebounce[kind] = setTimeout(function () {
+            NOTE_KINDS[kind].query = input.value.trim();
+            NOTE_KINDS[kind].page = 0;
+            loadNotes(kind);
+        }, 350);
+    }
+
+    function onNotePageSizeChange(kind) {
+        var select = document.getElementById(notePagePrefix[kind] + 'PageSize');
+        NOTE_KINDS[kind].size = parseInt(select.value, 10) || 10;
+        NOTE_KINDS[kind].page = 0;
+        loadNotes(kind);
     }
 
     function addNote(kind) {
@@ -552,6 +659,8 @@
                 state.autoSaveId = null;
                 localStorage.removeItem(noteAutoSaveIdKey(kind));
                 status.textContent = '';
+                // 316단계: 새로 추가한 메모는 최신순 정렬상 1페이지에 나타나므로 이동
+                state.page = 0;
                 loadNotes(kind);
             })
             .catch(function (e) {
@@ -657,6 +766,8 @@
                 localStorage.removeItem(noteEditDraftKey(kind, id));
                 stopEditAutoSave(kind);
                 NOTE_KINDS[kind].editingId = null;
+                // 316단계: 수정한 메모는 최신순 정렬상 1페이지로 올라오므로 이동
+                NOTE_KINDS[kind].page = 0;
                 loadNotes(kind);
             })
             .catch(function (e) {

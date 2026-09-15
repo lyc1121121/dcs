@@ -7,6 +7,9 @@ import com.dcsmanager.repository.TechNoteRepository;
 import com.dcsmanager.service.KakaoNotifier;
 import com.dcsmanager.service.PageContentService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -100,10 +103,24 @@ public class MemoLinkController {
 
     // ---- JobRadar 메모 중계(조회/추가/수정/삭제 모두 JobRadar API를 그대로 호출) ----
 
+    // 316단계 추가: 메모화면 페이지네이션/검색 - JobRadar API도 같은 파라미터를
+    // 지원하도록 함께 수정했으므로 그대로 전달(중계)한다.
     @GetMapping("/jobradar-notes")
     @ResponseBody
-    public ResponseEntity<String> listJobradarNotes() {
-        return proxy(HttpMethod.GET, jobradarNotesUrl, null);
+    public ResponseEntity<String> listJobradarNotes(@RequestParam(defaultValue = "0") int page,
+                                                     @RequestParam(defaultValue = "10") int size,
+                                                     @RequestParam(required = false) String q) {
+        StringBuilder url = new StringBuilder(jobradarNotesUrl)
+                .append("?page=").append(page)
+                .append("&size=").append(size);
+        if (q != null && !q.trim().isEmpty()) {
+            try {
+                url.append("&q=").append(java.net.URLEncoder.encode(q.trim(), "UTF-8"));
+            } catch (java.io.UnsupportedEncodingException e) {
+                // UTF-8은 항상 지원되므로 실제로는 발생하지 않음
+            }
+        }
+        return proxy(HttpMethod.GET, url.toString(), null);
     }
 
     @PostMapping("/jobradar-notes")
@@ -171,15 +188,28 @@ public class MemoLinkController {
     // ---- 167단계: "기술메모" 탭 - JobRadar 메모와 같은 기능(리치텍스트/이미지 붙여넣기/
     // 추가·수정·삭제)이지만 DCSManager 자체 DB(tech_note 테이블)에 저장한다. ----
 
+    // 316단계 추가: 메모가 많아지면서 한 페이지에 전부 렌더링하느라 로딩/수정 시
+    // 느려진다는 요청 - 페이지네이션(기본 10개, 5~100 선택)과 검색(전체 대상)을
+    // 서버에서 처리한다. q가 있으면 검색 결과만, 없으면 전체를 페이지네이션.
     @GetMapping("/tech-notes")
     @ResponseBody
-    public Map<String, Object> listTechNotes() {
+    public Map<String, Object> listTechNotes(@RequestParam(defaultValue = "0") int page,
+                                              @RequestParam(defaultValue = "10") int size,
+                                              @RequestParam(required = false) String q) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<TechNote> result = (q == null || q.trim().isEmpty())
+                ? techNoteRepository.findAllByOrderByUpdatedAtDesc(pageable)
+                : techNoteRepository.findByContentContainingIgnoreCaseOrderByUpdatedAtDesc(q.trim(), pageable);
         List<Map<String, Object>> notes = new ArrayList<>();
-        for (TechNote n : techNoteRepository.findAllByOrderByUpdatedAtDesc()) {
+        for (TechNote n : result.getContent()) {
             notes.add(techNoteToMap(n));
         }
         Map<String, Object> body = new HashMap<>();
         body.put("notes", notes);
+        body.put("page", page);
+        body.put("size", size);
+        body.put("totalPages", result.getTotalPages());
+        body.put("totalElements", result.getTotalElements());
         return body;
     }
 
@@ -289,15 +319,26 @@ public class MemoLinkController {
     // 남겨두는 용도. 기능은 기술메모(167단계)와 완전히 동일하지만 데이터는 별개
     // (backup_note 테이블)로 관리한다. ----
 
+    // 316단계 추가: 기술메모와 동일한 페이지네이션/검색
     @GetMapping("/backup-notes")
     @ResponseBody
-    public Map<String, Object> listBackupNotes() {
+    public Map<String, Object> listBackupNotes(@RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "10") int size,
+                                                @RequestParam(required = false) String q) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<BackupNote> result = (q == null || q.trim().isEmpty())
+                ? backupNoteRepository.findAllByOrderByUpdatedAtDesc(pageable)
+                : backupNoteRepository.findByContentContainingIgnoreCaseOrderByUpdatedAtDesc(q.trim(), pageable);
         List<Map<String, Object>> notes = new ArrayList<>();
-        for (BackupNote n : backupNoteRepository.findAllByOrderByUpdatedAtDesc()) {
+        for (BackupNote n : result.getContent()) {
             notes.add(backupNoteToMap(n));
         }
         Map<String, Object> body = new HashMap<>();
         body.put("notes", notes);
+        body.put("page", page);
+        body.put("size", size);
+        body.put("totalPages", result.getTotalPages());
+        body.put("totalElements", result.getTotalElements());
         return body;
     }
 
