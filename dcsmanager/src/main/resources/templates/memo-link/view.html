@@ -79,8 +79,14 @@
         .note-pagination button:disabled { opacity: .4; cursor: default; }
         .note-item { border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px 14px; background: #fafafa; }
         .note-meta { font-size: 12px; color: #888; margin-bottom: 6px; }
+        /* 328단계 추가: 메모에 링크가 있을 때 보여주는 배지, 본문 안 링크 스타일 */
+        .note-link-badge {
+            display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 10px;
+            background: #eaf1ff; color: #2f6fed; font-size: 11px; font-weight: 700; vertical-align: middle;
+        }
         .note-content { white-space: pre-wrap; word-break: break-word; font-size: 14px; line-height: 1.5; margin-bottom: 8px; }
         .note-content img { max-width: 100%; border-radius: 6px; margin: 6px 0; }
+        .note-content a { color: #2f6fed; text-decoration: underline; word-break: break-all; }
         .note-actions { display: flex; gap: 8px; }
         .note-item .note-editable { margin-bottom: 8px; background: #fff; }
         .btn-delete-note { border-color: #d9534f; color: #d9534f; }
@@ -319,6 +325,27 @@
         document.getElementById(editorId).focus();
     }
 
+    // 328단계 추가: 메모 본문에 URL이 있으면 "🔗 링크" 배지를 보여주고, plain text로
+    // 붙여넣은 URL도 실제 클릭 가능한 링크로 바꿔준다. 기존 태그/속성(예: <img src=...>,
+    // 이미 있는 <a href=...>)은 절대 건드리지 않고, 태그 밖의 일반 텍스트에서만 URL을
+    // 찾아 치환한다(태그 vs 텍스트를 구분해서 순회하는 정규식).
+    function noteHasLink(content) {
+        return /https?:\/\//i.test(content);
+    }
+
+    function linkifyHtml(html) {
+        return html.replace(/(<a\b[^>]*>[\s\S]*?<\/a>)|(<[^>]+>)|([^<]+)/gi, function (match, aTag, tag, text) {
+            if (aTag || tag) { return match; }
+            return text.replace(/(https?:\/\/[^\s<]+)/gi, function (url) {
+                var trail = '';
+                var m = url.match(/[).,!?;:'"]+$/);
+                if (m) { trail = m[0]; url = url.slice(0, url.length - trail.length); }
+                var safeUrl = url.replace(/"/g, '&quot;');
+                return '<a href="' + safeUrl + '" target="_blank" rel="noopener">' + url + '</a>' + trail;
+            });
+        });
+    }
+
     function noteSaveSelection() {
         var sel = window.getSelection();
         if (sel.rangeCount > 0) { noteSavedRange = sel.getRangeAt(0); }
@@ -513,9 +540,10 @@
             ? '<button type="button" class="btn" onclick="noteKakaoSend(\'' + kind + '\', ' + note.id + ')">📩 카카오톡으로 보내기</button>' +
               '<span id="kakaoStatus-' + kind + '-' + note.id + '" class="hint"></span>'
             : '';
+        var linkBadge = noteHasLink(note.content) ? '<span class="note-link-badge" title="이 메모에 링크가 있습니다">🔗 링크</span>' : '';
         return '<div class="note-item" data-id="' + note.id + '">' +
-            '<div class="note-meta">' + meta + '</div>' +
-            '<div class="note-content">' + note.content + '</div>' +
+            '<div class="note-meta">' + meta + linkBadge + '</div>' +
+            '<div class="note-content">' + linkifyHtml(note.content) + '</div>' +
             '<div class="note-actions">' +
                 '<button type="button" class="btn" onclick="startEditNote(\'' + kind + '\', ' + note.id + ')">수정</button>' +
                 '<button type="button" class="btn btn-delete-note" onclick="deleteNote(\'' + kind + '\', ' + note.id + ')">삭제</button>' +
