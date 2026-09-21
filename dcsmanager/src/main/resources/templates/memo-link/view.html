@@ -145,7 +145,8 @@
 
             <div class="note-list-toolbar">
                 <input type="text" class="note-search-input" id="jobradarNotesSearch" placeholder="🔍 메모 검색..."
-                       oninput="onNoteSearchInput('jobradar')">
+                       onkeydown="if (event.key === 'Enter') { onNoteSearchSubmit('jobradar'); }">
+                <button type="button" class="btn btn-primary" onclick="onNoteSearchSubmit('jobradar')">검색</button>
                 <label class="hint">페이지당 <select id="jobradarNotesPageSize" onchange="onNotePageSizeChange('jobradar')">
                     <option value="5">5</option><option value="10" selected>10</option><option value="15">15</option>
                     <option value="20">20</option><option value="30">30</option><option value="40">40</option>
@@ -180,7 +181,8 @@
 
             <div class="note-list-toolbar">
                 <input type="text" class="note-search-input" id="techNotesSearch" placeholder="🔍 메모 검색..."
-                       oninput="onNoteSearchInput('tech')">
+                       onkeydown="if (event.key === 'Enter') { onNoteSearchSubmit('tech'); }">
+                <button type="button" class="btn btn-primary" onclick="onNoteSearchSubmit('tech')">검색</button>
                 <label class="hint">페이지당 <select id="techNotesPageSize" onchange="onNotePageSizeChange('tech')">
                     <option value="5">5</option><option value="10" selected>10</option><option value="15">15</option>
                     <option value="20">20</option><option value="30">30</option><option value="40">40</option>
@@ -215,7 +217,8 @@
 
             <div class="note-list-toolbar">
                 <input type="text" class="note-search-input" id="backupNotesSearch" placeholder="🔍 메모 검색..."
-                       oninput="onNoteSearchInput('backup')">
+                       onkeydown="if (event.key === 'Enter') { onNoteSearchSubmit('backup'); }">
+                <button type="button" class="btn btn-primary" onclick="onNoteSearchSubmit('backup')">검색</button>
                 <label class="hint">페이지당 <select id="backupNotesPageSize" onchange="onNotePageSizeChange('backup')">
                     <option value="5">5</option><option value="10" selected>10</option><option value="15">15</option>
                     <option value="20">20</option><option value="30">30</option><option value="40">40</option>
@@ -625,16 +628,24 @@
         loadNotes(kind);
     }
 
-    var noteSearchDebounce = {};
-
-    function onNoteSearchInput(kind) {
+    // 318단계: 입력할 때마다 자동검색하던 것을 "검색" 버튼(또는 Enter)을 눌렀을 때만
+    // 검색하도록 변경. 검색어가 비어있으면 전체 메모를 최근순으로 1페이지부터 표시.
+    // (317/318단계 이전 코드 - 입력 즉시 350ms 디바운스로 자동검색. 318단계에서 검색 버튼 방식으로 대체되어 주석 처리)
+    // var noteSearchDebounce = {};
+    // function onNoteSearchInput(kind) {
+    //     clearTimeout(noteSearchDebounce[kind]);
+    //     noteSearchDebounce[kind] = setTimeout(function () {
+    //         var input = document.getElementById(notePagePrefix[kind] + 'Search');
+    //         NOTE_KINDS[kind].query = input.value.trim();
+    //         NOTE_KINDS[kind].page = 0;
+    //         loadNotes(kind);
+    //     }, 350);
+    // }
+    function onNoteSearchSubmit(kind) {
         var input = document.getElementById(notePagePrefix[kind] + 'Search');
-        clearTimeout(noteSearchDebounce[kind]);
-        noteSearchDebounce[kind] = setTimeout(function () {
-            NOTE_KINDS[kind].query = input.value.trim();
-            NOTE_KINDS[kind].page = 0;
-            loadNotes(kind);
-        }, 350);
+        NOTE_KINDS[kind].query = input.value.trim();
+        NOTE_KINDS[kind].page = 0;
+        loadNotes(kind);
     }
 
     function onNotePageSizeChange(kind) {

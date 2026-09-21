@@ -199,7 +199,7 @@ public class MemoLinkController {
         Pageable pageable = PageRequest.of(page, size);
         Page<TechNote> result = (q == null || q.trim().isEmpty())
                 ? techNoteRepository.findAllByOrderByUpdatedAtDesc(pageable)
-                : techNoteRepository.findByContentContainingIgnoreCaseOrderByUpdatedAtDesc(q.trim(), pageable);
+                : techNoteRepository.searchVisibleText(escapeLike(q.trim()), pageable);
         List<Map<String, Object>> notes = new ArrayList<>();
         for (TechNote n : result.getContent()) {
             notes.add(techNoteToMap(n));
@@ -328,7 +328,7 @@ public class MemoLinkController {
         Pageable pageable = PageRequest.of(page, size);
         Page<BackupNote> result = (q == null || q.trim().isEmpty())
                 ? backupNoteRepository.findAllByOrderByUpdatedAtDesc(pageable)
-                : backupNoteRepository.findByContentContainingIgnoreCaseOrderByUpdatedAtDesc(q.trim(), pageable);
+                : backupNoteRepository.searchVisibleText(escapeLike(q.trim()), pageable);
         List<Map<String, Object>> notes = new ArrayList<>();
         for (BackupNote n : result.getContent()) {
             notes.add(backupNoteToMap(n));
@@ -423,5 +423,10 @@ public class MemoLinkController {
         m.put("created_at", n.getCreatedAt().format(ISO));
         m.put("updated_at", n.getUpdatedAt().format(ISO));
         return m;
+    }
+
+    /** LIKE 와일드카드(% _ \)를 사용자가 검색어로 입력해도 글자 그대로 검색되게 이스케이프. */
+    private static String escapeLike(String s) {
+        return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 }
