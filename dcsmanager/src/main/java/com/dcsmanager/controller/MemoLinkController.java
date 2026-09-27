@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -110,17 +111,26 @@ public class MemoLinkController {
     public ResponseEntity<String> listJobradarNotes(@RequestParam(defaultValue = "0") int page,
                                                      @RequestParam(defaultValue = "10") int size,
                                                      @RequestParam(required = false) String q) {
-        StringBuilder url = new StringBuilder(jobradarNotesUrl)
-                .append("?page=").append(page)
-                .append("&size=").append(size);
+        // 333단계: 한글 검색어(예: "콜롬")가 JobRadar 중계 검색에서 한 건도 안
+        // 나오던 문제 - RestTemplate.exchange(String, ...)는 문자열 URL을 받으면
+        // 내부적으로 다시 한 번 퍼센트 인코딩을 하기 때문에, 아래처럼 미리
+        // URLEncoder로 인코딩해서 넘기면 "%EC%BD%9C" 같은 결과가 다시 인코딩되어
+        // "%25EC%25BD%259C..."(2중 인코딩)로 전달돼 JobRadar가 글자를 그대로
+        // "%EC%BD%9C..." 문자열로 받아 검색이 안 됐음. 인코딩을 직접 하지 않고
+        // UriComponentsBuilder로 URI를 만들어 .encode()를 한 번만 거치도록 수정.
+        // try {
+        //     url.append("&q=").append(java.net.URLEncoder.encode(q.trim(), "UTF-8"));
+        // } catch (java.io.UnsupportedEncodingException e) {
+        //     // UTF-8은 항상 지원되므로 실제로는 발생하지 않음
+        // }
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(jobradarNotesUrl)
+                .queryParam("page", page)
+                .queryParam("size", size);
         if (q != null && !q.trim().isEmpty()) {
-            try {
-                url.append("&q=").append(java.net.URLEncoder.encode(q.trim(), "UTF-8"));
-            } catch (java.io.UnsupportedEncodingException e) {
-                // UTF-8은 항상 지원되므로 실제로는 발생하지 않음
-            }
+            builder.queryParam("q", q.trim());
         }
-        return proxy(HttpMethod.GET, url.toString(), null);
+        java.net.URI uri = builder.build().encode(java.nio.charset.StandardCharsets.UTF_8).toUri();
+        return proxy(HttpMethod.GET, uri, null);
     }
 
     @PostMapping("/jobradar-notes")
@@ -142,11 +152,18 @@ public class MemoLinkController {
     }
 
     private ResponseEntity<String> proxy(HttpMethod method, String url, String jsonBody) {
+        // 333단계: 문자열 URL을 그대로 받는 이 메서드는 RestTemplate이 URL을
+        // 다시 인코딩하므로, 이미 퍼센트 인코딩된 값(한글 검색어 등)이 들어있는
+        // URL은 여기로 넘기면 안 됨 - 그런 경우는 proxy(method, URI, jsonBody)를 쓴다.
+        return proxy(method, java.net.URI.create(url), jsonBody);
+    }
+
+    private ResponseEntity<String> proxy(HttpMethod method, java.net.URI uri, String jsonBody) {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> entity = jsonBody != null ? new HttpEntity<>(jsonBody, headers) : new HttpEntity<>(headers);
-            ResponseEntity<String> resp = restTemplate.exchange(url, method, entity, String.class);
+            ResponseEntity<String> resp = restTemplate.exchange(uri, method, entity, String.class);
             return ResponseEntity.status(resp.getStatusCode())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(resp.getBody());
