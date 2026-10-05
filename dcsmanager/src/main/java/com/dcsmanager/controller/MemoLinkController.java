@@ -530,8 +530,15 @@ public class MemoLinkController {
             String name = file.getOriginalFilename();
             att.setOriginalName(name == null || name.isEmpty() ? "(이름없음)" : name);
             att.setContentType(file.getContentType());
-            att.setFileSize(file.getSize());
-            att.setData(file.getBytes());
+            // 337단계: .txt 등 텍스트 파일을 클릭(미리보기)하면 한글이 깨지는 문제 -
+            // 윈도우에서 만든 텍스트 파일은 흔히 EUC-KR/CP949로 저장되는데, 그걸 그대로
+            // 저장해두면 다운로드할 때 브라우저가 UTF-8로 해석해서 깨짐. 업로드 시점에
+            // UTF-8이 아니면 EUC-KR로 가정해 디코딩한 뒤 UTF-8로 다시 인코딩해서 저장
+            // 바이트 자체를 항상 UTF-8로 통일한다(바이트 길이가 바뀔 수 있어 fileSize도
+            // 다시 계산).
+            byte[] data = normalizeTextEncoding(file.getBytes(), file.getContentType());
+            att.setData(data);
+            att.setFileSize((long) data.length);
             att.setCreatedAt(LocalDateTime.now());
             noteAttachmentRepository.save(att);
         } catch (IOException e) {
@@ -570,11 +577,40 @@ public class MemoLinkController {
             return;
         }
         NoteAttachment att = found.get();
-        response.setContentType(att.getContentType() != null ? att.getContentType() : "application/octet-stream");
+        String contentType = att.getContentType() != null ? att.getContentType() : "application/octet-stream";
+        // 337단계: text/* 는 charset을 안 주면 브라우저가 UTF-8이 아닌 걸로 짐작해서
+        // 인라인 미리보기에서 한글이 깨짐 - 저장할 때 이미 UTF-8로 통일했으므로 명시한다.
+        if (contentType.startsWith("text/") && contentType.indexOf("charset") < 0) {
+            contentType += "; charset=UTF-8";
+        }
+        response.setContentType(contentType);
         String encodedName = java.net.URLEncoder.encode(att.getOriginalName(), "UTF-8").replace("+", "%20");
         response.setHeader("Content-Disposition", "inline; filename*=UTF-8''" + encodedName);
         response.getOutputStream().write(att.getData());
         response.getOutputStream().flush();
+    }
+
+    /** 337단계: 텍스트 파일이 이미 UTF-8이면 그대로 두고, 아니면 EUC-KR(윈도우 한글 텍스트
+     * 파일의 흔한 기본값)로 가정해 디코딩한 뒤 UTF-8로 다시 인코딩해서 반환한다.
+     * 둘 다 아니라서 깨진 글자가 있는 파일은(드물게) 손 쓸 방법이 없어 원본 그대로 둔다. */
+    private static byte[] normalizeTextEncoding(byte[] data, String contentType) {
+        if (contentType == null || !contentType.startsWith("text/") || data.length == 0) {
+            return data;
+        }
+        java.nio.charset.CharsetDecoder utf8Decoder = java.nio.charset.StandardCharsets.UTF_8.newDecoder()
+                .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+                .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT);
+        try {
+            utf8Decoder.decode(java.nio.ByteBuffer.wrap(data));
+            return data;
+        } catch (Exception alreadyUtf8Failed) {
+            try {
+                String text = new String(data, "EUC-KR");
+                return text.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            } catch (Exception eucKrFailed) {
+                return data;
+            }
+        }
     }
 
     private List<Map<String, Object>> attachmentMetaList(String kind, long noteId) {
