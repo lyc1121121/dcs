@@ -150,8 +150,11 @@
             </div>
             <div id="noteNewContent" class="note-editable" contenteditable="true"
                  data-placeholder="여기에 붙여넣기(Ctrl+V) 하세요..." onpaste="handleNotePaste(event, this)"></div>
+            <div class="note-attachments" id="newAttachments-jobradar"></div>
             <div class="toolbar" style="margin-top:8px">
                 <button type="button" class="btn btn-primary" onclick="addNote('jobradar')">추가</button>
+                <input type="file" id="newAttachFile-jobradar" multiple style="display:none" onchange="queueNewAttachments('jobradar')">
+                <button type="button" class="btn" onclick="document.getElementById('newAttachFile-jobradar').click()">📎 파일첨부</button>
                 <span id="notesStatus" class="hint"></span>
             </div>
 
@@ -186,8 +189,11 @@
             </div>
             <div id="techNoteNewContent" class="note-editable" contenteditable="true"
                  data-placeholder="여기에 붙여넣기(Ctrl+V) 하세요..." onpaste="handleNotePaste(event, this)"></div>
+            <div class="note-attachments" id="newAttachments-tech"></div>
             <div class="toolbar" style="margin-top:8px">
                 <button type="button" class="btn btn-primary" onclick="addNote('tech')">추가</button>
+                <input type="file" id="newAttachFile-tech" multiple style="display:none" onchange="queueNewAttachments('tech')">
+                <button type="button" class="btn" onclick="document.getElementById('newAttachFile-tech').click()">📎 파일첨부</button>
                 <span id="techNotesStatus" class="hint"></span>
             </div>
 
@@ -222,8 +228,11 @@
             </div>
             <div id="backupNoteNewContent" class="note-editable" contenteditable="true"
                  data-placeholder="여기에 붙여넣기(Ctrl+V) 하세요..." onpaste="handleNotePaste(event, this)"></div>
+            <div class="note-attachments" id="newAttachments-backup"></div>
             <div class="toolbar" style="margin-top:8px">
                 <button type="button" class="btn btn-primary" onclick="addNote('backup')">추가</button>
+                <input type="file" id="newAttachFile-backup" multiple style="display:none" onchange="queueNewAttachments('backup')">
+                <button type="button" class="btn" onclick="document.getElementById('newAttachFile-backup').click()">📎 파일첨부</button>
                 <span id="backupNotesStatus" class="hint"></span>
             </div>
 
@@ -306,9 +315,9 @@
     // 334단계: 공통메모(jobradar)도 기술메모/백업화면과 똑같이 카카오톡 전송 버튼이
     // 붙도록 kakao:false -> true로 변경(서버에 jobradar-notes/{id}/kakao-send 추가).
     var NOTE_KINDS = {
-        jobradar: { apiUrl: '/memo-link/jobradar-notes', listId: 'jobradarNotesList', newEditorId: 'noteNewContent', statusId: 'notesStatus', cache: [], editingId: null, kakao: true, autoSaveId: null, editAutoSaveTimer: null, page: 0, size: 10, query: '', totalPages: 1 },
-        tech: { apiUrl: '/memo-link/tech-notes', listId: 'techNotesList', newEditorId: 'techNoteNewContent', statusId: 'techNotesStatus', cache: [], editingId: null, kakao: true, autoSaveId: null, editAutoSaveTimer: null, page: 0, size: 10, query: '', totalPages: 1 },
-        backup: { apiUrl: '/memo-link/backup-notes', listId: 'backupNotesList', newEditorId: 'backupNoteNewContent', statusId: 'backupNotesStatus', cache: [], editingId: null, kakao: true, autoSaveId: null, editAutoSaveTimer: null, page: 0, size: 10, query: '', totalPages: 1 }
+        jobradar: { apiUrl: '/memo-link/jobradar-notes', listId: 'jobradarNotesList', newEditorId: 'noteNewContent', statusId: 'notesStatus', cache: [], editingId: null, kakao: true, autoSaveId: null, editAutoSaveTimer: null, page: 0, size: 10, query: '', totalPages: 1, pendingFiles: [] },
+        tech: { apiUrl: '/memo-link/tech-notes', listId: 'techNotesList', newEditorId: 'techNoteNewContent', statusId: 'techNotesStatus', cache: [], editingId: null, kakao: true, autoSaveId: null, editAutoSaveTimer: null, page: 0, size: 10, query: '', totalPages: 1, pendingFiles: [] },
+        backup: { apiUrl: '/memo-link/backup-notes', listId: 'backupNotesList', newEditorId: 'backupNoteNewContent', statusId: 'backupNotesStatus', cache: [], editingId: null, kakao: true, autoSaveId: null, editAutoSaveTimer: null, page: 0, size: 10, query: '', totalPages: 1, pendingFiles: [] }
     };
     var notePagePrefix = { jobradar: 'jobradarNotes', tech: 'techNotes', backup: 'backupNotes' };
     var noteSavedRange = null;
@@ -659,6 +668,60 @@
             .catch(function () { alert('삭제 실패: 네트워크 오류'); });
     }
 
+    // 335단계: "새 메모 작성" 칸에서도 파일을 첨부할 수 있게 - 메모가 아직 저장 전이라
+    // noteId가 없으므로, 선택한 파일은 일단 브라우저에만 들고 있다가(pendingFiles),
+    // addNote()로 메모가 실제로 생성(또는 자동저장분이 최종화)된 뒤에 그 noteId로
+    // 한꺼번에 업로드한다.
+    function queueNewAttachments(kind) {
+        var input = document.getElementById('newAttachFile-' + kind);
+        var files = input.files;
+        if (!files || !files.length) { return; }
+        var state = NOTE_KINDS[kind];
+        for (var i = 0; i < files.length; i++) {
+            state.pendingFiles.push(files[i]);
+        }
+        input.value = '';
+        renderPendingAttachments(kind);
+    }
+
+    function renderPendingAttachments(kind) {
+        var state = NOTE_KINDS[kind];
+        var box = document.getElementById('newAttachments-' + kind);
+        if (!box) { return; }
+        if (!state.pendingFiles.length) {
+            box.innerHTML = '';
+            return;
+        }
+        box.innerHTML = state.pendingFiles.map(function (f, idx) {
+            return '<span class="note-attachment-chip">' +
+                '📎 ' + escapeHtmlText(f.name) +
+                ' <span class="hint">(' + formatFileSize(f.size) + ')</span>' +
+                ' <button type="button" class="btn-attachment-delete" title="첨부 취소" ' +
+                    'onclick="removePendingAttachment(\'' + kind + '\', ' + idx + ')">×</button>' +
+                '</span>';
+        }).join('');
+    }
+
+    function removePendingAttachment(kind, idx) {
+        NOTE_KINDS[kind].pendingFiles.splice(idx, 1);
+        renderPendingAttachments(kind);
+    }
+
+    /** 대기 중인 파일들을 순서대로(한 번에 몰리지 않게) 업로드한다. */
+    function uploadPendingFiles(kind, noteId, files) {
+        var headers = {};
+        headers[CSRF_HEADER] = CSRF_TOKEN;
+        var chain = Promise.resolve();
+        files.forEach(function (file) {
+            chain = chain.then(function () {
+                var formData = new FormData();
+                formData.append('file', file);
+                return fetch(noteAttachmentsUrl(kind, noteId), { method: 'POST', body: formData, headers: headers });
+            });
+        });
+        return chain;
+    }
+
     function renderNotes(kind) {
         var state = NOTE_KINDS[kind];
         var list = document.getElementById(state.listId);
@@ -806,12 +869,25 @@
                 }
                 editor.innerHTML = '';
                 localStorage.removeItem(noteDraftKey(kind));
+                // 335단계: "새 메모" 칸에 쌓아둔 첨부 대기 파일이 있으면, 방금 생성(또는
+                // 자동저장분이 최종화)된 메모의 noteId로 업로드한다. isUpdate인 경우
+                // data에는 id가 없으므로(PUT은 {ok:true}만 응답) autoSaveId를 null로
+                // 바꾸기 전에 먼저 읽어둔다.
+                var newNoteId = isUpdate ? state.autoSaveId : (data && data.id);
                 state.autoSaveId = null;
                 localStorage.removeItem(noteAutoSaveIdKey(kind));
                 status.textContent = '';
                 // 316단계: 새로 추가한 메모는 최신순 정렬상 1페이지에 나타나므로 이동
                 state.page = 0;
                 loadNotes(kind);
+                if (newNoteId && state.pendingFiles.length) {
+                    var filesToUpload = state.pendingFiles;
+                    state.pendingFiles = [];
+                    renderPendingAttachments(kind);
+                    uploadPendingFiles(kind, newNoteId, filesToUpload).then(function () {
+                        loadNoteAttachments(kind, newNoteId);
+                    });
+                }
             })
             .catch(function (e) {
                 status.textContent = '저장 실패: ' + (e && e.message ? e.message : '네트워크 오류');
