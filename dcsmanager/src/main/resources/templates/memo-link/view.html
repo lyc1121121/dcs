@@ -87,9 +87,21 @@
         .note-content { white-space: pre-wrap; word-break: break-word; font-size: 14px; line-height: 1.5; margin-bottom: 8px; }
         .note-content img { max-width: 100%; border-radius: 6px; margin: 6px 0; }
         .note-content a { color: #2f6fed; text-decoration: underline; word-break: break-all; }
-        .note-actions { display: flex; gap: 8px; }
+        .note-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         .note-item .note-editable { margin-bottom: 8px; background: #fff; }
         .btn-delete-note { border-color: #d9534f; color: #d9534f; }
+        /* 334단계 추가: 메모 첨부파일 칩 + 삭제(×) 버튼 */
+        .note-attachments { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+        .note-attachment-chip {
+            display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px;
+            background: #f1f3f5; border: 1px solid #ddd; font-size: 12px;
+        }
+        .note-attachment-chip a { color: #2f6fed; text-decoration: none; }
+        .note-attachment-chip a:hover { text-decoration: underline; }
+        .btn-attachment-delete {
+            border: none; background: none; color: #d9534f; cursor: pointer; font-weight: 700;
+            font-size: 13px; line-height: 1; padding: 0 2px;
+        }
 
         .page-content-edit textarea {
             width: 100%; min-height: 40vh; font-family: "D2Coding", "Consolas", monospace;
@@ -291,8 +303,10 @@
     // kind('jobradar'|'tech') 파라미터로 일반화했다. 기술메모에만 카카오톡 전송 버튼이
     // 붙는다(파일탐색기의 카카오톡 전송과 같은 취지 - 이번엔 파일이 아니라 메모 텍스트).
     // 316단계 추가: page/size/query/totalPages - 서버 페이지네이션+검색 상태
+    // 334단계: 공통메모(jobradar)도 기술메모/백업화면과 똑같이 카카오톡 전송 버튼이
+    // 붙도록 kakao:false -> true로 변경(서버에 jobradar-notes/{id}/kakao-send 추가).
     var NOTE_KINDS = {
-        jobradar: { apiUrl: '/memo-link/jobradar-notes', listId: 'jobradarNotesList', newEditorId: 'noteNewContent', statusId: 'notesStatus', cache: [], editingId: null, kakao: false, autoSaveId: null, editAutoSaveTimer: null, page: 0, size: 10, query: '', totalPages: 1 },
+        jobradar: { apiUrl: '/memo-link/jobradar-notes', listId: 'jobradarNotesList', newEditorId: 'noteNewContent', statusId: 'notesStatus', cache: [], editingId: null, kakao: true, autoSaveId: null, editAutoSaveTimer: null, page: 0, size: 10, query: '', totalPages: 1 },
         tech: { apiUrl: '/memo-link/tech-notes', listId: 'techNotesList', newEditorId: 'techNoteNewContent', statusId: 'techNotesStatus', cache: [], editingId: null, kakao: true, autoSaveId: null, editAutoSaveTimer: null, page: 0, size: 10, query: '', totalPages: 1 },
         backup: { apiUrl: '/memo-link/backup-notes', listId: 'backupNotesList', newEditorId: 'backupNoteNewContent', statusId: 'backupNotesStatus', cache: [], editingId: null, kakao: true, autoSaveId: null, editAutoSaveTimer: null, page: 0, size: 10, query: '', totalPages: 1 }
     };
@@ -544,15 +558,105 @@
               '<span id="kakaoStatus-' + kind + '-' + note.id + '" class="hint"></span>'
             : '';
         var linkBadge = noteHasLink(note.content) ? '<span class="note-link-badge" title="이 메모에 링크가 있습니다">🔗 링크</span>' : '';
+        // 334단계: 메모 파일첨부 - 목록은 비동기로 불러와서 아래 attachments-* 칸에
+        // 채워넣는다(renderNotes에서 noteItemHtml 호출 뒤 loadNoteAttachments 실행).
+        var attachmentsBoxId = 'attachments-' + kind + '-' + note.id;
+        var fileInputId = 'attachFile-' + kind + '-' + note.id;
         return '<div class="note-item" data-id="' + note.id + '">' +
             '<div class="note-meta">' + meta + linkBadge + '</div>' +
             '<div class="note-content">' + linkifyHtml(note.content) + '</div>' +
+            '<div class="note-attachments" id="' + attachmentsBoxId + '"></div>' +
             '<div class="note-actions">' +
                 '<button type="button" class="btn" onclick="startEditNote(\'' + kind + '\', ' + note.id + ')">수정</button>' +
                 '<button type="button" class="btn btn-delete-note" onclick="deleteNote(\'' + kind + '\', ' + note.id + ')">삭제</button>' +
                 kakaoBtn +
+                '<input type="file" id="' + fileInputId + '" style="display:none" onchange="uploadNoteAttachment(\'' + kind + '\', ' + note.id + ')">' +
+                '<button type="button" class="btn" onclick="document.getElementById(\'' + fileInputId + '\').click()">📎 파일첨부</button>' +
             '</div>' +
         '</div>';
+    }
+
+    // 334단계: 메모 파일첨부 - 추가/삭제/목록. 모든 탭(jobradar/tech/backup) 공통 API를 쓴다.
+    function noteAttachmentsUrl(kind, noteId) {
+        return '/memo-link/' + kind + '-notes/' + noteId + '/attachments';
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes == null) { return ''; }
+        if (bytes < 1024) { return bytes + 'B'; }
+        if (bytes < 1024 * 1024) { return (bytes / 1024).toFixed(1) + 'KB'; }
+        return (bytes / 1024 / 1024).toFixed(1) + 'MB';
+    }
+
+    function renderAttachments(kind, noteId, attachments) {
+        var box = document.getElementById('attachments-' + kind + '-' + noteId);
+        if (!box) { return; }
+        if (!attachments || !attachments.length) {
+            box.innerHTML = '';
+            return;
+        }
+        box.innerHTML = attachments.map(function (a) {
+            var downloadUrl = '/memo-link/attachments/' + a.id + '/download';
+            return '<span class="note-attachment-chip">' +
+                '<a href="' + downloadUrl + '" target="_blank">📄 ' + escapeHtmlText(a.originalName) + '</a>' +
+                ' <span class="hint">(' + formatFileSize(a.fileSize) + ')</span>' +
+                ' <button type="button" class="btn-attachment-delete" title="첨부파일 삭제" ' +
+                    'onclick="deleteNoteAttachment(\'' + kind + '\', ' + noteId + ', ' + a.id + ')">×</button>' +
+                '</span>';
+        }).join('');
+    }
+
+    function escapeHtmlText(s) {
+        var div = document.createElement('div');
+        div.textContent = s == null ? '' : s;
+        return div.innerHTML;
+    }
+
+    function loadNoteAttachments(kind, noteId) {
+        fetch(noteAttachmentsUrl(kind, noteId))
+            .then(function (r) { return r.json(); })
+            .then(function (list) { renderAttachments(kind, noteId, list); })
+            .catch(function () { /* 첨부파일 목록 로딩 실패는 조용히 무시 - 본문 표시에는 영향 없음 */ });
+    }
+
+    function uploadNoteAttachment(kind, noteId) {
+        var input = document.getElementById('attachFile-' + kind + '-' + noteId);
+        var file = input.files && input.files[0];
+        if (!file) { return; }
+        var formData = new FormData();
+        formData.append('file', file);
+        var headers = {};
+        headers[CSRF_HEADER] = CSRF_TOKEN;
+        fetch(noteAttachmentsUrl(kind, noteId), { method: 'POST', body: formData, headers: headers })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                input.value = '';
+                if (data.ok) {
+                    renderAttachments(kind, noteId, data.attachments);
+                } else {
+                    alert('첨부 실패: ' + (data.message || ''));
+                }
+            })
+            .catch(function () {
+                input.value = '';
+                alert('첨부 실패: 네트워크 오류');
+            });
+    }
+
+    function deleteNoteAttachment(kind, noteId, attachmentId) {
+        if (!confirm('이 첨부파일을 삭제할까요?')) { return; }
+        var headers = {};
+        headers[CSRF_HEADER] = CSRF_TOKEN;
+        fetch(noteAttachmentsUrl(kind, noteId) + '/' + attachmentId, { method: 'DELETE', headers: headers })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.ok) {
+                    renderAttachments(kind, noteId, data.attachments);
+                } else {
+                    alert('삭제 실패: ' + (data.message || ''));
+                }
+            })
+            .catch(function () { alert('삭제 실패: 네트워크 오류'); });
     }
 
     function renderNotes(kind) {
@@ -564,6 +668,13 @@
             return;
         }
         list.innerHTML = state.cache.map(function (n) { return noteItemHtml(kind, n); }).join('');
+        // 334단계: 첨부파일 목록은 노트 본문과 따로(비동기) 불러온다 - 매번 전체
+        // 메모를 조회할 때 첨부 데이터까지 같이 내려주면 느려지므로 분리.
+        state.cache.forEach(function (n) {
+            if (state.editingId !== n.id) {
+                loadNoteAttachments(kind, n.id);
+            }
+        });
     }
 
     // 316단계 추가: page/size/q를 서버에 그대로 전달해서, 서버가 페이지네이션과

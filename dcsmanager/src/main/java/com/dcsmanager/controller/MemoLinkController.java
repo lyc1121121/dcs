@@ -1,8 +1,11 @@
 package com.dcsmanager.controller;
 
 import com.dcsmanager.domain.BackupNote;
+import com.dcsmanager.domain.NoteAttachment;
+import com.dcsmanager.domain.NoteAttachmentMeta;
 import com.dcsmanager.domain.TechNote;
 import com.dcsmanager.repository.BackupNoteRepository;
+import com.dcsmanager.repository.NoteAttachmentRepository;
 import com.dcsmanager.repository.TechNoteRepository;
 import com.dcsmanager.service.KakaoNotifier;
 import com.dcsmanager.service.PageContentService;
@@ -28,17 +31,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * 162단계: TMSManager "JobRadar" 탭 오른쪽에 "메모연동" 탭을 신설 - JobRadar의 "메모"와
@@ -72,18 +81,24 @@ public class MemoLinkController {
     private final TechNoteRepository techNoteRepository;
     private final BackupNoteRepository backupNoteRepository;
     private final KakaoNotifier kakaoNotifier;
+    private final NoteAttachmentRepository noteAttachmentRepository;
+
+    // 334단계: 메모 파일첨부가 3개 탭(jobradar/tech/backup) 공통이라 kind 값을 여기로 검증한다.
+    private static final Set<String> VALID_NOTE_KINDS = new HashSet<>(Arrays.asList("jobradar", "tech", "backup"));
 
     public MemoLinkController(PageContentService pageContentService,
                                RestTemplate restTemplate,
                                TechNoteRepository techNoteRepository,
                                BackupNoteRepository backupNoteRepository,
                                KakaoNotifier kakaoNotifier,
+                               NoteAttachmentRepository noteAttachmentRepository,
                                @Value("${jobradar.base-url:http://jobradar:8090}") String jobradarBaseUrl) {
         this.pageContentService = pageContentService;
         this.restTemplate = restTemplate;
         this.techNoteRepository = techNoteRepository;
         this.backupNoteRepository = backupNoteRepository;
         this.kakaoNotifier = kakaoNotifier;
+        this.noteAttachmentRepository = noteAttachmentRepository;
         this.jobradarNotesUrl = jobradarBaseUrl + "/api/notes";
     }
 
@@ -148,7 +163,36 @@ public class MemoLinkController {
     @DeleteMapping("/jobradar-notes/{id}")
     @ResponseBody
     public ResponseEntity<String> deleteJobradarNote(@PathVariable long id) {
+        noteAttachmentRepository.deleteByNoteKindAndNoteId("jobradar", id);
         return proxy(HttpMethod.DELETE, jobradarNotesUrl + "/" + id, null);
+    }
+
+    /** 334단계: 공통메모(JobRadar) 하나를 카카오톡 "나에게 보내기"로 전송한다(기술메모/
+     * 백업화면과 동일한 방식). JobRadar는 별도 DB라 단건조회 API(GET /api/notes/{id},
+     * 334단계에서 새로 추가)를 호출해서 내용을 가져온다. */
+    @PostMapping("/jobradar-notes/{id}/kakao-send")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> kakaoSendJobradarNote(@PathVariable long id) {
+        Map<String, Object> body = new HashMap<>();
+        ResponseEntity<String> resp = proxy(HttpMethod.GET, jobradarNotesUrl + "/" + id, null);
+        if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
+            body.put("ok", false);
+            body.put("message", "메모를 찾을 수 없습니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+        }
+        String content;
+        try {
+            content = new com.fasterxml.jackson.databind.ObjectMapper().readTree(resp.getBody()).path("content").asText("");
+        } catch (Exception e) {
+            content = "";
+        }
+        String plainText = stripHtml(content);
+        if (plainText.length() > 180) {
+            plainText = plainText.substring(0, 180) + "...";
+        }
+        kakaoNotifier.notify("[공통메모]\n" + plainText);
+        body.put("ok", true);
+        return ResponseEntity.ok(body);
     }
 
     private ResponseEntity<String> proxy(HttpMethod method, String url, String jsonBody) {
@@ -279,6 +323,7 @@ public class MemoLinkController {
     @ResponseBody
     public Map<String, Object> deleteTechNote(@PathVariable long id) {
         techNoteRepository.deleteById(id);
+        noteAttachmentRepository.deleteByNoteKindAndNoteId("tech", id);
         Map<String, Object> body = new HashMap<>();
         body.put("ok", true);
         return body;
@@ -408,6 +453,7 @@ public class MemoLinkController {
     @ResponseBody
     public Map<String, Object> deleteBackupNote(@PathVariable long id) {
         backupNoteRepository.deleteById(id);
+        noteAttachmentRepository.deleteByNoteKindAndNoteId("backup", id);
         Map<String, Object> body = new HashMap<>();
         body.put("ok", true);
         return body;
@@ -445,5 +491,103 @@ public class MemoLinkController {
     /** LIKE 와일드카드(% _ \)를 사용자가 검색어로 입력해도 글자 그대로 검색되게 이스케이프. */
     private static String escapeLike(String s) {
         return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    }
+
+    // ---- 334단계: 메모 파일첨부 - 3개 탭(jobradar/tech/backup) 공통. jobradar는 별도
+    // DB/앱이라 연결을 FK로 걸 수 없어서, 여기서는 noteKind+noteId로 느슨하게만 연결하고
+    // 실제로 그 메모가 존재하는지는 확인하지 않는다(사용자가 화면에서 보고 있는 메모에만
+    // 올리므로 실무상 문제 없음). 파일은 디스크가 아니라 DB(LONGBLOB)에 저장한다 - 컨테이너의
+    // 쓰기 가능한 볼륨이 새로 필요 없게 하려고(호스트 /working 마운트는 읽기전용). ----
+
+    @GetMapping("/{kind}-notes/{noteId}/attachments")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> listAttachments(@PathVariable String kind, @PathVariable long noteId) {
+        if (!VALID_NOTE_KINDS.contains(kind)) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(attachmentMetaList(kind, noteId));
+    }
+
+    @PostMapping("/{kind}-notes/{noteId}/attachments")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> uploadAttachment(@PathVariable String kind, @PathVariable long noteId,
+                                                                  @RequestParam("file") MultipartFile file) {
+        Map<String, Object> body = new HashMap<>();
+        if (!VALID_NOTE_KINDS.contains(kind)) {
+            body.put("ok", false);
+            body.put("message", "잘못된 메모 종류입니다.");
+            return ResponseEntity.badRequest().body(body);
+        }
+        if (file == null || file.isEmpty()) {
+            body.put("ok", false);
+            body.put("message", "첨부할 파일을 선택하세요.");
+            return ResponseEntity.badRequest().body(body);
+        }
+        try {
+            NoteAttachment att = new NoteAttachment();
+            att.setNoteKind(kind);
+            att.setNoteId(noteId);
+            String name = file.getOriginalFilename();
+            att.setOriginalName(name == null || name.isEmpty() ? "(이름없음)" : name);
+            att.setContentType(file.getContentType());
+            att.setFileSize(file.getSize());
+            att.setData(file.getBytes());
+            att.setCreatedAt(LocalDateTime.now());
+            noteAttachmentRepository.save(att);
+        } catch (IOException e) {
+            body.put("ok", false);
+            body.put("message", "파일을 읽을 수 없습니다: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+        }
+        body.put("ok", true);
+        body.put("attachments", attachmentMetaList(kind, noteId));
+        return ResponseEntity.ok(body);
+    }
+
+    @DeleteMapping("/{kind}-notes/{noteId}/attachments/{attachmentId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteAttachment(@PathVariable String kind, @PathVariable long noteId,
+                                                                   @PathVariable long attachmentId) {
+        Map<String, Object> body = new HashMap<>();
+        Optional<NoteAttachment> found = noteAttachmentRepository.findById(attachmentId);
+        if (!found.isPresent() || !kind.equals(found.get().getNoteKind()) || noteId != found.get().getNoteId()) {
+            body.put("ok", false);
+            body.put("message", "첨부파일을 찾을 수 없습니다.");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+        }
+        noteAttachmentRepository.deleteById(attachmentId);
+        body.put("ok", true);
+        body.put("attachments", attachmentMetaList(kind, noteId));
+        return ResponseEntity.ok(body);
+    }
+
+    /** 첨부파일 원본을 그대로 내려준다(다운로드/새탭에서 열기). */
+    @GetMapping("/attachments/{attachmentId}/download")
+    public void downloadAttachment(@PathVariable long attachmentId, HttpServletResponse response) throws IOException {
+        Optional<NoteAttachment> found = noteAttachmentRepository.findById(attachmentId);
+        if (!found.isPresent()) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+        NoteAttachment att = found.get();
+        response.setContentType(att.getContentType() != null ? att.getContentType() : "application/octet-stream");
+        String encodedName = java.net.URLEncoder.encode(att.getOriginalName(), "UTF-8").replace("+", "%20");
+        response.setHeader("Content-Disposition", "inline; filename*=UTF-8''" + encodedName);
+        response.getOutputStream().write(att.getData());
+        response.getOutputStream().flush();
+    }
+
+    private List<Map<String, Object>> attachmentMetaList(String kind, long noteId) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (NoteAttachmentMeta m : noteAttachmentRepository.findMetaByNoteKindAndNoteId(kind, noteId)) {
+            Map<String, Object> e = new HashMap<>();
+            e.put("id", m.getId());
+            e.put("originalName", m.getOriginalName());
+            e.put("contentType", m.getContentType());
+            e.put("fileSize", m.getFileSize());
+            e.put("createdAt", m.getCreatedAt().format(ISO));
+            list.add(e);
+        }
+        return list;
     }
 }

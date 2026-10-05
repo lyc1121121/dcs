@@ -15,6 +15,12 @@ server:
       timeout: -1
 
 spring:
+  # 334단계: 메모 첨부파일 업로드 - 스프링부트 기본 제한(파일당 1MB, 요청당 10MB)으로는
+  # 사진 한두장만 넣어도 막혀서 넉넉하게 늘림.
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 25MB
   datasource:
     url: jdbc:mariadb://${DB_HOST:mariadb}:${DB_PORT:3306}/${DB_NAME:dcs}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
     username: ${DB_USERNAME:dcs}
